@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    min-height: 100vh;
+    background-color: #F8F5EE;
+    background-image: 
+      radial-gradient(at 15% 15%, rgba(247, 214, 204, 0.35) 0px, transparent 45%),
+      radial-gradient(at 85% 85%, rgba(138, 174, 161, 0.30) 0px, transparent 45%),
+      radial-gradient(at 50% 50%, rgba(239, 230, 218, 0.45) 0px, transparent 55%);
+    background-attachment: fixed;
+    color: #2D2623;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    background-color: #F7D6CC;
+    color: #2D2623;
+  }
+}
+
+/* ── Sculptural Console & Tablet Hierarchy ───────────────────────── */
+.master-console {
+  background: #FFFFFF;
+  border: 1px solid #EAE3D9;
+  border-radius: 2.5rem;
+  box-shadow: 
+    0 30px 70px -15px rgba(90, 70, 60, 0.08), 
+    0 4px 18px -2px rgba(90, 70, 60, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  position: relative;
+  /* overflow:hidden intentionally removed — it was blocking the 3D canvas
+     and preventing normal page scrolling. The canvas clips itself. */
+}
+
+@media (min-width: 640px) {
+  .master-console {
+    border-radius: 3rem;
+  }
+}
+
+.console-topbar {
+  border-bottom: 1px solid #EAE3D9;
+  background: #FCFAF7;
+}
+
+.sculptural-card {
+  background: #FCFAF7;
+  border: 1px solid #EAE3D9;
+  border-radius: 1.75rem;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sculptural-card:hover {
+  background: #FFFFFF;
+  border-color: #DDD4C7;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -8px rgba(90, 70, 60, 0.08);
+}
+
+.pebble-pill {
+  background: #F5F1EB;
+  border: 1px solid #EAE3D9;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px -1px rgba(90, 70, 60, 0.05);
+  transition: all 0.18s ease;
+}
+
+.pebble-pill:hover {
+  background: #EFE8DE;
+  border-color: #DDD4C7;
+  transform: translateY(-1px);
+}
+
+.pebble-dial {
+  background: #FFFFFF;
+  border: 1px solid #EAE3D9;
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px -4px rgba(130, 100, 80, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* ── Subtle Minimal Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(142, 128, 120, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(142, 128, 120, 0.45);
+}/* ── Body Viewer Canvas Container ─────────────────────────────────── */
+/* Clips only the 3D canvas; does NOT affect outer page scroll. */
+.body-viewer-canvas {
+  overflow: hidden;
+  border-radius: inherit;
+  position: relative;
+  contain: strict;
+}
+
+/* ── Canvas pointer events fix — allow scroll to pass through ──────── */
+.body-viewer-canvas canvas {
+  display: block; /* remove inline whitespace gap */
+  border-radius: inherit;
+}
