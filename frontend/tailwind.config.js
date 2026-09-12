@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ["class"],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,6 +8,39 @@ export default {
   theme: {
     extend: {
       colors: {
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
         editorial: {
           bg: "#FBF9F5",
           surface: "#FFFFFF",
@@ -27,7 +61,15 @@ export default {
           ochreLight: "#F8F3E5",
           blush: "#F9DDD6",
           sand: "#EFE6DA",
-        }
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+        '3xl': '1.75rem',
+        '4xl': '2.25rem',
+        '5xl': '3rem',
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
@@ -41,14 +83,7 @@ export default {
         'pebble': '0 8px 20px -4px rgba(130, 100, 80, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
         'subtle': '0 2px 6px 0 rgba(90, 70, 60, 0.04)',
       },
-      borderRadius: {
-        '3xl': '1.75rem',
-        '4xl': '2.25rem',
-        '5xl': '3rem',
-      }
     },
   },
   plugins: [],
-}
-
-
+};

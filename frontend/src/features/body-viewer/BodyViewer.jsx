@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Sparkles, Check } from 'lucide-react';
+import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Sparkles, Check, Maximize2, Minimize2 } from 'lucide-react';
 import { decodeModelResponse } from './modelLoader';
 import {
   SYSTEMS,
@@ -19,8 +19,12 @@ export default function BodyViewer({
   activeRegion = 'All',
   onSelectRegion,
   className = '',
+  isScanning = false,
+  showControls = true,
 }) {
   const containerRef = useRef(null);
+  const viewerWrapperRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [internalRegion, setInternalRegion] = useState('All');
   const [activeLayers, setActiveLayers] = useState({
     Muscles: true,
@@ -32,6 +36,30 @@ export default function BodyViewer({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [hoveredPart, setHoveredPart] = useState(null);
+
+  // Fullscreen toggle handler
+  const toggleFullscreen = useCallback(() => {
+    if (!viewerWrapperRef.current) return;
+    if (!document.fullscreenElement) {
+      viewerWrapperRef.current.requestFullscreen?.().catch((err) => {
+        console.warn('Fullscreen request failed:', err);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.().catch((err) => {
+        console.warn('Exit fullscreen failed:', err);
+      });
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
 
   const selectedRegion = activeRegion !== undefined ? activeRegion : internalRegion;
 
@@ -707,75 +735,99 @@ export default function BodyViewer({
 
   return (
     <div
-      className={`flex flex-col h-full w-full relative select-none ${className}`}
+      ref={viewerWrapperRef}
+      className={`flex flex-col h-full w-full relative select-none ${isFullscreen ? 'fixed inset-0 z-[9999] bg-[#FAFCFB] p-4' : ''} ${className}`}
     >
-      {/* ── Top Floating Bar: Layer Toggles & View Orientation ──────────── */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between flex-wrap gap-2 pointer-events-none">
-        
-        {/* Layer Visibility Pills */}
-        <div className="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-[#EAE3D9] shadow-sm">
-          <div className="flex items-center gap-1 text-[10px] font-bold text-[#8E8078] px-1 font-display">
-            <Layers className="h-3 w-3 text-[#D97757]" />
-            <span>Layers</span>
+      {/* ── Top Floating Bar: Vertical Layers (Left) & View Orientation + Fullscreen (Right) ──────────── */}
+      {showControls && !isScanning && !isLoading && (
+        <div className="absolute top-3 left-3 right-3 z-10 flex items-start justify-between gap-2 pointer-events-none animate-in fade-in duration-200">
+          
+          {/* Vertical Layer Visibility Stack (No Overlap) */}
+          <div className="pointer-events-auto flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xs">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground px-1 pb-0.5 border-b border-border/60 font-display">
+              <Layers className="h-3 w-3 text-primary" />
+              <span>Layers</span>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              {LAYER_DEFINITIONS.map(({ id, label, color }) => {
+                const isActive = activeLayers[id];
+                return (
+                  <button
+                    key={id}
+                    onClick={() => toggleLayer(id)}
+                    className={`text-[10px] px-2.5 py-1 rounded-full transition-all cursor-pointer font-semibold flex items-center justify-between gap-2 ${
+                      isActive
+                        ? 'bg-foreground text-background shadow-xs'
+                        : 'bg-muted text-muted-foreground hover:text-foreground opacity-70'
+                    }`}
+                    title={`Toggle ${label} visibility`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="h-2 w-2 rounded-full flex-shrink-0"
+                        style={{
+                          backgroundColor: isActive ? color : '#C0B8AD',
+                          boxShadow: isActive ? `0 0 6px ${color}88` : 'none',
+                        }}
+                      />
+                      <span>{label}</span>
+                    </div>
+                    {isActive && <Check className="h-2.5 w-2.5 opacity-80" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {LAYER_DEFINITIONS.map(({ id, label, color }) => {
-            const isActive = activeLayers[id];
-            return (
+          {/* Right Controls: View Presets (Front / Back / Side / 3/4) & Fullscreen Button */}
+          <div className="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-border shadow-xs">
+            <Compass className="h-3 w-3 text-muted-foreground ml-1 mr-0.5" />
+            {[
+              { id: 'front', label: 'Front' },
+              { id: 'three-quarter', label: '3/4' },
+              { id: 'side', label: 'Side' },
+              { id: 'back', label: 'Back' },
+            ].map(({ id, label }) => (
               <button
                 key={id}
-                onClick={() => toggleLayer(id)}
-                className={`text-[10px] px-2.5 py-1 rounded-full transition-all cursor-pointer font-semibold flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-[#2D2623] text-white shadow-xs'
-                    : 'bg-[#F5F1EB] text-[#8E8078] hover:text-[#2D2623] opacity-60'
+                onClick={() => handleViewChange(id)}
+                className={`text-[10px] px-2.5 py-1 rounded-full transition-all cursor-pointer font-semibold ${
+                  currentView === id
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
-                title={`Toggle ${label} visibility`}
               >
-                <span
-                  className="h-2 w-2 rounded-full flex-shrink-0"
-                  style={{
-                    backgroundColor: isActive ? color : '#C0B8AD',
-                    boxShadow: isActive ? `0 0 6px ${color}88` : 'none',
-                  }}
-                />
-                <span>{label}</span>
-                {isActive && <Check className="h-2.5 w-2.5 ml-0.5 opacity-80" />}
+                {label}
               </button>
-            );
-          })}
-        </div>
+            ))}
 
-        {/* View Presets (Front / Back / Side / 3/4) */}
-        <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-full border border-[#EAE3D9] shadow-sm">
-          <Compass className="h-3 w-3 text-[#8E8078] ml-1 mr-0.5" />
-          {[
-            { id: 'front', label: 'Front' },
-            { id: 'three-quarter', label: '3/4' },
-            { id: 'side', label: 'Side' },
-            { id: 'back', label: 'Back' },
-          ].map(({ id, label }) => (
+            <div className="h-4 w-px bg-border mx-0.5" />
+
+            {/* Fullscreen Toggle Button */}
             <button
-              key={id}
-              onClick={() => handleViewChange(id)}
-              className={`text-[10px] px-2 py-0.5 rounded-full transition-all cursor-pointer font-semibold ${
-                currentView === id
-                  ? 'bg-[#C84B31] text-white shadow-xs'
-                  : 'text-[#5E524C] hover:text-[#2D2623] hover:bg-[#F5F1EB]'
+              onClick={toggleFullscreen}
+              className={`p-1.5 rounded-full transition-all cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted ${
+                isFullscreen ? 'bg-accent text-primary' : ''
               }`}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Full Screen Anatomy Exploration'}
             >
-              {label}
+              {isFullscreen ? (
+                <Minimize2 className="h-3.5 w-3.5 text-primary" />
+              ) : (
+                <Maximize2 className="h-3.5 w-3.5" />
+              )}
             </button>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── 3D Canvas Container ───────────────────────────────────────────── */}
       <div
-        className="w-full flex-1 relative rounded-2xl overflow-hidden border border-[#EAE3D9]"
+        className="w-full flex-1 relative rounded-2xl overflow-hidden border border-border"
         style={{
           background:
-            'radial-gradient(ellipse at 50% 40%, #F5F1EB 0%, #EDE6DC 65%, #E3D9CC 100%)',
+            'radial-gradient(ellipse at 50% 40%, #FAFCFB 0%, #F0F7F4 65%, #E2EFE9 100%)',
           minHeight: '320px',
         }}
       >
@@ -784,24 +836,24 @@ export default function BodyViewer({
 
         {/* Loading Overlay */}
         {isLoading && (
-          <div className="absolute inset-0 bg-[#EDE6DC]/85 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-20">
+          <div className="absolute inset-0 bg-background/85 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-20">
             <div className="relative">
-              <Loader2 className="h-8 w-8 text-[#C84B31] animate-spin" />
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="h-3.5 w-3.5 text-[#D97757]" />
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
               </div>
             </div>
             <div className="flex flex-col items-center gap-1.5 text-center">
-              <span className="text-xs font-bold text-[#2D2623] font-display">
+              <span className="text-xs font-bold text-foreground font-display">
                 Assembling Clinical Human Atlas...
               </span>
-              <div className="w-48 bg-[#DCD4C8] h-1.5 rounded-full overflow-hidden">
+              <div className="w-48 bg-muted h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-[#C84B31] h-full transition-all duration-200 rounded-full"
+                  className="bg-primary h-full transition-all duration-200 rounded-full"
                   style={{ width: `${loadingProgress}%` }}
                 />
               </div>
-              <span className="text-[10px] font-semibold text-[#8E8078]">
+              <span className="text-[10px] font-semibold text-muted-foreground">
                 {loadingProgress}% • 2,234 anatomical structures
               </span>
             </div>
@@ -811,13 +863,13 @@ export default function BodyViewer({
         {/* Load Error Alert */}
         {loadError && (
           <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
-            <div className="text-sm font-bold text-[#C84B31] mb-1">
+            <div className="text-sm font-bold text-destructive mb-1">
               Viewer Initialization Notice
             </div>
-            <p className="text-xs text-[#5E524C] max-w-sm mb-3">{loadError}</p>
+            <p className="text-xs text-muted-foreground max-w-sm mb-3">{loadError}</p>
             <button
               onClick={() => window.location.reload()}
-              className="text-xs font-semibold px-4 py-1.5 rounded-full bg-[#2D2623] text-white"
+              className="text-xs font-semibold px-4 py-1.5 rounded-full bg-foreground text-background"
             >
               Reload Viewer
             </button>
@@ -825,14 +877,14 @@ export default function BodyViewer({
         )}
 
         {/* Hovered Anatomical Structure Badge */}
-        {hoveredPart && !isLoading && (
+        {hoveredPart && !isLoading && showControls && !isScanning && (
           <div className="absolute top-14 left-3 pointer-events-none z-10 animate-in fade-in duration-150">
-            <div className="bg-[#2D2623]/92 backdrop-blur-md text-white px-3 py-1.5 rounded-xl border border-white/10 shadow-lg flex flex-col gap-0.5 max-w-xs">
+            <div className="bg-foreground/95 backdrop-blur-md text-background px-3 py-1.5 rounded-xl border border-white/10 shadow-lg flex flex-col gap-0.5 max-w-xs">
               <span className="text-[11px] font-bold tracking-tight text-white line-clamp-1">
                 {hoveredPart.name}
               </span>
-              <div className="flex items-center gap-2 text-[9px] text-[#D8CFBC]">
-                <span className="font-semibold text-[#F7A072]">
+              <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
+                <span className="font-semibold text-primary">
                   {hoveredPart.system}
                 </span>
                 <span>•</span>
@@ -843,52 +895,54 @@ export default function BodyViewer({
         )}
 
         {/* ── Bottom Bar: Region Pills & Navigation ────────────────────── */}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between flex-wrap gap-2 pointer-events-none z-10">
-          
-          {/* Interaction Help Pill */}
-          <div className="pointer-events-auto flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#EAE3D9] shadow-sm text-[11px] text-[#5E524C]">
-            <span className="flex items-center gap-1 font-medium">
-              <Eye className="h-3.5 w-3.5 text-[#8E8078]" /> Drag · Scroll
-            </span>
-            <span className="text-[#DDD4C7]">·</span>
-            <span className="flex items-center gap-1 text-[#C84B31] font-semibold">
-              <Focus className="h-3.5 w-3.5" /> Auto-Focus
-            </span>
-          </div>
+        {showControls && !isScanning && !isLoading && (
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between flex-wrap gap-2 pointer-events-none z-10 animate-in fade-in duration-200">
+            
+            {/* Interaction Help Pill */}
+            <div className="pointer-events-auto flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-border shadow-xs text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1 font-medium">
+                <Eye className="h-3.5 w-3.5 text-muted-foreground" /> Drag · Scroll
+              </span>
+              <span className="text-border">·</span>
+              <span className="flex items-center gap-1 text-primary font-semibold">
+                <Focus className="h-3.5 w-3.5 text-primary" /> Auto-Focus
+              </span>
+            </div>
 
-          {/* Region Selection Pills */}
-          <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-full border border-[#EAE3D9] shadow-sm flex-wrap">
-            <button
-              onClick={() => handleRegionClick('All')}
-              className={`text-[10px] px-2.5 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1 font-semibold ${
-                selectedRegion === 'All' || selectedRegion === 'Full Body'
-                  ? 'bg-[#C84B31] text-white shadow-xs'
-                  : 'text-[#5E524C] hover:text-[#2D2623] hover:bg-[#F5F1EB]'
-              }`}
-            >
-              <RotateCcw className="h-2.5 w-2.5" /> Full Body
-            </button>
+            {/* Region Selection Pills */}
+            <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-full border border-border shadow-xs flex-wrap">
+              <button
+                onClick={() => handleRegionClick('All')}
+                className={`text-[10px] px-2.5 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1 font-semibold ${
+                  selectedRegion === 'All' || selectedRegion === 'Full Body'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <RotateCcw className="h-2.5 w-2.5" /> Full Body
+              </button>
 
-            {['Head', 'Thorax', 'Abdomen', 'Pelvis', 'Upper Limb', 'Lower Limb'].map(
-              (reg) => {
-                const isSelected = selectedRegion === reg;
-                return (
-                  <button
-                    key={reg}
-                    onClick={() => handleRegionClick(reg)}
-                    className={`text-[10px] px-2.5 py-1.5 rounded-full transition-all cursor-pointer font-semibold ${
-                      isSelected
-                        ? 'bg-[#C84B31] text-white shadow-xs'
-                        : 'text-[#5E524C] hover:text-[#2D2623] hover:bg-[#F5F1EB]'
-                    }`}
-                  >
-                    {reg}
-                  </button>
-                );
-              }
-            )}
+              {['Head', 'Thorax', 'Abdomen', 'Pelvis', 'Upper Limb', 'Lower Limb'].map(
+                (reg) => {
+                  const isSelected = selectedRegion === reg;
+                  return (
+                    <button
+                      key={reg}
+                      onClick={() => handleRegionClick(reg)}
+                      className={`text-[10px] px-2.5 py-1.5 rounded-full transition-all cursor-pointer font-semibold ${
+                        isSelected
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {reg}
+                    </button>
+                  );
+                }
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -17,8 +17,8 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
-export default function ResultsViewer({ analysisData, isLoading }) {
-  const [activeTab, setActiveTab] = useState('remedies'); // 'remedies' | 'why' | 'precautions' | 'conditions'
+export default function ResultsViewer({ analysisData, isLoading, className = '' }) {
+  const [activeTab, setActiveTab] = useState('conditions'); // 'conditions' | 'remedies' | 'why' | 'precautions'
   const [expandedId, setExpandedId] = useState(null);
 
   if (isLoading || !analysisData || !analysisData.possibleConditions) {
@@ -35,32 +35,45 @@ export default function ResultsViewer({ analysisData, isLoading }) {
   const renderRemedyIcon = (iconType) => {
     switch (iconType) {
       case 'tea':
-        return <Coffee className="h-4 w-4 text-[#D97757]" />;
+        return <Coffee className="h-4 w-4 text-primary" />;
       case 'cloud':
-        return <CloudRain className="h-4 w-4 text-[#8AAEA1]" />;
+        return <CloudRain className="h-4 w-4 text-primary" />;
       case 'droplet':
-        return <Droplet className="h-4 w-4 text-[#9BB2D4]" />;
+        return <Droplet className="h-4 w-4 text-primary" />;
       case 'moon':
-        return <Moon className="h-4 w-4 text-[#D6B87E]" />;
+        return <Moon className="h-4 w-4 text-primary" />;
       case 'pill':
-        return <Pill className="h-4 w-4 text-[#D97757]" />;
+        return <Pill className="h-4 w-4 text-primary" />;
       default:
-        return <Sparkles className="h-4 w-4 text-[#D97757]" />;
+        return <Sparkles className="h-4 w-4 text-primary" />;
     }
   };
 
   return (
-    <div className="master-console flex flex-col">
+    <div className={`master-console flex flex-col h-full overflow-hidden ${className}`}>
       
-      {/* ── Navigation Tabs Topbar ─────────────────────────────────── */}
+      {/* ── Navigation Tabs Topbar (Possibilities First) ─────────────────── */}
       <div className="console-topbar p-2.5 sm:p-3 flex items-center gap-1.5 overflow-x-auto flex-shrink-0">
+        <button
+          type="button"
+          onClick={() => setActiveTab('conditions')}
+          className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
+            activeTab === 'conditions'
+              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          }`}
+        >
+          <Activity className="h-3.5 w-3.5" />
+          <span>Possible Conditions ({possibleConditions.length})</span>
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('remedies')}
           className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
             activeTab === 'remedies'
-              ? 'bg-[#D97757] text-white shadow-pill font-bold'
-              : 'text-[#5E524C] hover:text-[#2D2623] hover:bg-[#F5F1EB]'
+              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           <Home className="h-3.5 w-3.5" />
@@ -72,8 +85,8 @@ export default function ResultsViewer({ analysisData, isLoading }) {
           onClick={() => setActiveTab('why')}
           className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
             activeTab === 'why'
-              ? 'bg-[#D97757] text-white shadow-pill font-bold'
-              : 'text-[#5E524C] hover:text-[#2D2623] hover:bg-[#F5F1EB]'
+              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           <HelpCircle className="h-3.5 w-3.5" />
@@ -85,30 +98,17 @@ export default function ResultsViewer({ analysisData, isLoading }) {
           onClick={() => setActiveTab('precautions')}
           className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
             activeTab === 'precautions'
-              ? 'bg-[#D97757] text-white shadow-pill font-bold'
-              : 'text-[#5E524C] hover:text-[#2D2623] hover:bg-[#F5F1EB]'
+              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           <AlertTriangle className="h-3.5 w-3.5" />
           <span>Precautions & Red Flags</span>
         </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('conditions')}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
-            activeTab === 'conditions'
-              ? 'bg-[#D97757] text-white shadow-pill font-bold'
-              : 'text-[#5E524C] hover:text-[#2D2623] hover:bg-[#F5F1EB]'
-          }`}
-        >
-          <Activity className="h-3.5 w-3.5" />
-          <span>Possible ({possibleConditions.length})</span>
-        </button>
       </div>
 
       {/* ── Tab Content Body ───────────────────────────────────── */}
-      <div className="p-4 sm:p-5">
+      <div className="p-4 sm:p-5 flex-1 overflow-y-auto min-h-0">
         
         {/* TAB 1: HOME REMEDIES & SELF-CARE */}
         {activeTab === 'remedies' && (
@@ -117,13 +117,13 @@ export default function ResultsViewer({ analysisData, isLoading }) {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-3.5"
           >
-            <div className="flex items-center justify-between border-b border-[#EAE3D9] pb-2.5">
+            <div className="flex items-center justify-between border-b border-border pb-2.5">
               <div>
-                <h4 className="text-sm sm:text-base font-bold text-[#2D2623] font-display flex items-center gap-2">
-                  <Home className="h-4 w-4 text-[#D97757]" />
+                <h4 className="text-sm sm:text-base font-bold text-foreground font-display flex items-center gap-2">
+                  <Home className="h-4 w-4 text-primary" />
                   <span>Recommended Safe Home Remedies</span>
                 </h4>
-                <p className="text-[11px] text-[#5E524C] font-medium mt-0.5">
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
                   Evidence-based self-care steps for symptom relief while monitoring recovery
                 </p>
               </div>
@@ -141,10 +141,10 @@ export default function ResultsViewer({ analysisData, isLoading }) {
                       {renderRemedyIcon(remedy.icon)}
                     </div>
                     <div>
-                      <h5 className="text-xs sm:text-sm font-bold text-[#2D2623] font-display mb-0.5">
+                      <h5 className="text-xs sm:text-sm font-bold text-foreground font-display mb-0.5">
                         {remedy.title}
                       </h5>
-                      <p className="text-xs text-[#5E524C] leading-relaxed font-medium">
+                      <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                         {remedy.instructions}
                       </p>
                     </div>
@@ -152,7 +152,7 @@ export default function ResultsViewer({ analysisData, isLoading }) {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-[#5E524C]">
+              <p className="text-xs text-muted-foreground">
                 Rest in a comfortable position, stay hydrated, and consult a doctor if symptoms worsen.
               </p>
             )}
@@ -166,12 +166,12 @@ export default function ResultsViewer({ analysisData, isLoading }) {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-3.5"
           >
-            <div className="border-b border-[#EAE3D9] pb-2.5">
-              <h4 className="text-sm sm:text-base font-bold text-[#2D2623] font-display flex items-center gap-2">
-                <HelpCircle className="h-4 w-4 text-[#D97757]" />
+            <div className="border-b border-border pb-2.5">
+              <h4 className="text-sm sm:text-base font-bold text-foreground font-display flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-primary" />
                 <span>Why This Happens (Underlying Mechanisms)</span>
               </h4>
-              <p className="text-[11px] text-[#5E524C] font-medium mt-0.5">
+              <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
                 Simplified clinical explanation of physiological triggers in your body
               </p>
             </div>
@@ -183,17 +183,17 @@ export default function ResultsViewer({ analysisData, isLoading }) {
                     key={idx}
                     className="sculptural-card p-3.5 flex items-start gap-3"
                   >
-                    <div className="h-5 w-5 rounded-full bg-[#D97757] text-white font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-pill font-display">
+                    <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs font-display">
                       {idx + 1}
                     </div>
-                    <p className="text-xs sm:text-sm text-[#2D2623] leading-relaxed font-medium">
+                    <p className="text-xs sm:text-sm text-foreground leading-relaxed font-medium">
                       {cause}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-[#5E524C]">
+              <p className="text-xs text-muted-foreground">
                 Symptom triggers are linked to localized tissue irritation or inflammation.
               </p>
             )}
@@ -209,17 +209,17 @@ export default function ResultsViewer({ analysisData, isLoading }) {
           >
             {/* Precautions to take */}
             <div>
-              <h4 className="text-xs sm:text-sm font-bold text-[#2D2623] font-display mb-2 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-[#3F6457]" />
+              <h4 className="text-xs sm:text-sm font-bold text-foreground font-display mb-2 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
                 <span>Precautions To Take Right Now</span>
               </h4>
               <div className="flex flex-col gap-2">
                 {storyline?.precautions?.map((prec, idx) => (
                   <div
                     key={idx}
-                    className="bg-[#FCFAF7] rounded-xl p-3 border border-[#EAE3D9] text-xs text-[#2D2623] font-medium flex items-start gap-2.5"
+                    className="bg-accent/40 rounded-xl p-3 border border-border text-xs text-foreground font-medium flex items-start gap-2.5"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#8AAEA1] flex-shrink-0 mt-1.5" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0 mt-1.5" />
                     <span>{prec}</span>
                   </div>
                 ))}
@@ -228,15 +228,15 @@ export default function ResultsViewer({ analysisData, isLoading }) {
 
             {/* Warning Red Flags */}
             {storyline?.redFlags && storyline.redFlags.length > 0 && (
-              <div className="bg-[#FCEAE4] border border-[#F7D6CC] rounded-2xl p-3.5 flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-[#8B2E1E] font-bold text-xs font-display">
-                  <ShieldAlert className="h-4 w-4 text-[#D97757] flex-shrink-0" />
+              <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-3.5 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-destructive font-bold text-xs font-display">
+                  <ShieldAlert className="h-4 w-4 text-destructive flex-shrink-0" />
                   <span>Urgent Red Flags (Seek Immediate Medical Care If Experienced):</span>
                 </div>
-                <ul className="flex flex-col gap-1.5 text-xs text-[#8B2E1E] font-medium pl-1">
+                <ul className="flex flex-col gap-1.5 text-xs text-destructive font-medium pl-1">
                   {storyline.redFlags.map((flag, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="text-[#D97757] font-bold">•</span>
+                      <span className="text-destructive font-bold">•</span>
                       <span>{flag}</span>
                     </li>
                   ))}
@@ -253,17 +253,17 @@ export default function ResultsViewer({ analysisData, isLoading }) {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-3.5"
           >
-            <div className="flex items-end justify-between border-b border-[#EAE3D9] pb-2.5">
+            <div className="flex items-end justify-between border-b border-border pb-2.5">
               <div>
-                <h4 className="text-sm sm:text-base font-bold text-[#2D2623] font-display flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-[#D97757]" />
+                <h4 className="text-sm sm:text-base font-bold text-foreground font-display flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-primary" />
                   <span>Ranked Differential Conditions</span>
                 </h4>
-                <p className="text-[11px] text-[#5E524C] font-medium mt-0.5">
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
                   Ordered by probability based on clinical pattern matching
                 </p>
               </div>
-              <span className="text-[11px] font-semibold text-[#5E524C] bg-[#FCFAF7] px-2.5 py-0.5 rounded-full border border-[#EAE3D9]">
+              <span className="text-[11px] font-semibold text-foreground bg-accent px-2.5 py-0.5 rounded-full border border-border">
                 {possibleConditions.length} Candidates
               </span>
             </div>
@@ -279,8 +279,8 @@ export default function ResultsViewer({ analysisData, isLoading }) {
                     className={`
                       rounded-2xl transition-all duration-200 border
                       ${isExpanded
-                        ? 'bg-white border-[#D97757]/60 shadow-subtle p-3.5'
-                        : 'bg-[#FCFAF7] border-[#EAE3D9] hover:bg-white p-3'
+                        ? 'bg-white border-primary/60 shadow-md ring-2 ring-primary/20 p-3.5'
+                        : 'bg-white border-border hover:border-primary/40 p-3'
                       }
                     `}
                   >
@@ -288,24 +288,24 @@ export default function ResultsViewer({ analysisData, isLoading }) {
                       onClick={() => toggleExpand(item.id)}
                       className="flex items-start gap-3 cursor-pointer select-none"
                     >
-                      <div className="text-xs font-bold text-[#D97757] pt-0.5 w-5 font-display">
+                      <div className="text-xs font-bold text-primary pt-0.5 w-5 font-display">
                         #{String(index + 1).padStart(2, '0')}
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <h5 className="text-xs sm:text-sm font-bold text-[#2D2623] truncate font-display">
+                          <h5 className="text-xs sm:text-sm font-bold text-foreground truncate font-display">
                             {item.name}
                           </h5>
                           
                           <div className="flex items-center gap-1.5 flex-shrink-0">
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#F7D6CC] text-[#8B2E1E] font-mono">
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-accent text-accent-foreground font-mono border border-border">
                               {scorePercent}%
                             </span>
                             {isExpanded ? (
-                              <ChevronUp className="h-3.5 w-3.5 text-[#D97757]" />
+                              <ChevronUp className="h-3.5 w-3.5 text-primary" />
                             ) : (
-                              <ChevronDown className="h-3.5 w-3.5 text-[#8E8078]" />
+                              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                             )}
                           </div>
                         </div>
@@ -313,15 +313,15 @@ export default function ResultsViewer({ analysisData, isLoading }) {
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className={`text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${
                             item.confidenceCategory === 'High'
-                              ? 'bg-[#E5EFEA] text-[#2C4F43] border border-[#8AAEA1]/50'
+                              ? 'bg-accent text-accent-foreground border border-primary/30'
                               : item.confidenceCategory === 'Moderate'
-                              ? 'bg-[#F8F3E5] text-[#6E5421] border border-[#D6B87E]/50'
-                              : 'bg-[#F5F1EB] text-[#5E524C] border border-[#EAE3D9]'
+                              ? 'bg-muted text-foreground border border-border'
+                              : 'bg-muted text-muted-foreground border border-border'
                           }`}>
                             {item.confidenceCategory} Match
                           </span>
-                          <span className="text-[#DDD4C7]">·</span>
-                          <span className="text-[10px] font-mono text-[#5E524C] font-semibold">
+                          <span className="text-muted-foreground/40">·</span>
+                          <span className="text-[10px] font-mono text-muted-foreground font-semibold">
                             ICD-10: {item.icd10Code}
                           </span>
                         </div>
@@ -334,21 +334,21 @@ export default function ResultsViewer({ analysisData, isLoading }) {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="pl-8 mt-2.5 pt-2.5 border-t border-[#EAE3D9] flex flex-col gap-2"
+                          className="pl-8 mt-2.5 pt-2.5 border-t border-border flex flex-col gap-2"
                         >
-                          <p className="text-xs text-[#5E524C] leading-relaxed font-normal">
+                          <p className="text-xs text-muted-foreground leading-relaxed font-normal">
                             {item.description}
                           </p>
 
                           {item.supportingSymptoms && item.supportingSymptoms.length > 0 && (
                             <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                              <span className="text-[10px] uppercase tracking-wider text-[#D97757] font-bold mr-1 font-display">
+                              <span className="text-[10px] uppercase tracking-wider text-primary font-bold mr-1 font-display">
                                 Matching Symptoms:
                               </span>
                               {item.supportingSymptoms.map((sym) => (
                                 <span
                                   key={sym}
-                                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#E5EFEA] text-[#2C4F43] border border-[#8AAEA1]/40"
+                                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent text-accent-foreground border border-border"
                                 >
                                   {sym}
                                 </span>
@@ -369,6 +369,3 @@ export default function ResultsViewer({ analysisData, isLoading }) {
     </div>
   );
 }
-
-
-

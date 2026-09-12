@@ -25,16 +25,16 @@ export default function ScoreGauge({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#EFE8DE"
+            stroke="var(--border)"
             strokeWidth={strokeWidth}
             fill="transparent"
           />
           {/* Active Gradient Stroke */}
           <defs>
             <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#8AAEA1" />
-              <stop offset="50%" stopColor="#E5CBA2" />
-              <stop offset="100%" stopColor="#D97757" />
+              <stop offset="0%" stopColor="#6EE7B7" />
+              <stop offset="50%" stopColor="#10B981" />
+              <stop offset="100%" stopColor="#059669" />
             </linearGradient>
           </defs>
           <circle
@@ -53,10 +53,10 @@ export default function ScoreGauge({
 
         {/* Center Metric Display */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="font-display text-2xl sm:text-3xl font-bold text-[#2D2623] tracking-tight leading-none">
+          <span className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-none">
             {clampedValue}%
           </span>
-          <span className="text-[10px] font-semibold text-[#8E8078] uppercase tracking-wider mt-0.5">
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">
             {confidence}
           </span>
         </div>

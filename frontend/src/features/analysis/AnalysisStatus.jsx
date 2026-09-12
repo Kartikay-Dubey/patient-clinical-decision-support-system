@@ -98,26 +98,26 @@ export default function AnalysisStatus({ onStepChange, onComplete }) {
       </div>
 
       {/* Header Eyebrow */}
-      <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#E5EFEA] text-[#2C4F43] border border-[#8AAEA1]/40 text-xs font-semibold uppercase tracking-wider mb-4 font-display">
-        <Sparkles className="h-3.5 w-3.5 text-[#3F6457]" />
+      <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-accent text-accent-foreground border border-primary/20 text-xs font-semibold uppercase tracking-wider mb-4 font-display">
+        <Sparkles className="h-3.5 w-3.5 text-primary" />
         <span>Clinical Reasoning Engine</span>
       </div>
 
       {/* Dynamic Headline */}
-      <h3 className="font-display text-xl sm:text-2xl font-bold text-[#2D2623] tracking-tight mb-2 min-h-[2.2rem] flex items-center justify-center">
+      <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight mb-2 min-h-[2.2rem] flex items-center justify-center">
         {isFinished ? (
-          <span className="text-[#3F6457] font-bold">Evaluation Complete</span>
+          <span className="text-primary font-bold">Evaluation Complete</span>
         ) : (
           <span>{ANALYSIS_STEPS[currentStep]}</span>
         )}
       </h3>
 
-      <p className="text-xs sm:text-sm text-[#5E524C] mb-8 max-w-xs leading-relaxed font-medium">
+      <p className="text-xs sm:text-sm text-muted-foreground mb-8 max-w-xs leading-relaxed font-medium">
         Correlating reported symptom indicators with anatomical localizations.
       </p>
 
       {/* Step Sequence List */}
-      <div className="flex flex-col gap-3.5 w-full max-w-sm text-left bg-[#FCFAF7] rounded-3xl p-5 border border-[#EAE3D9] shadow-subtle mb-4">
+      <div className="flex flex-col gap-3.5 w-full max-w-sm text-left bg-white rounded-3xl p-5 border border-border shadow-sm mb-4">
         {ANALYSIS_STEPS.map((text, idx) => {
           const isCompleted = idx < currentStep || isFinished;
           const isCurrent = idx === currentStep && !isFinished;
@@ -135,25 +135,25 @@ export default function AnalysisStatus({ onStepChange, onComplete }) {
             >
               <div className="pebble-dial w-7 h-7 flex items-center justify-center flex-shrink-0 bg-white">
                 {isCompleted ? (
-                  <Check className="h-3.5 w-3.5 text-[#3F6457] stroke-[2.5]" aria-hidden="true" />
+                  <Check className="h-3.5 w-3.5 text-primary stroke-[2.5]" aria-hidden="true" />
                 ) : isCurrent ? (
                   prefersReducedMotion ? (
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#D97757]" aria-hidden="true" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-primary" aria-hidden="true" />
                   ) : (
-                    <Loader2 className="h-3.5 w-3.5 text-[#D97757] animate-spin" aria-hidden="true" />
+                    <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" aria-hidden="true" />
                   )
                 ) : (
-                  <div className="h-1.5 w-1.5 rounded-full bg-[#DDD4C7]" aria-hidden="true" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" aria-hidden="true" />
                 )}
               </div>
 
               <span
                 className={`text-xs sm:text-sm ${
                   isCurrent
-                    ? 'text-[#D97757] font-bold font-display'
+                    ? 'text-primary font-bold font-display'
                     : isCompleted
-                    ? 'text-[#2D2623] font-medium'
-                    : 'text-[#8E8078]'
+                    ? 'text-foreground font-medium'
+                    : 'text-muted-foreground'
                 }`}
               >
                 {text}

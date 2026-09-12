@@ -21,23 +21,23 @@ export default function WaveGraphic({ className = '', height = 110, opacity = 1 
         <defs>
           {/* Wave Gradients */}
           <linearGradient id="waveSage" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8AAEA1" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#A4C4B8" stopOpacity="0.15" />
+            <stop offset="0%" stopColor="#A7F3D0" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#D1FAE5" stopOpacity="0.1" />
           </linearGradient>
 
           <linearGradient id="waveOchre" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#E5CBA2" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#F5E3C8" stopOpacity="0.2" />
+            <stop offset="0%" stopColor="#6EE7B7" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#A7F3D0" stopOpacity="0.15" />
           </linearGradient>
 
           <linearGradient id="waveBlush" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F9C1BB" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#FCE4E1" stopOpacity="0.25" />
+            <stop offset="0%" stopColor="#34D399" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#6EE7B7" stopOpacity="0.1" />
           </linearGradient>
 
           <linearGradient id="waveTerracotta" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#E29578" stopOpacity="0.7" />
-            <stop offset="100%" stopColor="#F7D6CC" stopOpacity="0.3" />
+            <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#34D399" stopOpacity="0.05" />
           </linearGradient>
         </defs>
 

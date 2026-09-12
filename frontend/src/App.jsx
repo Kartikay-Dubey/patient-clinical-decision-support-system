@@ -103,10 +103,12 @@ export default function App() {
                   onComplete={handleAnalysisComplete}
                 />
               </div>
-              <div className="lg:col-span-4 h-[460px] master-console p-3">
+              <div className="lg:col-span-4 h-[460px] master-console p-3 overflow-hidden">
                 <BodyViewer
                   activeRegion={activeRegion}
                   onSelectRegion={() => {}}
+                  showControls={false}
+                  isScanning={true}
                 />
               </div>
             </motion.div>
@@ -120,23 +122,23 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.35 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch"
             >
               {/* Left Column: Unified 3D Anatomy + Primary Assessment Master Console */}
-              <div className="lg:col-span-7 flex flex-col master-console">
+              <div className="lg:col-span-7 flex flex-col master-console h-full justify-between overflow-hidden">
                 
                 {/* Console Topbar: Region & System Info + Start Over */}
                 <div className="console-topbar px-5 py-3 flex items-center justify-between gap-3 flex-shrink-0">
                   <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-full bg-[#FCEAE4] text-[#C84B31] flex items-center justify-center">
+                    <div className="h-7 w-7 rounded-full bg-accent text-primary flex items-center justify-center border border-primary/20">
                       <Activity className="h-3.5 w-3.5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-display text-sm sm:text-base font-bold text-[#2D2623] tracking-tight">
+                        <h3 className="font-display text-sm sm:text-base font-bold text-foreground tracking-tight">
                           {analysisData.bodyLocalization?.primaryRegion || 'Anatomical'} Region
                         </h3>
-                        <span className="text-[11px] font-semibold text-[#5E524C] bg-[#F5F1EB] px-2.5 py-0.5 rounded-full border border-[#EAE3D9]">
+                        <span className="text-[11px] font-semibold text-muted-foreground bg-accent px-2.5 py-0.5 rounded-full border border-border">
                           {analysisData.bodyLocalization?.bodySystem || 'General System'}
                         </span>
                       </div>
@@ -145,16 +147,16 @@ export default function App() {
 
                   <button
                     onClick={handleReset}
-                    className="text-xs font-semibold text-[#5E524C] hover:text-[#2D2623] bg-white hover:bg-[#F5F1EB] px-3.5 py-1.5 rounded-full border border-[#EAE3D9] shadow-pill transition-all flex items-center gap-1.5 cursor-pointer font-display"
+                    className="text-xs font-semibold text-foreground hover:text-primary bg-white hover:bg-accent px-3.5 py-1.5 rounded-full border border-border shadow-xs transition-all flex items-center gap-1.5 cursor-pointer font-display"
                   >
-                    <RotateCcw className="h-3 w-3" /> Start Over
+                    <RotateCcw className="h-3 w-3 text-primary" /> Start Over
                   </button>
                 </div>
 
                 {/* 3D Anatomy Viewer Canvas */}
                 <div
-                  className="relative p-2"
-                  style={{ height: 'min(55vh, 520px)', minHeight: '300px' }}
+                  className="relative p-2 flex-1"
+                  style={{ minHeight: '340px' }}
                 >
                   <BodyViewer
                     activeRegion={activeRegion}
@@ -163,32 +165,32 @@ export default function App() {
                 </div>
 
                 {/* Integrated Primary Clinical Assessment Footer */}
-                <div className="border-t border-[#EAE3D9] bg-[#FCFAF7] p-4 sm:p-5 flex-shrink-0">
+                <div className="border-t border-border bg-white p-4 sm:p-5 flex-shrink-0">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
                     
                     {/* Assessment Details */}
                     <div className="flex-1 flex flex-col gap-1.5 text-center sm:text-left">
                       <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#FCEAE4] text-[#C84B31] text-[11px] font-semibold font-display">
-                          <Sparkles className="h-3 w-3" />
+                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold font-display border border-primary/20">
+                          <Sparkles className="h-3 w-3 text-primary" />
                           <span>Primary Clinical Assessment</span>
                         </span>
-                        <span className="text-[11px] font-medium text-[#5E524C] bg-[#F5F1EB] px-2.5 py-0.5 rounded-full border border-[#EAE3D9]">
+                        <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-0.5 rounded-full border border-border">
                           ICD-10: {topCondition?.icd10Code || 'N/A'}
                         </span>
                       </div>
 
-                      <h4 className="font-display text-lg sm:text-xl font-bold text-[#2D2623] tracking-tight">
+                      <h4 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
                         {topCondition?.name || 'Clinical Finding'}
                       </h4>
 
-                      <p className="text-xs text-[#5E524C] font-medium leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3">
+                      <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3">
                         {analysisData.storyline?.patientOverview || topCondition?.description}
                       </p>
 
                       {analysisData.storyline?.careTimeline && (
-                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] text-[#8E8078] pt-0.5">
-                          <Clock className="h-3 w-3 text-[#D97757]" />
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] text-muted-foreground pt-0.5">
+                          <Clock className="h-3 w-3 text-primary" />
                           <span className="font-medium">{analysisData.storyline.careTimeline}</span>
                         </div>
                       )}
@@ -211,8 +213,8 @@ export default function App() {
               </div>
 
               {/* Right Column: Guidance Tabs & Clinical Content */}
-              <div className="lg:col-span-5">
-                <ResultsViewer analysisData={analysisData} isLoading={false} />
+              <div className="lg:col-span-5 flex flex-col h-full">
+                <ResultsViewer analysisData={analysisData} isLoading={false} className="h-full" />
               </div>
 
             </motion.div>

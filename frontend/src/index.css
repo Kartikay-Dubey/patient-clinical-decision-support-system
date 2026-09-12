@@ -1,3 +1,6 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,80 +8,208 @@
 @layer base {
   body {
     min-height: 100vh;
-    background-color: #F8F5EE;
+    background-color: #FAFCFB;
     background-image: 
-      radial-gradient(at 15% 15%, rgba(247, 214, 204, 0.35) 0px, transparent 45%),
-      radial-gradient(at 85% 85%, rgba(138, 174, 161, 0.30) 0px, transparent 45%),
-      radial-gradient(at 50% 50%, rgba(239, 230, 218, 0.45) 0px, transparent 55%);
+      radial-gradient(at 10% 10%, rgba(110, 231, 183, 0.15) 0px, transparent 40%),
+      radial-gradient(at 90% 90%, rgba(52, 211, 153, 0.12) 0px, transparent 45%),
+      radial-gradient(at 50% 50%, rgba(240, 253, 244, 0.6) 0px, transparent 60%);
     background-attachment: fixed;
-    color: #2D2623;
+    color: oklch(0.3175 0.0703 151.3429);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-background text-foreground;
+    letter-spacing: var(--tracking-normal);
   }
 
   ::selection {
-    background-color: #F7D6CC;
-    color: #2D2623;
+    background-color: oklch(0.8508 0.2090 144.5886 / 40%);
+    color: oklch(0.3175 0.0703 151.3429);
+  }
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: Geist, ui-sans-serif, sans-serif, system-ui;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --radius: 1.875rem;
+    --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+    --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+    --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+    --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+    --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  }
+  :root {
+    --background: oklch(1.0000 0 0);
+    --foreground: oklch(0.3175 0.0703 151.3429);
+    --card: oklch(1.0000 0 0);
+    --card-foreground: oklch(0.3175 0.0703 151.3429);
+    --popover: oklch(1.0000 0 0);
+    --popover-foreground: oklch(0.3175 0.0703 151.3429);
+    --primary: oklch(0.6988 0.2141 142.7064);
+    --primary-foreground: oklch(1.0000 0 0);
+    --secondary: oklch(0.8508 0.2090 144.5886);
+    --secondary-foreground: oklch(0.5213 0.1747 141.8410);
+    --muted: oklch(0.9612 0 0);
+    --muted-foreground: oklch(0.6215 0.0337 155.5031);
+    --accent: oklch(0.9657 0.0574 147.4175);
+    --accent-foreground: oklch(0.3175 0.0703 151.3429);
+    --destructive: oklch(0.5770 0.2450 27.3250);
+    --border: oklch(0.9551 0 0);
+    --input: oklch(0.9220 0 0);
+    --ring: oklch(0.7080 0 0);
+    --chart-1: oklch(0.8801 0.2283 149.3424);
+    --chart-2: oklch(0.6987 0.1762 149.6475);
+    --chart-3: oklch(0.5778 0.1411 150.1095);
+    --chart-4: oklch(0.4832 0.1149 150.4168);
+    --chart-5: oklch(0.3175 0.0703 151.3429);
+    --radius: 1.875rem;
+    --sidebar: oklch(0.9850 0 0);
+    --sidebar-foreground: oklch(0.1450 0 0);
+    --sidebar-primary: oklch(0.7269 0.2257 143.4279);
+    --sidebar-primary-foreground: oklch(0.7920 0.1884 141.4268);
+    --sidebar-accent: oklch(0.9326 0.1213 146.1262);
+    --sidebar-accent-foreground: oklch(0.2050 0 0);
+    --sidebar-border: oklch(0.8101 0.1455 143.6017);
+    --sidebar-ring: oklch(0.6542 0.0943 145.7090);
+    --destructive-foreground: oklch(1 0 0);
+    --font-sans: Geist, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --shadow-color: #c4c4c4;
+    --shadow-opacity: 0.45;
+    --shadow-blur: 30px;
+    --shadow-spread: 0px;
+    --shadow-offset-x: 0;
+    --shadow-offset-y: 1px;
+    --letter-spacing: 0.075em;
+    --spacing: 0.25rem;
+    --shadow-2xs: 0 1px 30px 0px hsl(0 0% 76.8627% / 0.23);
+    --shadow-xs: 0 1px 30px 0px hsl(0 0% 76.8627% / 0.23);
+    --shadow-sm: 0 1px 30px 0px hsl(0 0% 76.8627% / 0.45), 0 1px 2px -1px hsl(0 0% 76.8627% / 0.45);
+    --shadow: 0 1px 30px 0px hsl(0 0% 76.8627% / 0.45), 0 1px 2px -1px hsl(0 0% 76.8627% / 0.45);
+    --shadow-md: 0 1px 30px 0px hsl(0 0% 76.8627% / 0.45), 0 2px 4px -1px hsl(0 0% 76.8627% / 0.45);
+    --shadow-lg: 0 1px 30px 0px hsl(0 0% 76.8627% / 0.45), 0 4px 6px -1px hsl(0 0% 76.8627% / 0.45);
+    --shadow-xl: 0 1px 30px 0px hsl(0 0% 76.8627% / 0.45), 0 8px 10px -1px hsl(0 0% 76.8627% / 0.45);
+    --shadow-2xl: 0 1px 30px 0px hsl(0 0% 76.8627% / 1.13);
+    --tracking-normal: 0.075em;
+  }
+  .dark {
+    --background: oklch(0 0 0);
+    --foreground: oklch(0.9480 0.1063 136.6182);
+    --card: oklch(0.1394 0.0188 144.4860);
+    --card-foreground: oklch(0.6018 0.1867 143.5144);
+    --popover: oklch(0.2235 0.0648 138.5618);
+    --popover-foreground: oklch(0.9761 0 0);
+    --primary: oklch(0.7562 0.1879 135.2688);
+    --primary-foreground: oklch(0.3317 0.0955 140.6918);
+    --secondary: oklch(0.4064 0.1223 139.4284);
+    --secondary-foreground: oklch(0.7562 0.1879 135.2688);
+    --muted: oklch(0.2127 0.0637 136.4132);
+    --muted-foreground: oklch(0.8872 0.0915 135.0400);
+    --accent: oklch(0.3216 0.0820 135.2826);
+    --accent-foreground: oklch(1.0000 0 0);
+    --destructive: oklch(0.7040 0.1910 22.2160);
+    --border: oklch(0.1878 0.0495 136.3376);
+    --input: oklch(0.3208 0.0916 137.1633);
+    --ring: oklch(0.4773 0.1390 138.5743);
+    --chart-1: oklch(0.8022 0.2412 136.8747);
+    --chart-2: oklch(0.7045 0.2326 142.7036);
+    --chart-3: oklch(0.5041 0.1565 139.3263);
+    --chart-4: oklch(0.4169 0.1362 141.7016);
+    --chart-5: oklch(0.3287 0.1114 142.3311);
+    --sidebar: oklch(0.1670 0.0467 149.3431);
+    --sidebar-foreground: oklch(0.9304 0.1324 142.7013);
+    --sidebar-primary: oklch(0.6871 0.2295 142.8480);
+    --sidebar-primary-foreground: oklch(0.5383 0.1493 143.4647);
+    --sidebar-accent: oklch(0.2652 0.0710 132.5432);
+    --sidebar-accent-foreground: oklch(0.6472 0.1551 139.2676);
+    --sidebar-border: oklch(0.4949 0.1102 137.9803);
+    --sidebar-ring: oklch(0.6576 0.0279 17.8828);
+    --destructive-foreground: oklch(0.9850 0 0);
+    --radius: 1.875rem;
+    --font-sans: Geist, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --shadow-color: oklch(0 0 0);
+    --shadow-opacity: 0.45;
+    --shadow-blur: 30px;
+    --shadow-spread: 0px;
+    --shadow-offset-x: 0;
+    --shadow-offset-y: 1px;
+    --letter-spacing: 0.075em;
+    --spacing: 0.25rem;
+    --shadow-2xs: 0 1px 30px 0px hsl(0 0% 0% / 0.23);
+    --shadow-xs: 0 1px 30px 0px hsl(0 0% 0% / 0.23);
+    --shadow-sm: 0 1px 30px 0px hsl(0 0% 0% / 0.45), 0 1px 2px -1px hsl(0 0% 0% / 0.45);
+    --shadow: 0 1px 30px 0px hsl(0 0% 0% / 0.45), 0 1px 2px -1px hsl(0 0% 0% / 0.45);
+    --shadow-md: 0 1px 30px 0px hsl(0 0% 0% / 0.45), 0 2px 4px -1px hsl(0 0% 0% / 0.45);
+    --shadow-lg: 0 1px 30px 0px hsl(0 0% 0% / 0.45), 0 4px 6px -1px hsl(0 0% 0% / 0.45);
+    --shadow-xl: 0 1px 30px 0px hsl(0 0% 0% / 0.45), 0 8px 10px -1px hsl(0 0% 0% / 0.45);
+    --shadow-2xl: 0 1px 30px 0px hsl(0 0% 0% / 1.13);
+  }
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-/* ── Sculptural Console & Tablet Hierarchy ───────────────────────── */
+/* ── Master Console & Card Hierarchy ───────────────────────── */
 .master-console {
   background: #FFFFFF;
-  border: 1px solid #EAE3D9;
-  border-radius: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 1.875rem);
   box-shadow: 
-    0 30px 70px -15px rgba(90, 70, 60, 0.08), 
-    0 4px 18px -2px rgba(90, 70, 60, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 20px 50px -12px rgba(16, 185, 129, 0.08), 
+    0 4px 20px -2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
   position: relative;
-  /* overflow:hidden intentionally removed — it was blocking the 3D canvas
-     and preventing normal page scrolling. The canvas clips itself. */
 }
 
 @media (min-width: 640px) {
   .master-console {
-    border-radius: 3rem;
+    border-radius: var(--radius, 1.875rem);
   }
 }
 
 .console-topbar {
-  border-bottom: 1px solid #EAE3D9;
-  background: #FCFAF7;
+  border-bottom: 1px solid var(--border);
+  background: #F8FBF9;
 }
 
 .sculptural-card {
-  background: #FCFAF7;
-  border: 1px solid #EAE3D9;
-  border-radius: 1.75rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius, 1.875rem) * 0.75);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.03);
 }
 
 .sculptural-card:hover {
   background: #FFFFFF;
-  border-color: #DDD4C7;
+  border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px -8px rgba(90, 70, 60, 0.08);
+  box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.12);
 }
 
 .pebble-pill {
-  background: #F5F1EB;
-  border: 1px solid #EAE3D9;
+  background: var(--accent);
+  border: 1px solid var(--border);
   border-radius: 9999px;
-  box-shadow: 0 2px 6px -1px rgba(90, 70, 60, 0.05);
+  box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.03);
   transition: all 0.18s ease;
 }
 
 .pebble-pill:hover {
-  background: #EFE8DE;
-  border-color: #DDD4C7;
+  background: var(--secondary);
+  border-color: var(--primary);
   transform: translateY(-1px);
 }
 
 .pebble-dial {
   background: #FFFFFF;
-  border: 1px solid #EAE3D9;
+  border: 1px solid var(--border);
   border-radius: 9999px;
-  box-shadow: 0 8px 20px -4px rgba(130, 100, 80, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 /* ── Subtle Minimal Scrollbar ───────────────────────────────────────── */
