@@ -756,10 +756,10 @@ export default function BodyViewer({
                   <button
                     key={id}
                     onClick={() => toggleLayer(id)}
-                    className={`text-[10px] px-2.5 py-1 rounded-full transition-all cursor-pointer font-semibold flex items-center justify-between gap-2 ${
+                    className={`text-[10px] px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-semibold flex items-center justify-between gap-2 border ${
                       isActive
-                        ? 'bg-foreground text-background shadow-xs'
-                        : 'bg-muted text-muted-foreground hover:text-foreground opacity-70'
+                        ? 'bg-accent text-foreground border-primary/25 shadow-subtle'
+                        : 'bg-white text-muted-foreground border-border hover:text-foreground hover:bg-muted/60'
                     }`}
                     title={`Toggle ${label} visibility`}
                   >
@@ -767,13 +767,13 @@ export default function BodyViewer({
                       <span
                         className="h-2 w-2 rounded-full flex-shrink-0"
                         style={{
-                          backgroundColor: isActive ? color : '#C0B8AD',
+                          backgroundColor: isActive ? color : '#94A3B8',
                           boxShadow: isActive ? `0 0 6px ${color}88` : 'none',
                         }}
                       />
                       <span>{label}</span>
                     </div>
-                    {isActive && <Check className="h-2.5 w-2.5 opacity-80" />}
+                    {isActive && <Check className="h-2.5 w-2.5 text-primary" />}
                   </button>
                 );
               })}

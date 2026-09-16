@@ -1,0 +1,652 @@
+{
+  "version": "1.0.0",
+  "description": "Deterministic condition-to-anatomy mapping for all 49 DDXPlus pathologies with BodyParts3D / Human Atlas FMA linkages",
+  "mappings": {
+    "Spontaneous pneumothorax": {
+      "icd10-id": "J93",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Pleura / Lungs",
+      "spatialCoordinates": {"x": 0.0, "y": 1.25, "z": 0.25},
+      "atlas_structures": [
+        {"name": "Visceral pleura / Lung parenchyma", "conceptId": "FMA54824", "partId": "FJ2441"},
+        {"name": "Lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"}
+      ],
+      "status": "mapped"
+    },
+    "Cluster headache": {
+      "icd10-id": "g44.009",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Neurological",
+      "targetOrgan": "Trigeminal Nerve / Sphenopalatine Ganglion / Orbit",
+      "spatialCoordinates": {"x": 0.03, "y": 1.68, "z": 0.12},
+      "atlas_structures": [
+        {"name": "Left ophthalmic nerve", "conceptId": "FMA52623", "partId": "FJ1312"},
+        {"name": "Left frontal nerve", "conceptId": "FMA52640", "partId": "FJ1290"},
+        {"name": "Left ciliary ganglion", "conceptId": "FMA53550", "partId": "FJ1288"}
+      ],
+      "status": "mapped"
+    },
+    "Boerhaave": {
+      "icd10-id": "K22.3",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Abdomen", "Neck"],
+      "bodySystem": "Gastrointestinal",
+      "targetOrgan": "Esophagus",
+      "spatialCoordinates": {"x": 0.0, "y": 1.2, "z": 0.05},
+      "atlas_structures": [
+        {"name": "Esophagus", "conceptId": "FMA7131", "partId": "FJ2563"},
+        {"name": "Stomach", "conceptId": "FMA7148", "partId": "FJ2564"}
+      ],
+      "status": "mapped"
+    },
+    "Spontaneous rib fracture": {
+      "icd10-id": "S22.9",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Back"],
+      "bodySystem": "Musculoskeletal",
+      "targetOrgan": "Rib Cage / Intercostal Wall",
+      "spatialCoordinates": {"x": 0.12, "y": 1.22, "z": 0.22},
+      "atlas_structures": [
+        {"name": "External intercostal muscle", "conceptId": "FMA9756", "partId": "FJ1451"},
+        {"name": "Set of anterior intercostal veins", "conceptId": "FMA70839", "partId": "FJ1985"}
+      ],
+      "status": "mapped"
+    },
+    "GERD": {
+      "icd10-id": "K21",
+      "primaryRegion": "Abdomen",
+      "secondaryRegions": ["Thorax"],
+      "bodySystem": "Gastrointestinal",
+      "targetOrgan": "Lower Esophageal Sphincter / Stomach",
+      "spatialCoordinates": {"x": 0.0, "y": 1.05, "z": 0.18},
+      "atlas_structures": [
+        {"name": "Stomach", "conceptId": "FMA7148", "partId": "FJ2564"},
+        {"name": "Esophagus", "conceptId": "FMA7131", "partId": "FJ2563"}
+      ],
+      "status": "mapped"
+    },
+    "HIV (initial infection)": {
+      "icd10-id": "B20",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Head", "Abdomen", "Pelvis"],
+      "bodySystem": "Lymphatic & Immune",
+      "targetOrgan": "Lymphoid Tissue / Spleen / Thymus",
+      "spatialCoordinates": {"x": 0.0, "y": 1.15, "z": 0.15},
+      "atlas_structures": [
+        {"name": "Spleen", "conceptId": "FMA7196", "partId": "FJ2561"},
+        {"name": "Left lobe of thymus", "conceptId": "FMA71195", "partId": "FJ3150"},
+        {"name": "Right lobe of thymus", "conceptId": "FMA71194", "partId": "FJ3151"}
+      ],
+      "status": "mapped"
+    },
+    "Anemia": {
+      "icd10-id": "D64.9",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Head", "Upper Limb", "Lower Limb"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Hematopoietic & Circulatory System",
+      "spatialCoordinates": {"x": 0.0, "y": 1.2, "z": 0.28},
+      "atlas_structures": [
+        {"name": "Spleen", "conceptId": "FMA7196", "partId": "FJ2561"},
+        {"name": "Coronary sinus", "conceptId": "FMA4706", "partId": "FJ2655"},
+        {"name": "Arch of aorta", "conceptId": "FMA3768", "partId": "FJ3411"}
+      ],
+      "status": "mapped"
+    },
+    "Viral pharyngitis": {
+      "icd10-id": "J02.9",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Pharynx / Supraglottic Mucosa",
+      "spatialCoordinates": {"x": 0.0, "y": 1.54, "z": 0.08},
+      "atlas_structures": [
+        {"name": "Epiglottis", "conceptId": "FMA55130", "partId": "FJ2770"},
+        {"name": "Gingiva of upper jaw", "conceptId": "FMA59763", "partId": "FJ1252"}
+      ],
+      "status": "mapped"
+    },
+    "Inguinal hernia": {
+      "icd10-id": "K40",
+      "primaryRegion": "Pelvis",
+      "secondaryRegions": ["Abdomen"],
+      "bodySystem": "Gastrointestinal",
+      "targetOrgan": "Inguinal Canal / Groin Wall",
+      "spatialCoordinates": {"x": 0.08, "y": 0.82, "z": 0.16},
+      "atlas_structures": [
+        {"name": "Superficial perineal muscle", "conceptId": "FMA19728", "partId": "FJ1450"},
+        {"name": "Pubic hair / Groin reference", "conceptId": "FMA54319", "partId": "FJ2815"}
+      ],
+      "status": "mapped"
+    },
+    "Myasthenia gravis": {
+      "icd10-id": "G70.0",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Thorax", "Upper Limb"],
+      "bodySystem": "Neurological",
+      "targetOrgan": "Neuromuscular Junctions / Ocular Musculature / Thymus",
+      "spatialCoordinates": {"x": 0.0, "y": 1.62, "z": 0.12},
+      "atlas_structures": [
+        {"name": "Left levator palpebrae superioris", "conceptId": "FMA49049", "partId": "FJ1306"},
+        {"name": "Left superior rectus", "conceptId": "FMA49045", "partId": "FJ1323"},
+        {"name": "Left lobe of thymus", "conceptId": "FMA71195", "partId": "FJ3150"}
+      ],
+      "status": "mapped"
+    },
+    "Whooping cough": {
+      "icd10-id": "A37",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Head"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Tracheobronchial Tree",
+      "spatialCoordinates": {"x": 0.0, "y": 1.32, "z": 0.2},
+      "atlas_structures": [
+        {"name": "Trachea", "conceptId": "FMA7394", "partId": "FJ2541"},
+        {"name": "Inferior lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"}
+      ],
+      "status": "mapped"
+    },
+    "Anaphylaxis": {
+      "icd10-id": "T78.0",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Head", "Abdomen", "Skin"],
+      "bodySystem": "Immune & Systemic",
+      "targetOrgan": "Larynx / Bronchi / Skin",
+      "spatialCoordinates": {"x": 0.0, "y": 1.35, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Epiglottis", "conceptId": "FMA55130", "partId": "FJ2770"},
+        {"name": "Trachea", "conceptId": "FMA7394", "partId": "FJ2541"},
+        {"name": "Skin", "conceptId": "FMA7163", "partId": "FJ2810"}
+      ],
+      "status": "mapped"
+    },
+    "Epiglottitis": {
+      "icd10-id": "J05.1",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Neck", "Thorax"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Epiglottis / Supraglottis",
+      "spatialCoordinates": {"x": 0.0, "y": 1.5, "z": 0.1},
+      "atlas_structures": [
+        {"name": "Epiglottis", "conceptId": "FMA55130", "partId": "FJ2770"},
+        {"name": "Trachea", "conceptId": "FMA7394", "partId": "FJ2541"}
+      ],
+      "status": "mapped"
+    },
+    "Guillain-Barré syndrome": {
+      "icd10-id": "G61.0",
+      "primaryRegion": "Lower Limb",
+      "secondaryRegions": ["Upper Limb", "Thorax"],
+      "bodySystem": "Neurological",
+      "targetOrgan": "Peripheral Nerve Roots / Motor Neurons",
+      "spatialCoordinates": {"x": 0.12, "y": 0.45, "z": 0.0},
+      "atlas_structures": [
+        {"name": "Right anterior spinal artery", "conceptId": "FMA50532", "partId": "FJ1657"},
+        {"name": "Interosseous membrane of right leg", "conceptId": "FMA35192", "partId": "FJ1392"}
+      ],
+      "status": "mapped"
+    },
+    "Acute laryngitis": {
+      "icd10-id": "J04.0",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Vocal Folds / Larynx",
+      "spatialCoordinates": {"x": 0.0, "y": 1.48, "z": 0.12},
+      "atlas_structures": [
+        {"name": "Left vocal ligament", "conceptId": "FMA55246", "partId": "FJ2787"},
+        {"name": "Left vocalis", "conceptId": "FMA46593", "partId": "FJ2788"}
+      ],
+      "status": "mapped"
+    },
+    "Croup": {
+      "icd10-id": "J05.0",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Thorax"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Subglottic Larynx / Trachea",
+      "spatialCoordinates": {"x": 0.0, "y": 1.45, "z": 0.15},
+      "atlas_structures": [
+        {"name": "Trachea", "conceptId": "FMA7394", "partId": "FJ2541"},
+        {"name": "Epiglottis", "conceptId": "FMA55130", "partId": "FJ2770"}
+      ],
+      "status": "mapped"
+    },
+    "PSVT": {
+      "icd10-id": "I47.1",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Heart (Atria & Conduction System)",
+      "spatialCoordinates": {"x": 0.02, "y": 1.22, "z": 0.28},
+      "atlas_structures": [
+        {"name": "Coronary sinus", "conceptId": "FMA4706", "partId": "FJ2655"},
+        {"name": "Anterior leaflet of mitral valve", "conceptId": "FMA7242", "partId": "FJ2420"}
+      ],
+      "status": "mapped"
+    },
+    "Atrial fibrillation": {
+      "icd10-id": "I48.91",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Heart (Left & Right Atria)",
+      "spatialCoordinates": {"x": 0.02, "y": 1.22, "z": 0.28},
+      "atlas_structures": [
+        {"name": "Coronary sinus", "conceptId": "FMA4706", "partId": "FJ2655"},
+        {"name": "Anterior leaflet of tricuspid valve", "conceptId": "FMA7238", "partId": "FJ2421"}
+      ],
+      "status": "mapped"
+    },
+    "Bronchiectasis": {
+      "icd10-id": "J47",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Bronchi / Bronchial Tree",
+      "spatialCoordinates": {"x": 0.0, "y": 1.26, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Inferior lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"},
+        {"name": "Left medial basal segmental bronchial tree", "conceptId": "FMA68230", "partId": "FJ2442"}
+      ],
+      "status": "mapped"
+    },
+    "Allergic sinusitis": {
+      "icd10-id": "J30",
+      "primaryRegion": "Head",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Paranasal Sinuses / Nasal Mucosa",
+      "spatialCoordinates": {"x": 0.0, "y": 1.62, "z": 0.16},
+      "atlas_structures": [
+        {"name": "Left lateral nasal cartilage", "conceptId": "FMA59513", "partId": "FJ2556"},
+        {"name": "Septal nasal cartilage", "conceptId": "FMA59503", "partId": "FJ2557"},
+        {"name": "Right lateral nasal cartilage", "conceptId": "FMA59512", "partId": "FJ2558"}
+      ],
+      "status": "mapped"
+    },
+    "Chagas": {
+      "icd10-id": "B57",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Abdomen"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Heart / Esophagus / Colon",
+      "spatialCoordinates": {"x": 0.0, "y": 1.2, "z": 0.25},
+      "atlas_structures": [
+        {"name": "Coronary sinus", "conceptId": "FMA4706", "partId": "FJ2655"},
+        {"name": "Esophagus", "conceptId": "FMA7131", "partId": "FJ2563"},
+        {"name": "Descending colon", "conceptId": "FMA14547", "partId": "FJ2567"}
+      ],
+      "status": "mapped"
+    },
+    "Scombroid food poisoning": {
+      "icd10-id": "T61.1",
+      "primaryRegion": "Abdomen",
+      "secondaryRegions": ["Head", "Thorax", "Skin"],
+      "bodySystem": "Gastrointestinal",
+      "targetOrgan": "Gastrointestinal Tract / Facial Cutaneous Capillaries",
+      "spatialCoordinates": {"x": 0.0, "y": 1.0, "z": 0.18},
+      "atlas_structures": [
+        {"name": "Stomach", "conceptId": "FMA7148", "partId": "FJ2564"},
+        {"name": "Skin", "conceptId": "FMA7163", "partId": "FJ2810"}
+      ],
+      "status": "mapped"
+    },
+    "Myocarditis": {
+      "icd10-id": "I51.4",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Myocardium (Cardiac Muscle)",
+      "spatialCoordinates": {"x": 0.02, "y": 1.22, "z": 0.28},
+      "atlas_structures": [
+        {"name": "Trunk of anterior interventricular branch of left coronary artery", "conceptId": "FMA74912", "partId": "FJ2631"},
+        {"name": "Coronary sinus", "conceptId": "FMA4706", "partId": "FJ2655"}
+      ],
+      "status": "mapped"
+    },
+    "Larygospasm": {
+      "icd10-id": "J38.5",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Laryngeal Vocal Cords",
+      "spatialCoordinates": {"x": 0.0, "y": 1.48, "z": 0.12},
+      "atlas_structures": [
+        {"name": "Left vocalis", "conceptId": "FMA46593", "partId": "FJ2788"},
+        {"name": "Left vocal ligament", "conceptId": "FMA55246", "partId": "FJ2787"}
+      ],
+      "status": "mapped"
+    },
+    "Acute dystonic reactions": {
+      "icd10-id": "G24.02",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Neck", "Upper Limb"],
+      "bodySystem": "Neurological",
+      "targetOrgan": "Basal Ganglia / Craniocervical Muscles",
+      "spatialCoordinates": {"x": 0.0, "y": 1.66, "z": 0.06},
+      "atlas_structures": [
+        {"name": "Midbrain", "conceptId": "FMA61993", "partId": "FJ1770"},
+        {"name": "Peduncle of midbrain", "conceptId": "FMA62394", "partId": "FJ1774"}
+      ],
+      "status": "mapped"
+    },
+    "Localized edema": {
+      "icd10-id": "R60.0",
+      "primaryRegion": "Lower Limb",
+      "secondaryRegions": ["Upper Limb"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Peripheral Interstitial Tissue / Venous Microvasculature",
+      "spatialCoordinates": {"x": 0.1, "y": 0.35, "z": 0.05},
+      "atlas_structures": [
+        {"name": "Tributary of plantar venous arch", "conceptId": "FMA44499", "partId": "FJ2113"},
+        {"name": "Lateral head of right gastrocnemius", "conceptId": "FMA45960", "partId": "FJ1394"}
+      ],
+      "status": "mapped"
+    },
+    "SLE": {
+      "icd10-id": "M32",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Head", "Upper Limb", "Lower Limb", "Abdomen"],
+      "bodySystem": "Immune & Systemic",
+      "targetOrgan": "Systemic Connective Tissue / Serosa / Microvasculature",
+      "spatialCoordinates": {"x": 0.0, "y": 1.18, "z": 0.18},
+      "atlas_structures": [
+        {"name": "Spleen", "conceptId": "FMA7196", "partId": "FJ2561"},
+        {"name": "Left kidney", "conceptId": "FMA7205", "partId": "FJ3145"}
+      ],
+      "status": "mapped"
+    },
+    "Tuberculosis": {
+      "icd10-id": "a15",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Pulmonary Apices / Lungs",
+      "spatialCoordinates": {"x": 0.05, "y": 1.34, "z": 0.2},
+      "atlas_structures": [
+        {"name": "Left apical segmental bronchial tree", "conceptId": "FMA68223", "partId": "FJ2444"},
+        {"name": "Inferior lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"}
+      ],
+      "status": "mapped"
+    },
+    "Unstable angina": {
+      "icd10-id": "I20.0",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck", "Upper Limb"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Coronary Arteries / Left Ventricular Myocardium",
+      "spatialCoordinates": {"x": 0.02, "y": 1.22, "z": 0.28},
+      "atlas_structures": [
+        {"name": "Trunk of anterior interventricular branch of left coronary artery", "conceptId": "FMA74912", "partId": "FJ2631"},
+        {"name": "Diagonal branch of anterior descending branch of left coronary artery", "conceptId": "FMA3860", "partId": "FJ2633"}
+      ],
+      "status": "mapped"
+    },
+    "Stable angina": {
+      "icd10-id": "I20.9",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck", "Upper Limb"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Coronary Arteries / Myocardium",
+      "spatialCoordinates": {"x": 0.02, "y": 1.22, "z": 0.28},
+      "atlas_structures": [
+        {"name": "Trunk of anterior interventricular branch of left coronary artery", "conceptId": "FMA74912", "partId": "FJ2631"},
+        {"name": "First right anterior branch of anterior interventricular branch of left coronary artery", "conceptId": "FMA3872", "partId": "FJ2632"}
+      ],
+      "status": "mapped"
+    },
+    "Ebola": {
+      "icd10-id": "a98.4",
+      "primaryRegion": "Abdomen",
+      "secondaryRegions": ["Thorax", "Head", "Skin"],
+      "bodySystem": "Immune & Systemic",
+      "targetOrgan": "Vascular Endothelium / Hepatosplenic System",
+      "spatialCoordinates": {"x": 0.0, "y": 1.02, "z": 0.16},
+      "atlas_structures": [
+        {"name": "Hepatic portal vein", "conceptId": "FMA50735", "partId": "FJ1853"},
+        {"name": "Spleen", "conceptId": "FMA7196", "partId": "FJ2561"}
+      ],
+      "status": "mapped"
+    },
+    "Acute otitis media": {
+      "icd10-id": "H66.90",
+      "primaryRegion": "Head",
+      "secondaryRegions": [],
+      "bodySystem": "Sensory",
+      "targetOrgan": "Middle Ear / Tympanic Cavity",
+      "spatialCoordinates": {"x": 0.07, "y": 1.62, "z": 0.02},
+      "atlas_structures": [
+        {"name": "Left infratrochlear nerve", "conceptId": "FMA52699", "partId": "FJ1296"},
+        {"name": "Right infratrochlear nerve", "conceptId": "FMA52698", "partId": "FJ1347"}
+      ],
+      "status": "mapped"
+    },
+    "Panic attack": {
+      "icd10-id": "f41",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Head"],
+      "bodySystem": "Neurological",
+      "targetOrgan": "Autonomic Nervous System / Heart",
+      "spatialCoordinates": {"x": 0.0, "y": 1.22, "z": 0.26},
+      "atlas_structures": [
+        {"name": "Commissure of fornix of forebrain", "conceptId": "FMA61970", "partId": "FJ1741"},
+        {"name": "Coronary sinus", "conceptId": "FMA4706", "partId": "FJ2655"}
+      ],
+      "status": "mapped"
+    },
+    "Bronchospasm / acute asthma exacerbation": {
+      "icd10-id": "J45",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Bronchial Tree / Smooth Muscle",
+      "spatialCoordinates": {"x": 0.0, "y": 1.25, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Inferior lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"},
+        {"name": "Left superior segmental bronchial tree", "conceptId": "FMA68228", "partId": "FJ2448"}
+      ],
+      "status": "mapped"
+    },
+    "Bronchitis": {
+      "icd10-id": "j40",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Tracheobronchial Mucosa",
+      "spatialCoordinates": {"x": 0.0, "y": 1.3, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Trachea", "conceptId": "FMA7394", "partId": "FJ2541"},
+        {"name": "Inferior lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"}
+      ],
+      "status": "mapped"
+    },
+    "Acute COPD exacerbation / infection": {
+      "icd10-id": "j44.1",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Small Airways / Alveoli",
+      "spatialCoordinates": {"x": 0.0, "y": 1.24, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Left medial basal segmental bronchial tree", "conceptId": "FMA68230", "partId": "FJ2442"},
+        {"name": "Left posterior basal segmental bronchial tree", "conceptId": "FMA68233", "partId": "FJ2446"}
+      ],
+      "status": "mapped"
+    },
+    "Pulmonary embolism": {
+      "icd10-id": "i26",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Lower Limb"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Pulmonary Arterial Vasculature",
+      "spatialCoordinates": {"x": 0.0, "y": 1.28, "z": 0.24},
+      "atlas_structures": [
+        {"name": "Left pulmonary artery", "conceptId": "FMA50873", "partId": "FJ2924"},
+        {"name": "Right pulmonary artery", "conceptId": "FMA50872", "partId": "FJ3019"}
+      ],
+      "status": "mapped"
+    },
+    "URTI": {
+      "icd10-id": "j06.9",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Thorax"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Nasopharynx / Paranasal Sinuses",
+      "spatialCoordinates": {"x": 0.0, "y": 1.58, "z": 0.14},
+      "atlas_structures": [
+        {"name": "Septal nasal cartilage", "conceptId": "FMA59503", "partId": "FJ2557"},
+        {"name": "Epiglottis", "conceptId": "FMA55130", "partId": "FJ2770"}
+      ],
+      "status": "mapped"
+    },
+    "Influenza": {
+      "icd10-id": "j11.1",
+      "primaryRegion": "Head",
+      "secondaryRegions": ["Thorax", "Musculoskeletal"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Upper & Lower Respiratory Tract / Musculature",
+      "spatialCoordinates": {"x": 0.0, "y": 1.55, "z": 0.15},
+      "atlas_structures": [
+        {"name": "Septal nasal cartilage", "conceptId": "FMA59503", "partId": "FJ2557"},
+        {"name": "Trachea", "conceptId": "FMA7394", "partId": "FJ2541"}
+      ],
+      "status": "mapped"
+    },
+    "Pneumonia": {
+      "icd10-id": "j17, j18",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Pulmonary Parenchyma / Alveoli",
+      "spatialCoordinates": {"x": -0.06, "y": 1.22, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Left lateral basal segmental bronchial tree", "conceptId": "FMA68232", "partId": "FJ2445"},
+        {"name": "Left posterior basal segmental bronchial tree", "conceptId": "FMA68233", "partId": "FJ2446"}
+      ],
+      "status": "mapped"
+    },
+    "Acute rhinosinusitis": {
+      "icd10-id": "j01",
+      "primaryRegion": "Head",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Paranasal Sinuses (Maxillary, Frontal)",
+      "spatialCoordinates": {"x": 0.0, "y": 1.62, "z": 0.16},
+      "atlas_structures": [
+        {"name": "Left lateral nasal cartilage", "conceptId": "FMA59513", "partId": "FJ2556"},
+        {"name": "Septal nasal cartilage", "conceptId": "FMA59503", "partId": "FJ2557"}
+      ],
+      "status": "mapped"
+    },
+    "Chronic rhinosinusitis": {
+      "icd10-id": "j32",
+      "primaryRegion": "Head",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Paranasal Sinus Ostia / Mucosa",
+      "spatialCoordinates": {"x": 0.0, "y": 1.62, "z": 0.16},
+      "atlas_structures": [
+        {"name": "Right lateral nasal cartilage", "conceptId": "FMA59512", "partId": "FJ2558"},
+        {"name": "Septal nasal cartilage", "conceptId": "FMA59503", "partId": "FJ2557"}
+      ],
+      "status": "mapped"
+    },
+    "Bronchiolitis": {
+      "icd10-id": "j21",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": [],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Bronchioles",
+      "spatialCoordinates": {"x": 0.0, "y": 1.24, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Left superior segmental bronchial tree", "conceptId": "FMA68228", "partId": "FJ2448"},
+        {"name": "Inferior lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"}
+      ],
+      "status": "mapped"
+    },
+    "Pulmonary neoplasm": {
+      "icd10-id": "c34",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Respiratory",
+      "targetOrgan": "Bronchial Epithelium / Pulmonary Parenchyma",
+      "spatialCoordinates": {"x": 0.06, "y": 1.28, "z": 0.22},
+      "atlas_structures": [
+        {"name": "Left posterior segmental bronchial tree", "conceptId": "FMA68225", "partId": "FJ2447"},
+        {"name": "Bronchial artery", "conceptId": "FMA68109", "partId": "FJ1933"}
+      ],
+      "status": "mapped"
+    },
+    "Possible NSTEMI / STEMI": {
+      "icd10-id": "I21",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck", "Upper Limb", "Back"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Coronary Arteries / Left Ventricle",
+      "spatialCoordinates": {"x": 0.02, "y": 1.22, "z": 0.28},
+      "atlas_structures": [
+        {"name": "Trunk of anterior interventricular branch of left coronary artery", "conceptId": "FMA74912", "partId": "FJ2631"},
+        {"name": "First right anterior branch of anterior interventricular branch of left coronary artery", "conceptId": "FMA3872", "partId": "FJ2632"},
+        {"name": "Diagonal branch of anterior descending branch of left coronary artery", "conceptId": "FMA3860", "partId": "FJ2633"}
+      ],
+      "status": "mapped"
+    },
+    "Sarcoidosis": {
+      "icd10-id": "d86",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Head", "Skin"],
+      "bodySystem": "Immune & Systemic",
+      "targetOrgan": "Hilar Lymph Nodes / Pulmonary Granulomas",
+      "spatialCoordinates": {"x": 0.0, "y": 1.26, "z": 0.2},
+      "atlas_structures": [
+        {"name": "Inferior lingular bronchial tree", "conceptId": "FMA68227", "partId": "FJ2441"},
+        {"name": "Spleen", "conceptId": "FMA7196", "partId": "FJ2561"}
+      ],
+      "status": "mapped"
+    },
+    "Pancreatic neoplasm": {
+      "icd10-id": "c25",
+      "primaryRegion": "Abdomen",
+      "secondaryRegions": ["Back"],
+      "bodySystem": "Gastrointestinal",
+      "targetOrgan": "Pancreas",
+      "spatialCoordinates": {"x": -0.02, "y": 1.08, "z": 0.12},
+      "atlas_structures": [
+        {"name": "Pancreas", "conceptId": "FMA7198", "partId": "FJ1895"},
+        {"name": "Pancreatic duct", "conceptId": "FMA10419", "partId": "FJ1896"},
+        {"name": "Parenchyma of pancreas", "conceptId": "FMA63120", "partId": "FJ2629"}
+      ],
+      "status": "mapped"
+    },
+    "Acute pulmonary edema": {
+      "icd10-id": "J81.0",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Pulmonary Capillaries / Alveoli",
+      "spatialCoordinates": {"x": 0.0, "y": 1.25, "z": 0.25},
+      "atlas_structures": [
+        {"name": "Left pulmonary artery", "conceptId": "FMA50873", "partId": "FJ2924"},
+        {"name": "Right pulmonary artery", "conceptId": "FMA50872", "partId": "FJ3019"}
+      ],
+      "status": "mapped"
+    },
+    "Pericarditis": {
+      "icd10-id": "I30",
+      "primaryRegion": "Thorax",
+      "secondaryRegions": ["Neck", "Back"],
+      "bodySystem": "Cardiovascular",
+      "targetOrgan": "Pericardial Sac / Epicardium",
+      "spatialCoordinates": {"x": 0.02, "y": 1.22, "z": 0.3},
+      "atlas_structures": [
+        {"name": "Coronary sinus", "conceptId": "FMA4706", "partId": "FJ2655"},
+        {"name": "Anterior leaflet of mitral valve", "conceptId": "FMA7242", "partId": "FJ2420"}
+      ],
+      "status": "mapped"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "model": "SGD Logistic Regression Baseline",
+  "epochs": 4,
+  "batch_size": 30000,
+  "alpha": 1e-05,
+  "features_count": 1213,
+  "classes_count": 49,
+  "results": {
+    "validate": {
+      "samples": 132448,
+      "top1_accuracy": 0.9966099903358299,
+      "top3_accuracy": 1.0,
+      "top5_accuracy": 1.0,
+      "macro_precision": 0.9968915429016855,
+      "macro_recall": 0.994110203050075,
+      "macro_f1": 0.9953102529490571,
+      "weighted_f1": 0.9965729207662267
+    },
+    "test": {
+      "samples": 134529,
+      "top1_accuracy": 0.9968928632488162,
+      "top3_accuracy": 0.99999256665849,
+      "top5_accuracy": 1.0,
+      "macro_precision": 0.9972133157911622,
+      "macro_recall": 0.9959389591664187,
+      "macro_f1": 0.9964556397859344,
+      "weighted_f1": 0.9968627017462788
+    }
+  }
+}

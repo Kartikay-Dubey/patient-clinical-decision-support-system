@@ -16,6 +16,7 @@ import {
   Pill,
   CheckCircle2,
 } from 'lucide-react';
+import ResultsPanelFill from '../../components/landing/ResultsPanelFill';
 
 export default function ResultsViewer({ analysisData, isLoading, className = '' }) {
   const [activeTab, setActiveTab] = useState('conditions'); // 'conditions' | 'remedies' | 'why' | 'precautions'
@@ -53,62 +54,40 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
     <div className={`master-console flex flex-col h-full overflow-hidden ${className}`}>
       
       {/* ── Navigation Tabs Topbar (Possibilities First) ─────────────────── */}
-      <div className="console-topbar p-2.5 sm:p-3 flex items-center gap-1.5 overflow-x-auto flex-shrink-0">
-        <button
-          type="button"
-          onClick={() => setActiveTab('conditions')}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
-            activeTab === 'conditions'
-              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          <Activity className="h-3.5 w-3.5" />
-          <span>Possible Conditions ({possibleConditions.length})</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('remedies')}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
-            activeTab === 'remedies'
-              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          <Home className="h-3.5 w-3.5" />
-          <span>Home Remedies</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('why')}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
-            activeTab === 'why'
-              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          <HelpCircle className="h-3.5 w-3.5" />
-          <span>Why It Happens</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('precautions')}
-          className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-full transition-all cursor-pointer whitespace-nowrap font-display ${
-            activeTab === 'precautions'
-              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-bold'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-          }`}
-        >
-          <AlertTriangle className="h-3.5 w-3.5" />
-          <span>Precautions & Red Flags</span>
-        </button>
+      <div className="console-topbar p-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5 flex-shrink-0">
+        {[
+          { id: 'conditions', label: 'Conditions', count: possibleConditions.length, icon: Activity },
+          { id: 'remedies', label: 'Remedies', icon: Home },
+          { id: 'why', label: 'Why it happens', icon: HelpCircle },
+          { id: 'precautions', label: 'Red flags', icon: AlertTriangle },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              title={tab.label}
+              className={`flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2 py-2 rounded-xl transition-all cursor-pointer font-display ${
+                active
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/80'
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">
+                {tab.label}
+                {tab.count != null ? ` (${tab.count})` : ''}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* ── Tab Content Body ───────────────────────────────────── */}
-      <div className="p-4 sm:p-5 flex-1 overflow-y-auto min-h-0">
+      <div className="relative flex-1 min-h-0 overflow-hidden">
+        <ResultsPanelFill />
+        <div className="relative z-10 p-4 sm:p-5 h-full overflow-y-auto">
         
         {/* TAB 1: HOME REMEDIES & SELF-CARE */}
         {activeTab === 'remedies' && (
@@ -135,7 +114,7 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
                   <motion.div
                     whileHover={{ y: -1 }}
                     key={idx}
-                    className="sculptural-card p-3.5 flex items-start gap-3.5"
+                    className="sculptural-card p-3.5 flex items-start gap-3.5 bg-white/90"
                   >
                     <div className="pebble-dial h-9 w-9 flex items-center justify-center flex-shrink-0 mt-0.5 bg-white">
                       {renderRemedyIcon(remedy.icon)}
@@ -181,7 +160,7 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
                 {storyline.whyItHappens.map((cause, idx) => (
                   <div
                     key={idx}
-                    className="sculptural-card p-3.5 flex items-start gap-3"
+                    className="sculptural-card p-3.5 flex items-start gap-3 bg-white/90"
                   >
                     <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground font-bold text-[11px] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs font-display">
                       {idx + 1}
@@ -253,18 +232,18 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-3.5"
           >
-            <div className="flex items-end justify-between border-b border-border pb-2.5">
+            <div className="flex items-end justify-between gap-2 pb-2">
               <div>
-                <h4 className="text-sm sm:text-base font-bold text-foreground font-display flex items-center gap-2">
+                <h4 className="text-sm font-bold text-foreground font-display flex items-center gap-2">
                   <Activity className="h-4 w-4 text-primary" />
-                  <span>Ranked Differential Conditions</span>
+                  <span>Ranked possible conditions</span>
                 </h4>
-                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-                  Ordered by probability based on clinical pattern matching
+                <p className="text-[11px] text-muted-foreground font-medium">
+                  Ordered by clinical pattern match
                 </p>
               </div>
-              <span className="text-[11px] font-semibold text-foreground bg-accent px-2.5 py-0.5 rounded-full border border-border">
-                {possibleConditions.length} Candidates
+              <span className="text-[11px] font-semibold text-foreground bg-white/80 px-2.5 py-0.5 rounded-full border border-border">
+                {possibleConditions.length} candidates
               </span>
             </div>
 
@@ -279,8 +258,8 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
                     className={`
                       rounded-2xl transition-all duration-200 border
                       ${isExpanded
-                        ? 'bg-white border-primary/60 shadow-md ring-2 ring-primary/20 p-3.5'
-                        : 'bg-white border-border hover:border-primary/40 p-3'
+                        ? 'bg-white/95 border-primary/60 shadow-md ring-2 ring-primary/20 p-3.5'
+                        : 'bg-white/90 border-border hover:border-primary/40 p-3'
                       }
                     `}
                   >
@@ -365,6 +344,7 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
           </motion.div>
         )}
 
+        </div>
       </div>
     </div>
   );

@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './components/Header';
+import LandingBackdrop from './components/landing/LandingBackdrop';
 import SymptomInput from './features/symptom-input/SymptomInput';
 import AnalysisStatus from './features/analysis/AnalysisStatus';
 import BodyViewer from './features/body-viewer/BodyViewer';
 import ResultsViewer from './features/results/ResultsViewer';
 import ScoreGauge from './components/ScoreGauge';
 import { analyzeSymptoms } from './services/apiService';
-import { RotateCcw, Activity, Sparkles, Clock } from 'lucide-react';
+import { Activity, Sparkles, Clock } from 'lucide-react';
 
 export default function App() {
   const [appState, setAppState] = useState('input'); // 'input' | 'analyzing' | 'results'
@@ -66,22 +67,22 @@ export default function App() {
   const topScore = topCondition ? Math.round(topCondition.modelScore * 100) : 85;
 
   return (
-    <div className="min-h-screen flex flex-col font-sans selection:bg-[#F7D6CC] selection:text-[#2D2623]">
-      {/* Editorial Clinical Header */}
-      <Header onReset={handleReset} />
+    <div className="min-h-screen flex flex-col font-sans relative overflow-x-hidden">
+      {appState === 'input' && <LandingBackdrop />}
 
-      {/* Main Workspace Layout */}
-      <main className="flex-1 w-full mx-auto p-3 sm:p-5 lg:p-6 max-w-[1520px] flex flex-col justify-center">
+      <Header onReset={handleReset} appState={appState} />
+
+      <main className="relative z-10 flex-1 w-full mx-auto px-4 sm:px-6 py-4 sm:py-5 max-w-[1440px] flex flex-col min-h-0">
         <AnimatePresence mode="wait">
           {/* STATE 1: INPUT / LANDING PAGE */}
           {appState === 'input' && (
             <motion.div 
               key="input"
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
+              exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35 }}
-              className="flex flex-col items-center justify-center min-h-[75vh] py-4"
+              className="flex flex-col w-full"
             >
               <SymptomInput onAnalyze={handleAnalyze} isLoading={false} />
             </motion.div>
@@ -122,42 +123,32 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.35 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-[calc(100dvh-10.5rem)]"
             >
               {/* Left Column: Unified 3D Anatomy + Primary Assessment Master Console */}
               <div className="lg:col-span-7 flex flex-col master-console h-full justify-between overflow-hidden">
                 
                 {/* Console Topbar: Region & System Info + Start Over */}
-                <div className="console-topbar px-5 py-3 flex items-center justify-between gap-3 flex-shrink-0">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-full bg-accent text-primary flex items-center justify-center border border-primary/20">
-                      <Activity className="h-3.5 w-3.5" />
+                <div className="console-topbar px-5 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-8 w-8 rounded-xl bg-accent text-primary flex items-center justify-center border border-primary/20 flex-shrink-0">
+                      <Activity className="h-4 w-4" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-display text-sm sm:text-base font-bold text-foreground tracking-tight">
-                          {analysisData.bodyLocalization?.primaryRegion || 'Anatomical'} Region
-                        </h3>
-                        <span className="text-[11px] font-semibold text-muted-foreground bg-accent px-2.5 py-0.5 rounded-full border border-border">
-                          {analysisData.bodyLocalization?.bodySystem || 'General System'}
-                        </span>
-                      </div>
+                    <div className="min-w-0">
+                      <h3 className="font-display text-sm sm:text-base font-bold text-foreground tracking-tight truncate">
+                        {analysisData.bodyLocalization?.primaryRegion || 'Anatomical'} Region
+                      </h3>
+                      <p className="text-[11px] font-medium text-muted-foreground truncate">
+                        {analysisData.bodyLocalization?.bodySystem || 'General System'}
+                      </p>
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleReset}
-                    className="text-xs font-semibold text-foreground hover:text-primary bg-white hover:bg-accent px-3.5 py-1.5 rounded-full border border-border shadow-xs transition-all flex items-center gap-1.5 cursor-pointer font-display"
-                  >
-                    <RotateCcw className="h-3 w-3 text-primary" /> Start Over
-                  </button>
+                  <span className="text-[11px] font-semibold text-primary bg-accent px-2.5 py-1 rounded-full border border-primary/15 hidden sm:inline font-display">
+                    Interactive 3D
+                  </span>
                 </div>
 
-                {/* 3D Anatomy Viewer Canvas */}
-                <div
-                  className="relative p-2 flex-1"
-                  style={{ minHeight: '340px' }}
-                >
+                <div className="relative p-2 flex-1 min-h-[380px]">
                   <BodyViewer
                     activeRegion={activeRegion}
                     onSelectRegion={handleSelectRegion}
@@ -165,48 +156,40 @@ export default function App() {
                 </div>
 
                 {/* Integrated Primary Clinical Assessment Footer */}
-                <div className="border-t border-border bg-white p-4 sm:p-5 flex-shrink-0">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
-                    
-                    {/* Assessment Details */}
-                    <div className="flex-1 flex flex-col gap-1.5 text-center sm:text-left">
+                <div className="border-t border-border bg-white/90 p-4 sm:px-5 sm:py-4 flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-4">
+                    <div className="flex-1 flex flex-col gap-1.5 text-center sm:text-left min-w-0">
                       <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold font-display border border-primary/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold font-display border border-primary/20">
                           <Sparkles className="h-3 w-3 text-primary" />
-                          <span>Primary Clinical Assessment</span>
+                          Primary assessment
                         </span>
                         <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-0.5 rounded-full border border-border">
                           ICD-10: {topCondition?.icd10Code || 'N/A'}
                         </span>
                       </div>
-
                       <h4 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
                         {topCondition?.name || 'Clinical Finding'}
                       </h4>
-
-                      <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3">
+                      <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xl">
                         {analysisData.storyline?.patientOverview || topCondition?.description}
                       </p>
-
                       {analysisData.storyline?.careTimeline && (
-                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] text-muted-foreground pt-0.5">
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] text-muted-foreground">
                           <Clock className="h-3 w-3 text-primary" />
                           <span className="font-medium">{analysisData.storyline.careTimeline}</span>
                         </div>
                       )}
                     </div>
-
-                    {/* Compact Confidence Dial */}
-                    <div className="pebble-dial p-2.5 bg-white flex-shrink-0">
-                      <ScoreGauge 
-                        value={topScore} 
-                        size={84}
+                    <div className="pebble-dial p-2 bg-white flex-shrink-0">
+                      <ScoreGauge
+                        value={topScore}
+                        size={92}
                         strokeWidth={8}
                         label="Match"
                         confidence={topCondition?.confidenceCategory || 'High'}
                       />
                     </div>
-
                   </div>
                 </div>
 
@@ -222,10 +205,9 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Editorial Minimal Footer */}
-      <footer className="py-2.5 px-6 text-center text-xs text-[#5E524C] font-medium flex flex-col items-center justify-center gap-0.5 flex-shrink-0">
-        <span className="font-display font-semibold text-[#2D2623] text-[11px]">Patient Clinical Decision Support System &copy; 2026</span>
-        <span className="text-[10px] text-[#8E8078]">Designed for calm, human-centered evidence-based medical engagement</span>
+      <footer className="relative z-10 py-3 px-6 text-center text-xs text-muted-foreground font-medium flex flex-col items-center justify-center gap-0.5 flex-shrink-0 border-t border-border/60 bg-white/40 backdrop-blur-md">
+        <span className="font-display font-semibold text-foreground text-[11px]">Patient Clinical Decision Support System &copy; 2026</span>
+        <span className="text-[10px]">Designed for calm, human-centered evidence-based medical engagement</span>
       </footer>
     </div>
   );

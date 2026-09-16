@@ -1,21 +1,107 @@
-# Dependencies
+# ==============================================================================
+# Python & Backend Caches
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+bin/
+include/
+share/
+
+# ==============================================================================
+# DDXPlus Dataset & Raw Patient Records
+# (Note: Large patient files exceed GitHub's 100MB limit and are downloaded via
+# backend/data/ddxplus/download_dataset.py. Metadata JSONs are kept in git.)
+# ==============================================================================
+backend/data/ddxplus/raw/*.zip
+backend/data/ddxplus/raw/*.csv
+backend/data/ddxplus/raw/*.parquet
+backend/data/ddxplus/raw/*.tar.gz
+backend/data/ddxplus/raw/release_train_patients*
+backend/data/ddxplus/raw/release_validate_patients*
+backend/data/ddxplus/raw/release_test_patients*
+!backend/data/ddxplus/raw/release_conditions.json
+!backend/data/ddxplus/raw/release_evidences.json
+
+# Large ML Model Weights & Checkpoints (excluding lightweight baseline joblibs)
+*.pt
+*.pth
+*.bin
+*.onnx
+*.safetensors
+*.ckpt
+*.h5
+*.pb
+*.tflite
+*.weights
+
+# ==============================================================================
+# Scratch & Local Development Scripts
+# ==============================================================================
+scratch/
+*.tmp
+*.temp
+*.bak
+
+# ==============================================================================
+# Environment Variables & Secrets
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ==============================================================================
+# Frontend Dependencies & Build Artifacts
+# ==============================================================================
 node_modules/
 **/node_modules/
-.pnp
-.pnp.js
-
-# Production / Build output
 dist/
 **/dist/
 dist-ssr/
 *.local
-
-# Environment variables & secrets
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.pnp
+.pnp.js
+.vite/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
 
 # Logs
 logs/
@@ -26,17 +112,24 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor & IDE directories
+# ==============================================================================
+# Editor & IDE Directories
+# ==============================================================================
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
 .idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
 
-# OS generated files
+# ==============================================================================
+# Operating System Files
+# ==============================================================================
 .DS_Store
 .DS_Store?
 ._*
@@ -45,12 +138,7 @@ lerna-debug.log*
 ehthumbs.db
 Thumbs.db
 
-# Temporary and cache directories
-.eslintcache
-.stylelintcache
-*.tsbuildinfo
-.vite/
-
-# Bio repo external clone
+# External repositories
 Bio repo/
+
 
