@@ -25,9 +25,13 @@ class DDXPlusBaselinePredictor:
         self.raw_dir = Path(raw_dir) if raw_dir else DEFAULT_RAW_DIR
 
         # Load artifacts
-        self.model = joblib.load(self.model_dir / "baseline_logistic_regression.joblib")
-        self.feature_extractor = joblib.load(self.model_dir / "feature_extractor.joblib")
-        self.label_encoder = joblib.load(self.model_dir / "label_encoder.joblib")
+        try:
+            self.model = joblib.load(self.model_dir / "baseline_logistic_regression.joblib")
+            self.feature_extractor = joblib.load(self.model_dir / "feature_extractor.joblib")
+            self.label_encoder = joblib.load(self.model_dir / "label_encoder.joblib")
+        except Exception as e:
+            print(f"[DDXPlusPredictor Warning] Failed to load ML model artifact: {e}")
+            raise e
 
         # Load conditions metadata for ICD-10 & severity enrichment
         with open(self.raw_dir / "release_conditions.json", "r", encoding="utf-8") as f:
