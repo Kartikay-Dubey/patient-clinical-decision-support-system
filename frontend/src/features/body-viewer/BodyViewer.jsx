@@ -106,8 +106,6 @@ export default function BodyViewer({
 
   // Smooth camera zoom and focus — computes target + camPos from bodyLocalization
   // spatialCoordinates, falling back to REGION_CAMERA_CONFIGS defaults.
-  // Smooth camera zoom and focus — computes target + camPos from bodyLocalization
-  // spatialCoordinates, falling back to REGION_CAMERA_CONFIGS defaults.
   const triggerCameraTransition = useCallback(
     (region, customTarget = null) => {
       let target = null;
@@ -119,8 +117,7 @@ export default function BodyViewer({
         camPos = [customTarget[0], customTarget[1], 0.55];
       } else if (
         bodyLocalization?.spatialCoordinates &&
-        region !== 'All' &&
-        region !== 'Full Body'
+        (region === bodyLocalization.primaryRegion || region === 'Auto' || !region)
       ) {
         const { x, y, z } = bodyLocalization.spatialCoordinates;
         const cx = x ?? 0.0;
@@ -128,7 +125,6 @@ export default function BodyViewer({
         const cz = z ?? 0.0;
 
         const organLower = (bodyLocalization?.targetOrgan || '').toLowerCase();
-        const sysLower = (bodyLocalization?.bodySystem || '').toLowerCase();
         const isPosterior =
           cz < -0.04 ||
           organLower.includes('spine') ||
@@ -161,7 +157,7 @@ export default function BodyViewer({
           setCurrentView('front');
         }
       } else {
-        // No bodyLocalization yet — fall back to atlas region configs
+        // Explicit standard region selected (Abdomen, Thorax, Head, Pelvis, Upper Limb, Lower Limb, Full Body)
         const cfg = REGION_CAMERA_CONFIGS[region] || REGION_CAMERA_CONFIGS.All;
         target = cfg.target;
         camPos = cfg.camPos;
@@ -180,6 +176,18 @@ export default function BodyViewer({
       }
     },
     [bodyLocalization]
+  );
+
+  // Region selection click handler for bottom pills and external calls
+  const handleRegionClick = useCallback(
+    (reg) => {
+      setInternalRegion(reg);
+      if (onSelectRegion) {
+        onSelectRegion(reg);
+      }
+      triggerCameraTransition(reg);
+    },
+    [onSelectRegion, triggerCameraTransition]
   );
 
   // Automatically configure smart layer visibility based on clinical system / target organ
@@ -277,15 +285,6 @@ export default function BodyViewer({
     triggerCameraTransition(selectedRegion);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRegion, bodyLocalization]);
-
-  const handleRegionClick = useCallback(
-    (region) => {
-      setInternalRegion(region);
-      if (onSelectRegion) onSelectRegion(region);
-      triggerCameraTransition(region);
-    },
-    [onSelectRegion, triggerCameraTransition]
-  );
 
   const toggleLayer = useCallback((layerId) => {
     setActiveLayers((prev) => {

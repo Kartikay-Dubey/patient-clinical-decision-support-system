@@ -329,12 +329,48 @@ def _resolve_anatomical_localization(
     all_tokens = " ".join([raw_lower] + symptom_tokens + evidence_tokens)
 
     # ──────────────────────────────────────────────────────────────────────────
-    # PRIORITY OVERRIDES — patient-stated symptom site wins over ML prediction
-    # These checks fire BEFORE condition-based anatomy fallback so the 3D camera
-    # always frames what the patient is actually describing, not the predicted disease.
+    # PRIORITY OVERRIDES — Patient symptom site & chief complaint analysis
+    # Order of evaluation:
+    # 1. Back / Spine / Spinal Cord
+    # 2. Primary Chest / Cardiac / Pulmonary
+    # 3. Gastrointestinal / Stomach / Reflux / Abdomen
+    # 4. Extremity Joints & Limbs (Shoulder, Knee, Ankle, Elbow, Wrist, Hip)
+    # 5. ENT / Throat / Neck
+    # 6. Head / Cranial / Neurological
+    # 7. Standard DDXPlus Condition Anatomical Mapping
     # ──────────────────────────────────────────────────────────────────────────
 
-    # HEAD / CRANIAL — headache, migraine, dizziness, scalp, eye pain, vertigo
+    # 1. BACK / SPINE / SPINAL CORD — back pain, spine, spinal, cord, vertebra, lumbar
+    has_back_kw = bool(
+        re.search(r'\b(back|spine|spinal|cord|vertebra|vertebrae|vertebral|dorsal|lumbar|sacral|sacroiliac|coccyx|sciatica)\b', raw_lower)
+        or any(k in raw_lower for k in [
+            "back pain", "backache", "back ache", "spinal cord", "spine pain", "spinal pain",
+            "thoracic spine", "lumbar spine", "cervical spine", "lower back", "upper back",
+            "mid back", "paraspinal", "disc"
+        ])
+        or any("back" in t or "spine" in t or "spinal" in t for t in all_tokens)
+    )
+    if raw_lower.strip() in ["come back", "call back", "came back", "look back", "brought back"]:
+        has_back_kw = False
+
+    # 2. CHEST (explicit text) — chest pain, pressure, tightness, retrosternal, angina
+    has_explicit_chest_text = any(k in raw_lower for k in [
+        "chest pain", "chest pressure", "chest tightness", "chest discomfort",
+        "substernal", "retrosternal", "heart pain", "palpitation"
+    ])
+
+    # 3. GASTROINTESTINAL / STOMACH / REFLUX / ABDOMEN
+    GI_STOMACH_KWS = [
+        "stomach", "stomach pain", "stomach ache", "belly", "belly pain", "acid reflux",
+        "reflux", "heartburn", "epigastric", "indigestion", "gastric", "esophag", "esophagus",
+        "nausea", "vomiting", "abdominal", "abdomen", "gut", "pancreas", "pancreatic", "bloating",
+        "cramps", "cramping", "bowel", "diarrhea"
+    ]
+    has_gi_stomach = any(k in raw_lower for k in GI_STOMACH_KWS) or "gerd" in raw_lower or top_condition_name in [
+        "GERD", "Boerhaave", "Pancreatic neoplasm", "Inguinal hernia"
+    ]
+
+    # 4. HEAD / CRANIAL — headache, migraine, dizziness, scalp, eye pain, vertigo
     HEAD_KWS = [
         "headache", "head ache", "head pain", "migraine", "dizziness", "dizzy",
         "vertigo", "lightheaded", "light-headed", "temple pain", "forehead pain",
@@ -345,63 +381,18 @@ def _resolve_anatomical_localization(
     ]
     has_head_kw = any(k in raw_lower for k in HEAD_KWS) or bool(re.search(r'\bhead\b', raw_lower))
 
-    # NECK — neck pain, stiff neck, cervical (but not just "cervical cancer")
+    # 5. NECK — neck pain, stiff neck, cervical
     NECK_KWS = ["neck pain", "stiff neck", "neck stiffness", "cervical pain", "neck ache",
                 "nape", "nuchal"]
     has_neck_kw = any(k in raw_lower for k in NECK_KWS) or bool(re.search(r'\bneck\b', raw_lower))
 
-    # BACK / SPINE / SPINAL CORD — back pain, spine, spinal, cord, vertebra, lumbar
-    has_back_kw = bool(
-        re.search(r'\b(back|spine|spinal|cord|vertebra|vertebrae|vertebral|dorsal|lumbar|sacral|sacroiliac|coccyx|sciatica)\b', raw_lower)
-        or any(k in raw_lower for k in [
-            "back pain", "backache", "back ache", "spinal cord", "spine pain", "spinal pain",
-            "thoracic spine", "lumbar spine", "cervical spine", "lower back", "upper back",
-            "mid back", "paraspinal", "disc"
-        ])
-        or any("back" in t or "spine" in t or "spinal" in t for t in all_tokens)
-    )
-    # Exclude non-symptom conversational idioms if present alone
-    if raw_lower.strip() in ["come back", "call back", "came back", "look back", "brought back"]:
-        has_back_kw = False
-
-    # HIP — hip pain, groin (but not inguinal hernia-style)
+    # 6. HIP — hip pain, groin
     HIP_KWS = ["hip pain", "hip ache", "hip stiffness", "groin pain", "groin ache",
                "buttock pain", "gluteal pain", "trochanteric"]
     has_hip_kw = any(k in raw_lower for k in HIP_KWS)
 
-    # CHEST (explicit) — guard against overriding genuine chest complaints
-    has_primary_chest = any(k in raw_lower for k in [
-        "chest pain", "chest pressure", "chest tightness", "chest discomfort",
-        "substernal", "retrosternal", "heart pain", "palpitation"
-    ])
-
-    # Apply overrides ─────────────────────────────────────────────────────────
-    if has_head_kw and not has_primary_chest and not has_back_kw:
-        sec_regions = list(anatomy.secondaryRegions)
-        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Head":
-            sec_regions.insert(0, anatomy.primaryRegion)
-        return BodyLocalization(
-            primaryRegion="Head",
-            secondaryRegions=sec_regions,
-            bodySystem=anatomy.bodySystem if "neuro" in anatomy.bodySystem.lower() else "Neurological / Cranial",
-            targetOrgan="Cranial Region & Cephalic Structures",
-            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.62, z=0.10)
-        )
-
-    if has_neck_kw and not has_primary_chest and not any(k in raw_lower for k in ["lumbar", "lower back", "thoracic"]):
-        sec_regions = list(anatomy.secondaryRegions)
-        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Head":
-            sec_regions.insert(0, anatomy.primaryRegion)
-        return BodyLocalization(
-            primaryRegion="Head",
-            secondaryRegions=sec_regions,
-            bodySystem="Musculoskeletal / Cervical",
-            targetOrgan="Cervical Spine & Neck Musculature",
-            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.08)
-        )
-
-    if has_back_kw and not has_primary_chest:
-        # Lower vs upper vs general back / spinal cord
+    # ─── Priority 1: Back & Spinal Cord ──────────────────────────────────────
+    if has_back_kw and not has_explicit_chest_text:
         is_lower_back = any(k in raw_lower for k in ["lower back", "lumbar", "sciatica", "sacral", "sacroiliac", "coccyx", "l1", "l2", "l3", "l4", "l5", "s1"])
         is_cervical = any(k in raw_lower for k in ["cervical", "neck"])
         sec_regions = list(anatomy.secondaryRegions)
@@ -433,7 +424,54 @@ def _resolve_anatomical_localization(
                 spatialCoordinates=SpatialCoordinates(x=0.0, y=1.20, z=-0.12)
             )
 
-    if has_hip_kw:
+    # ─── Priority 2: Gastrointestinal / Stomach / Esophagus / Reflux ──────────
+    if has_gi_stomach and not has_explicit_chest_text and not has_back_kw:
+        sec_regions = list(anatomy.secondaryRegions)
+        if has_head_kw and "Head" not in sec_regions:
+            sec_regions.append("Head")
+        if "Thorax" not in sec_regions and (top_condition_name in ["GERD", "Boerhaave"] or "reflux" in raw_lower or "esophag" in raw_lower):
+            sec_regions.insert(0, "Thorax")
+
+        # Inguinal Hernia -> Pelvis/Groin
+        if top_condition_name == "Inguinal hernia" or "groin" in raw_lower:
+            return BodyLocalization(
+                primaryRegion="Pelvis",
+                secondaryRegions=sec_regions,
+                bodySystem="Digestive / Inguinal",
+                targetOrgan="Inguinal Canal & Groin Structures",
+                spatialCoordinates=SpatialCoordinates(x=0.06, y=0.78, z=0.10)
+            )
+
+        # Pancreatic Neoplasm -> Abdomen / Pancreas
+        if top_condition_name == "Pancreatic neoplasm" or "pancrea" in raw_lower:
+            return BodyLocalization(
+                primaryRegion="Abdomen",
+                secondaryRegions=sec_regions,
+                bodySystem="Digestive / Endocrine",
+                targetOrgan="Pancreas & Retroperitoneal Cavity",
+                spatialCoordinates=SpatialCoordinates(x=0.02, y=1.08, z=0.06)
+            )
+
+        # GERD / Esophagus / Acid Reflux / Gastric Pain
+        if top_condition_name == "Boerhaave":
+            return BodyLocalization(
+                primaryRegion="Thorax",
+                secondaryRegions=sec_regions,
+                bodySystem="Digestive",
+                targetOrgan="Mid & Lower Esophagus",
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.22, z=0.05)
+            )
+
+        return BodyLocalization(
+            primaryRegion="Abdomen",
+            secondaryRegions=sec_regions,
+            bodySystem="Gastrointestinal / Digestive",
+            targetOrgan="Stomach & Gastroesophageal Junction",
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.05, z=0.18)
+        )
+
+    # ─── Priority 3: Hip & Pelvic Articulations ──────────────────────────────
+    if has_hip_kw and not has_explicit_chest_text:
         sec_regions = list(anatomy.secondaryRegions)
         if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Pelvis":
             sec_regions.insert(0, anatomy.primaryRegion)
@@ -443,6 +481,32 @@ def _resolve_anatomical_localization(
             bodySystem="Musculoskeletal / Pelvic",
             targetOrgan="Hip Joint & Femoral Head",
             spatialCoordinates=SpatialCoordinates(x=0.09, y=0.82, z=0.06)
+        )
+
+    # ─── Priority 4: Head & Cranial (when not overshadowed by acute GI/Chest) ─
+    if has_head_kw and not has_explicit_chest_text and not has_back_kw and not has_gi_stomach:
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Head":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Head",
+            secondaryRegions=sec_regions,
+            bodySystem=anatomy.bodySystem if "neuro" in anatomy.bodySystem.lower() else "Neurological / Cranial",
+            targetOrgan="Cranial Region & Cephalic Structures",
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.62, z=0.10)
+        )
+
+    # ─── Priority 5: Neck & Cervical Musculature ─────────────────────────────
+    if has_neck_kw and not has_explicit_chest_text and not any(k in raw_lower for k in ["lumbar", "lower back", "thoracic"]):
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Head":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Head",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Cervical",
+            targetOrgan="Cervical Spine & Neck Musculature",
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.08)
         )
 
     # 1. Shoulder & Upper Extremity Joint Localization
