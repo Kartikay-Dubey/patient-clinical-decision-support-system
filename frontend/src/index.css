@@ -412,3 +412,12 @@
   width: auto;
   opacity: 0.75;
 }
+
+/* Hide scrollbars for clean mobile/horizontal scroll strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

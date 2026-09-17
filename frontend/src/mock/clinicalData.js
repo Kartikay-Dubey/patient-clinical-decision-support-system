@@ -23,7 +23,7 @@ export const MOCK_CLINICAL_PRESETS = [
         secondaryRegions: ["Head"],
         bodySystem: "Respiratory / Bronchial Airways",
         targetOrgan: "Lungs & Bronchial Tree",
-        spatialCoordinates: { x: 0.0, y: 0.8, z: 0.0 }
+        spatialCoordinates: { x: 0.0, y: 1.25, z: 0.16 }
       },
       storyline: {
         patientOverview: "Your symptoms indicate acute irritation and mild inflammation along the upper respiratory tract and bronchial airways.",
@@ -122,7 +122,7 @@ export const MOCK_CLINICAL_PRESETS = [
         secondaryRegions: ["Thorax"],
         bodySystem: "Gastrointestinal / Upper Digestive",
         targetOrgan: "Stomach & Lower Esophagus",
-        spatialCoordinates: { x: 0.0, y: 0.64, z: 0.0 }
+        spatialCoordinates: { x: 0.0, y: 1.06, z: 0.15 }
       },
       storyline: {
         patientOverview: "Your symptoms indicate gastric acid backflowing into the lower esophagus, irritating the sensitive esophageal lining.",
@@ -212,7 +212,7 @@ export const MOCK_CLINICAL_PRESETS = [
         secondaryRegions: ["Abdomen"],
         bodySystem: "Cardiovascular / Respiratory",
         targetOrgan: "Heart & Pulmonary Arteries",
-        spatialCoordinates: { x: 0.0, y: 0.79, z: 0.0 }
+        spatialCoordinates: { x: -0.02, y: 1.24, z: 0.16 }
       },
       storyline: {
         patientOverview: "Your symptoms center on the thoracic cavity, requiring careful evaluation of both cardiovascular and pulmonary blood flow dynamics.",
@@ -297,7 +297,7 @@ export const MOCK_CLINICAL_PRESETS = [
         secondaryRegions: ["Upper Limb"],
         bodySystem: "Central Nervous System / Cranial Nerves",
         targetOrgan: "Trigeminovascular System & Meninges",
-        spatialCoordinates: { x: 0.0, y: 1.07, z: 0.0 }
+        spatialCoordinates: { x: 0.0, y: 1.58, z: 0.14 }
       },
       storyline: {
         patientOverview: "Your symptoms align with a neurovascular headache pattern involving temporary sensitization of cranial nerve pathways and blood vessel dilation.",
@@ -382,7 +382,7 @@ export const MOCK_CLINICAL_PRESETS = [
         secondaryRegions: ["Lower Limb"],
         bodySystem: "Musculoskeletal / Lumbar Spine",
         targetOrgan: "Erector Spinae & Lumbar Vertebrae",
-        spatialCoordinates: { x: 0.0, y: 0.40, z: 0.0 }
+        spatialCoordinates: { x: 0.0, y: 0.96, z: -0.12 }
       },
       storyline: {
         patientOverview: "Your symptoms indicate acute lumbar myofascial muscle strain or ligamentous sprain localized to the lower back without nerve compression.",
@@ -467,7 +467,7 @@ export const MOCK_CLINICAL_PRESETS = [
         secondaryRegions: ["Pelvis"],
         bodySystem: "Gastrointestinal",
         targetOrgan: "Appendix & Cecum",
-        spatialCoordinates: { x: -0.2, y: 0.45, z: 0.0 }
+        spatialCoordinates: { x: 0.08, y: 0.94, z: 0.14 }
       },
       storyline: {
         patientOverview: "Your symptoms indicate acute localized inflammation in the right lower quadrant of the abdomen, which requires urgent surgical clinical evaluation.",

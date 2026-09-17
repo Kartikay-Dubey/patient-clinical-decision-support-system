@@ -96,9 +96,20 @@ class AnalyzeRequest(BaseModel):
         default_factory=list,
         description="Optional list of tags or structured symptom tokens"
     )
+    patientDemographics: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Optional demographic details (age, sex)"
+    )
     age: Optional[int] = Field(45, ge=0, le=120, description="Patient age in years")
     sex: Optional[str] = Field("M", description="Patient biological sex ('M' or 'F')")
     topK: Optional[int] = Field(5, ge=1, le=20, description="Number of candidate conditions to return")
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.patientDemographics and isinstance(self.patientDemographics, dict):
+            if "age" in self.patientDemographics and self.patientDemographics["age"] is not None:
+                self.age = int(self.patientDemographics["age"])
+            if "sex" in self.patientDemographics and self.patientDemographics["sex"]:
+                self.sex = str(self.patientDemographics["sex"])
 
 
 class AnalyzeResponse(BaseModel):

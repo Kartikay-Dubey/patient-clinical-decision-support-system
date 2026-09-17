@@ -43,17 +43,32 @@ The user experience is structured around a 6-stage clinical reasoning framework:
 
 ```text
 patient-diagnosis-system/
+├── .dockerignore                  # Docker build exclusions
 ├── .gitignore                     # Workspace Git exclusion rules
+├── docker-compose.yml             # Multi-container orchestration (Backend + Frontend)
 ├── LICENSE                        # MIT License
 ├── README.md                      # Project documentation
+├── run_server.py                  # One-click local launcher for FastAPI backend
+│
+├── backend/                       # Python 3.11 + FastAPI + ML Service
+│   ├── Dockerfile                 # Backend production container configuration
+│   ├── README.md                  # Comprehensive backend architecture & API guide
+│   ├── requirements.txt           # Python dependencies (FastAPI, Scikit-Learn, Gunicorn)
+│   ├── app/                       # FastAPI application (routes, models, services)
+│   ├── data/                      # DDXPlus clinical dataset & symptom mappings
+│   └── models/                    # Trained diagnostic models & encoders
 │
 ├── docs/                          # Architectural & Clinical Specifications
 │   ├── ARCHITECTURE.md            # System design & component boundaries
+│   ├── DEPLOYMENT_GUIDE.md        # End-to-end production deployment guide (Docker, VPS, Cloud)
 │   ├── PROJECT_CONTEXT.md         # Clinical domain scope & clinical safety guidelines
+│   ├── SYSTEM_FEATURES.md         # Detailed guide to all features (3D camera, pointer, NLP, etc.)
 │   └── DEVELOPMENT_PLAN.md        # Roadmap & engineering milestones
 │
 └── frontend/                      # React Web Application
     ├── .gitignore
+    ├── Dockerfile                 # Frontend production container configuration (Nginx)
+    ├── nginx.conf                 # Nginx SPA & reverse proxy configuration
     ├── index.html
     ├── package.json
     ├── vite.config.js
@@ -66,7 +81,7 @@ patient-diagnosis-system/
     │       └── ATTRIBUTION.md     # CC BY 4.0 data attribution (BodyParts3D)
     │
     └── src/
-        ├── App.jsx                # Clinical journey controller
+        ├── App.jsx                # Clinical journey controller & responsive layout
         ├── index.css              # Warm ivory editorial styling & theme tokens
         ├── components/            # Reusable UI widgets (Header, ScoreGauge, StatusBadge)
         ├── features/
@@ -74,78 +89,68 @@ patient-diagnosis-system/
         │   ├── analysis/          # Clinical processing pipeline visualization
         │   ├── results/           # Tabbed clinical guidance console
         │   └── body-viewer/       # Three.js 3D Anatomy engine & shaders
-        │       ├── BodyViewer.jsx # 3D Canvas, OrbitControls, raycaster
+        │       ├── BodyViewer.jsx # 3D Canvas, OrbitControls, raycaster, pointer arrow
         │       ├── anatomyAtlas.js# 15 anatomical systems & region classifier
         │       └── modelLoader.js # DecompressionStream binary chunk loader
         ├── mock/
-        │   └── clinicalData.js    # ICD-10 diagnostic datasets
+        │   └── clinicalData.js    # ICD-10 diagnostic datasets (client-side fallback)
         └── services/
             └── apiService.js      # Backend API client with automatic fallback
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
-- **Node.js**: `v18.0.0` or later
-- **npm** or **pnpm** / **yarn**
-
-### Installation & Local Setup
+### Option A: Docker Compose (Easiest Full-Stack Launch)
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/<YOUR_USERNAME>/patient-diagnosis-system.git
-cd patient-diagnosis-system
+# Clone the repository
+git clone https://github.com/Kartikay-Dubey/patient-clinical-decision-support-system.git
+cd patient-clinical-decision-support-system
 
-# 2. Navigate to frontend and install dependencies
-cd frontend
-npm install
-
-# 3. Start the local development server
-npm run dev
+# Build and start both Backend & Frontend containers
+docker compose up -d --build
 ```
-
-Open [http://localhost:3000](http://localhost:3000) (or the port shown in your terminal) in your browser.
-
-### Production Build
-
-```bash
-cd frontend
-npm run build
-```
-The optimized production bundle will be generated in `frontend/dist/`.
+- **Web Application**: [http://localhost:3000](http://localhost:3000)
+- **FastAPI Backend & Interactive API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 🔌 API & Real Dataset Integration
+### Option B: Local Development Setup
 
-The frontend uses `apiService.js` to communicate with any backend diagnostic service (FastAPI, Python LLM/MedLM, FHIR server, or EHR pipeline).
+#### 1. Start the Backend (FastAPI + ML Engine)
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+source .venv/bin/activate
 
-Set your backend endpoint in `.env`:
-```env
-VITE_API_BASE_URL=https://your-clinical-api.com/api/v1
+# Install dependencies
+pip install -r backend/requirements.txt
+
+# Run the backend server
+python run_server.py
 ```
+Backend runs at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-The system accepts standard JSON diagnostic responses:
-```json
-{
-  "bodyLocalization": {
-    "primaryRegion": "Thorax",
-    "bodySystem": "Respiratory System"
-  },
-  "topCondition": {
-    "name": "Acute Bronchitis",
-    "icd10Code": "J20.9",
-    "confidenceScore": 88
-  },
-  "guidance": {
-    "homeRemedies": ["Hydration", "Humidified air", "Honey for cough relief"],
-    "causes": ["Acute viral inflammation of bronchial mucosa"],
-    "precautions": ["Seek medical evaluation if fever exceeds 102°F or severe dyspnea develops"]
-  }
-}
+#### 2. Start the Frontend (React + Vite)
+```bash
+cd frontend
+npm install
+npm run dev
 ```
+Frontend runs at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 📖 In-Depth Documentation
+
+- 🚀 [**Production Deployment Guide**](docs/DEPLOYMENT_GUIDE.md) — Step-by-step instructions for Docker, AWS/DigitalOcean VPS with Nginx + SSL, and Render + Vercel cloud deployment.
+- 🩺 [**System Features & Architecture Guide**](docs/SYSTEM_FEATURES.md) — Comprehensive explanation of 3D camera targeting, 3D anatomical pointer arrow, layer auto-isolation, diagnostic confidence scoring, and mobile responsive design.
+- ⚙️ [**Backend Architecture & API Specs**](backend/README.md) — Pipeline details for DDXPlus ML classifier, keyword NLP extractor, and REST endpoints.
 
 ---
 
@@ -160,3 +165,4 @@ The system accepts standard JSON diagnostic responses:
 
 > [!WARNING]
 > This application is an educational decision-support demonstration and is **not** a certified medical diagnostic device. It does not provide definitive medical diagnoses or replace direct consultation with licensed healthcare professionals. Always seek the advice of a qualified physician for any medical symptoms or conditions.
+

@@ -50,7 +50,7 @@ const VALUE_ROWS = [
   },
 ];
 
-export default function SymptomInput({ onAnalyze, isLoading }) {
+export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null, onClearError = () => {} }) {
   const [rawText, setRawText] = useState('');
   const [tags, setTags] = useState([]);
   const [newTagInput, setNewTagInput] = useState('');
@@ -257,6 +257,22 @@ export default function SymptomInput({ onAnalyze, isLoading }) {
                 </div>
               </div>
 
+              {errorMessage && (
+                <div className="mb-3.5 p-3 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-start gap-2.5 animate-in fade-in">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <span className="font-bold">Input Notice:</span> {errorMessage}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClearError}
+                    className="text-destructive/70 hover:text-destructive text-xs font-bold cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <label
@@ -402,18 +418,18 @@ export default function SymptomInput({ onAnalyze, isLoading }) {
                     type="submit"
                     disabled={isLoading || isEmpty || isOverLimit}
                     aria-busy={isLoading}
-                    className="relative w-full py-3.5 px-6 rounded-full font-bold text-sm font-display flex items-center justify-center gap-3 transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40 disabled:cursor-not-allowed group bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 shadow-lg shadow-teal-600/25 hover:shadow-xl hover:shadow-cyan-600/30 text-white"
+                    className="relative w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-full font-bold text-xs sm:text-sm font-display flex items-center justify-center gap-2 sm:gap-3 transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40 disabled:cursor-not-allowed group bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 shadow-lg shadow-teal-600/25 hover:shadow-xl hover:shadow-cyan-600/30 text-white"
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="h-5 w-5 animate-spin text-white/80" />
-                        <span>Running Clinical Localization & Evaluation…</span>
+                        <Loader2 className="h-4 sm:h-5 w-4 sm:w-5 animate-spin text-white/80 flex-shrink-0" />
+                        <span className="truncate">Running Clinical Localization…</span>
                       </>
                     ) : (
                       <>
-                        <FlaskConical className="h-5 w-5 text-white/90" />
-                        <span>Analyze Symptoms, Map 3D Body & Get Care Plan</span>
-                        <ArrowRight className="h-5 w-5 ml-auto text-white/90 group-hover:translate-x-1.5 transition-transform duration-200" />
+                        <FlaskConical className="h-4 sm:h-5 w-4 sm:w-5 text-white/90 flex-shrink-0" />
+                        <span className="truncate">Analyze Symptoms & Map 3D Body</span>
+                        <ArrowRight className="h-4 sm:h-5 w-4 sm:w-5 ml-auto text-white/90 group-hover:translate-x-1.5 transition-transform duration-200 flex-shrink-0" />
                       </>
                     )}
                   </motion.button>

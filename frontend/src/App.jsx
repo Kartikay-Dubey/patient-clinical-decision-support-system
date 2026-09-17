@@ -14,12 +14,14 @@ export default function App() {
   const [appState, setAppState] = useState('input'); // 'input' | 'analyzing' | 'results'
   const [analysisData, setAnalysisData] = useState(null);
   const [activeRegion, setActiveRegion] = useState('All');
+  const [errorMessage, setErrorMessage] = useState(null);
   const pendingResultRef = useRef(null);
 
   const handleAnalyze = async (payload) => {
     setAppState('analyzing');
     setAnalysisData(null);
     setActiveRegion(null); // Neutral presentation until region step completes
+    setErrorMessage(null);
     pendingResultRef.current = null;
 
     try {
@@ -27,7 +29,9 @@ export default function App() {
       pendingResultRef.current = result;
     } catch (err) {
       console.error('Model analysis failure:', err);
-      // Fallback to input on error
+      setErrorMessage(
+        err.message || 'Unable to identify recognized clinical evidence from your input. Please try describing specific symptoms (e.g. chest pain, cough, fever, nausea).'
+      );
       setAppState('input');
     }
   };
@@ -84,7 +88,12 @@ export default function App() {
               transition={{ duration: 0.35 }}
               className="flex flex-col w-full"
             >
-              <SymptomInput onAnalyze={handleAnalyze} isLoading={false} />
+              <SymptomInput
+                onAnalyze={handleAnalyze}
+                isLoading={false}
+                errorMessage={errorMessage}
+                onClearError={() => setErrorMessage(null)}
+              />
             </motion.div>
           )}
 
@@ -96,7 +105,7 @@ export default function App() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.35 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center min-h-[70vh] py-4"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center min-h-[70vh] py-3 sm:py-4"
             >
               <div className="lg:col-span-6 lg:col-start-2">
                 <AnalysisStatus
@@ -104,7 +113,7 @@ export default function App() {
                   onComplete={handleAnalysisComplete}
                 />
               </div>
-              <div className="lg:col-span-4 h-[460px] master-console p-3 overflow-hidden">
+              <div className="lg:col-span-4 h-[280px] sm:h-[360px] lg:h-[460px] master-console p-2 sm:p-3 overflow-hidden">
                 <BodyViewer
                   activeRegion={activeRegion}
                   onSelectRegion={() => {}}
@@ -123,13 +132,13 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.35 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-[calc(100dvh-10.5rem)]"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-0 lg:min-h-[calc(100dvh-10.5rem)]"
             >
               {/* Left Column: Unified 3D Anatomy + Primary Assessment Master Console */}
-              <div className="lg:col-span-7 flex flex-col master-console h-full justify-between overflow-hidden">
+              <div className="lg:col-span-7 flex flex-col master-console h-auto lg:h-full justify-between overflow-hidden">
                 
                 {/* Console Topbar: Region & System Info + Start Over */}
-                <div className="console-topbar px-5 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
+                <div className="console-topbar px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="h-8 w-8 rounded-xl bg-accent text-primary flex items-center justify-center border border-primary/20 flex-shrink-0">
                       <Activity className="h-4 w-4" />
@@ -148,17 +157,22 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="relative p-2 flex-1 min-h-[380px]">
+                <div className="relative p-1.5 sm:p-2 flex-1 min-h-[300px] sm:min-h-[350px] lg:min-h-[380px]">
                   <BodyViewer
                     activeRegion={activeRegion}
                     onSelectRegion={handleSelectRegion}
+                    bodyLocalization={analysisData.bodyLocalization}
+                    conditionName={topCondition?.name}
+                    icd10Code={analysisData.icd10Code}
+                    modelScore={topScore}
+                    confidenceCategory={topCondition?.confidenceCategory}
                   />
                 </div>
 
                 {/* Integrated Primary Clinical Assessment Footer */}
-                <div className="border-t border-border bg-white/90 p-4 sm:px-5 sm:py-4 flex-shrink-0">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-4">
-                    <div className="flex-1 flex flex-col gap-1.5 text-center sm:text-left min-w-0">
+                <div className="border-t border-border bg-white/90 p-3.5 sm:px-5 sm:py-4 flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 flex flex-col gap-1 sm:gap-1.5 text-center sm:text-left min-w-0">
                       <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold font-display border border-primary/20">
                           <Sparkles className="h-3 w-3 text-primary" />
@@ -168,7 +182,7 @@ export default function App() {
                           ICD-10: {topCondition?.icd10Code || 'N/A'}
                         </span>
                       </div>
-                      <h4 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                      <h4 className="font-display text-base sm:text-xl font-bold text-foreground tracking-tight">
                         {topCondition?.name || 'Clinical Finding'}
                       </h4>
                       <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xl">
@@ -181,11 +195,11 @@ export default function App() {
                         </div>
                       )}
                     </div>
-                    <div className="pebble-dial p-2 bg-white flex-shrink-0">
+                    <div className="pebble-dial p-1.5 sm:p-2 bg-white flex-shrink-0">
                       <ScoreGauge
                         value={topScore}
-                        size={92}
-                        strokeWidth={8}
+                        size={84}
+                        strokeWidth={7}
                         label="Match"
                         confidence={topCondition?.confidenceCategory || 'High'}
                       />
@@ -196,7 +210,7 @@ export default function App() {
               </div>
 
               {/* Right Column: Guidance Tabs & Clinical Content */}
-              <div className="lg:col-span-5 flex flex-col h-full">
+              <div className="lg:col-span-5 flex flex-col min-h-[460px] lg:min-h-0 lg:h-full">
                 <ResultsViewer analysisData={analysisData} isLoading={false} className="h-full" />
               </div>
 

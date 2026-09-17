@@ -1,53 +1,78 @@
 /**
- * Clinical Decision-Support API Service Layer
- * Abstracts backend network communication with intelligent mock adapter.
+ * Clinical Decision-Support API Service Layer.
+ * Communicates with the real FastAPI + DDXPlus ML Diagnostic backend.
  */
 
-import { MOCK_CLINICAL_PRESETS } from '../mock/clinicalData';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 /**
- * Simulates symptom analysis model inference matching natural language patient symptoms.
- * @param {Object} payload - { rawSymptoms: string, structuredSymptoms: string[] }
- * @returns {Promise<Object>} API_CONTRACT compliant response object with full patient storyline
+ * Analyzes patient symptom text and tags using the real DDXPlus AI model & NLP pipeline.
+ * @param {Object} payload - { rawSymptoms: string, structuredSymptoms: string[], patientDemographics?: object }
+ * @returns {Promise<Object>} Live API response matching API_CONTRACT.md schema
  */
 export async function analyzeSymptoms(payload) {
-  // Simulate network latent processing delay (~600ms)
-  await new Promise((resolve) => setTimeout(resolve, 600));
+  const url = `${API_BASE_URL}/api/v1/analyze`;
 
-  const inputLower = (payload.rawSymptoms || '').toLowerCase();
-  const tagsStr = (payload.structuredSymptoms || []).join(' ').toLowerCase();
-  const text = `${inputLower} ${tagsStr}`;
+  const requestBody = {
+    rawSymptoms: payload.rawSymptoms || '',
+    structuredSymptoms: payload.structuredSymptoms || [],
+    patientDemographics: payload.patientDemographics || {
+      age: payload.age || 35,
+      sex: payload.sex || 'M',
+    },
+  };
 
-  // 1. Cough / Cold / Throat / Airway / Bronchial
-  if (text.includes('cough') || text.includes('cuff') || text.includes('throat') || text.includes('cold') || text.includes('bronch')) {
-    return MOCK_CLINICAL_PRESETS[0].response; // preset_cough
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      let errorData = null;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        // Non-JSON response
+      }
+
+      const errorMessage =
+        errorData?.error?.message ||
+        errorData?.detail?.error?.message ||
+        `Clinical analysis error (HTTP ${response.status})`;
+
+      const err = new Error(errorMessage);
+      err.status = response.status;
+      err.data = errorData;
+      throw err;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    // If backend direct URL fallback is needed when running dev server without proxy
+    if (err.name === 'TypeError' && !API_BASE_URL) {
+      try {
+        const fallbackRes = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (fallbackRes.ok) {
+          return await fallbackRes.json();
+        }
+      } catch (fallbackErr) {
+        // Fallback also failed
+      }
+    }
+
+    console.error('[APIService] Diagnosis inference failed:', err);
+    throw err;
   }
-  
-  // 2. Acid reflux / Heartburn / GERD / Stomach burning
-  if (text.includes('reflux') || text.includes('heartburn') || text.includes('acidity') || text.includes('gerd') || text.includes('burn after')) {
-    return MOCK_CLINICAL_PRESETS[1].response; // preset_acid_reflux
-  }
-
-  // 3. Chest discomfort / Heart pressure / Shortness of breath
-  if (text.includes('chest') || text.includes('heart') || text.includes('angina') || text.includes('breath') || text.includes('dyspnea')) {
-    return MOCK_CLINICAL_PRESETS[2].response; // preset_chest_pain
-  }
-
-  // 4. Headache / Migraine / Light sensitivity
-  if (text.includes('head') || text.includes('headache') || text.includes('migraine') || text.includes('light') || text.includes('photo')) {
-    return MOCK_CLINICAL_PRESETS[3].response; // preset_headache
-  }
-
-  // 5. Back pain / Spine / Lifting injury / Lumbar strain
-  if (text.includes('back') || text.includes('spine') || text.includes('lumbar') || text.includes('lift') || text.includes('stiff')) {
-    return MOCK_CLINICAL_PRESETS[4].response; // preset_back_pain
-  }
-
-  // 6. Right lower abdominal pain / Stomach ache / Appendix
-  if (text.includes('abdom') || text.includes('stomach') || text.includes('append') || text.includes('belly') || text.includes('cramp')) {
-    return MOCK_CLINICAL_PRESETS[5].response; // preset_abdominal
-  }
-
-  // Default fallback: Cough & airway irritation scenario
-  return MOCK_CLINICAL_PRESETS[0].response;
 }

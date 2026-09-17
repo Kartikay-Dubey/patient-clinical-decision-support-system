@@ -6,6 +6,7 @@ patient storylines (precautions, red flags, home remedies), and confidence asses
 """
 
 import time
+import re
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional, Tuple
 from fastapi import HTTPException
@@ -303,6 +304,289 @@ def _clean_symptom_display_name(ev: Dict[str, Any]) -> str:
     return q.capitalize() if q else "Clinical finding"
 
 
+def _resolve_anatomical_localization(
+    top_condition_name: str,
+    raw_symptoms: str,
+    extracted_symptoms: List[ExtractedSymptom],
+    matched_evidences: List[Dict[str, Any]],
+    anatomy_mapper: ConditionAnatomyMapper
+) -> BodyLocalization:
+    """
+    Deterministically computes anatomical localization and 3D camera targeting.
+    Prioritizes patient-reported localized joint/limb symptom sites (e.g. shoulder, knee, arm)
+    so the 3D atlas focuses directly on the patient's presenting anatomical complaint,
+    while linking systemic/visceral condition anatomy as secondary regions.
+    """
+    anatomy = anatomy_mapper.get_mapping(top_condition_name)
+    raw_lower = (raw_symptoms or "").lower()
+
+    # Aggregate text tokens across raw input, extracted symptom names, and evidence findings
+    evidence_tokens = [
+        (ev.get("finding_en") or "").lower()
+        for ev in matched_evidences
+    ]
+    symptom_tokens = [s.name.lower() for s in extracted_symptoms]
+    all_tokens = " ".join([raw_lower] + symptom_tokens + evidence_tokens)
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # PRIORITY OVERRIDES — patient-stated symptom site wins over ML prediction
+    # These checks fire BEFORE condition-based anatomy fallback so the 3D camera
+    # always frames what the patient is actually describing, not the predicted disease.
+    # ──────────────────────────────────────────────────────────────────────────
+
+    # HEAD / CRANIAL — headache, migraine, dizziness, scalp, eye pain, vertigo
+    HEAD_KWS = [
+        "headache", "head ache", "head pain", "migraine", "dizziness", "dizzy",
+        "vertigo", "lightheaded", "light-headed", "temple pain", "forehead pain",
+        "scalp", "skull", "cranial", "eye pain", "eye ache", "vision", "blurred vision",
+        "tinnitus", "ringing in ear", "jaw pain", "facial pain", "face pain",
+        "pressure in head", "throbbing head", "pounding head", "head pressure",
+        "forehead", "cephalic"
+    ]
+    has_head_kw = any(k in raw_lower for k in HEAD_KWS) or bool(re.search(r'\bhead\b', raw_lower))
+
+    # NECK — neck pain, stiff neck, cervical (but not just "cervical cancer")
+    NECK_KWS = ["neck pain", "stiff neck", "neck stiffness", "cervical pain", "neck ache",
+                "nape", "nuchal"]
+    has_neck_kw = any(k in raw_lower for k in NECK_KWS) or bool(re.search(r'\bneck\b', raw_lower))
+
+    # BACK / SPINE / SPINAL CORD — back pain, spine, spinal, cord, vertebra, lumbar
+    has_back_kw = bool(
+        re.search(r'\b(back|spine|spinal|cord|vertebra|vertebrae|vertebral|dorsal|lumbar|sacral|sacroiliac|coccyx|sciatica)\b', raw_lower)
+        or any(k in raw_lower for k in [
+            "back pain", "backache", "back ache", "spinal cord", "spine pain", "spinal pain",
+            "thoracic spine", "lumbar spine", "cervical spine", "lower back", "upper back",
+            "mid back", "paraspinal", "disc"
+        ])
+        or any("back" in t or "spine" in t or "spinal" in t for t in all_tokens)
+    )
+    # Exclude non-symptom conversational idioms if present alone
+    if raw_lower.strip() in ["come back", "call back", "came back", "look back", "brought back"]:
+        has_back_kw = False
+
+    # HIP — hip pain, groin (but not inguinal hernia-style)
+    HIP_KWS = ["hip pain", "hip ache", "hip stiffness", "groin pain", "groin ache",
+               "buttock pain", "gluteal pain", "trochanteric"]
+    has_hip_kw = any(k in raw_lower for k in HIP_KWS)
+
+    # CHEST (explicit) — guard against overriding genuine chest complaints
+    has_primary_chest = any(k in raw_lower for k in [
+        "chest pain", "chest pressure", "chest tightness", "chest discomfort",
+        "substernal", "retrosternal", "heart pain", "palpitation"
+    ])
+
+    # Apply overrides ─────────────────────────────────────────────────────────
+    if has_head_kw and not has_primary_chest and not has_back_kw:
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Head":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Head",
+            secondaryRegions=sec_regions,
+            bodySystem=anatomy.bodySystem if "neuro" in anatomy.bodySystem.lower() else "Neurological / Cranial",
+            targetOrgan="Cranial Region & Cephalic Structures",
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.62, z=0.10)
+        )
+
+    if has_neck_kw and not has_primary_chest and not any(k in raw_lower for k in ["lumbar", "lower back", "thoracic"]):
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Head":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Head",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Cervical",
+            targetOrgan="Cervical Spine & Neck Musculature",
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.08)
+        )
+
+    if has_back_kw and not has_primary_chest:
+        # Lower vs upper vs general back / spinal cord
+        is_lower_back = any(k in raw_lower for k in ["lower back", "lumbar", "sciatica", "sacral", "sacroiliac", "coccyx", "l1", "l2", "l3", "l4", "l5", "s1"])
+        is_cervical = any(k in raw_lower for k in ["cervical", "neck"])
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions:
+            sec_regions.insert(0, anatomy.primaryRegion)
+
+        if is_cervical:
+            return BodyLocalization(
+                primaryRegion="Head",
+                secondaryRegions=sec_regions,
+                bodySystem="Nervous System / Cervical Spine",
+                targetOrgan="Cervical Spine & Spinal Cord",
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.09)
+            )
+        elif is_lower_back:
+            return BodyLocalization(
+                primaryRegion="Pelvis",
+                secondaryRegions=sec_regions,
+                bodySystem="Nervous System / Lumbar Spine",
+                targetOrgan="Lumbar Spine & Spinal Cord",
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=0.92, z=-0.10)
+            )
+        else:
+            return BodyLocalization(
+                primaryRegion="Thorax",
+                secondaryRegions=sec_regions,
+                bodySystem="Nervous System / Spinal Cord",
+                targetOrgan="Thoracic Spine & Spinal Cord",
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.20, z=-0.12)
+            )
+
+    if has_hip_kw:
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Pelvis":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Pelvis",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Pelvic",
+            targetOrgan="Hip Joint & Femoral Head",
+            spatialCoordinates=SpatialCoordinates(x=0.09, y=0.82, z=0.06)
+        )
+
+    # 1. Shoulder & Upper Extremity Joint Localization
+    # Checks for shoulder, deltoid, rotator cuff, scapula, clavicle
+    is_shoulder = (
+        "shoulder" in raw_lower or
+        "shoulder" in all_tokens or
+        "épaule" in all_tokens or
+        any(k in raw_lower for k in ["deltoid", "rotator cuff", "scapula", "acromion", "collarbone"]) or
+        any("shoulder" in tok for tok in evidence_tokens)
+    )
+
+    # Check if patient reports primary chest/cardiac pain radiating to shoulder vs isolated shoulder
+
+
+    if is_shoulder and not has_primary_chest:
+        # Determine lateral side (BodyParts3D: Left arm is +X, Right arm is -X)
+        has_left_kw = "left" in raw_lower or "gauche" in raw_lower
+        has_right_kw = "right" in raw_lower or "droite" in raw_lower
+
+        if has_left_kw and not has_right_kw:
+            shoulder_x = 0.19
+            organ_name = "Left Shoulder Joint & Deltoid Musculature"
+        elif has_right_kw and not has_left_kw:
+            shoulder_x = -0.19
+            organ_name = "Right Shoulder Joint & Deltoid Musculature"
+        else:
+            # Fallback to evidence tokens or default
+            if any(k in all_tokens for k in ["shoulder(l)", "épaule(g)"]) and not any(k in all_tokens for k in ["shoulder(r)", "épaule(d)"]):
+                shoulder_x = 0.19
+                organ_name = "Left Shoulder Joint & Deltoid Musculature"
+            else:
+                shoulder_x = -0.19
+                organ_name = "Shoulder Joint & Deltoid Musculature"
+
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Upper Limb":
+            sec_regions.insert(0, anatomy.primaryRegion)
+
+        return BodyLocalization(
+            primaryRegion="Upper Limb",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Upper Extremity",
+            targetOrgan=organ_name,
+            spatialCoordinates=SpatialCoordinates(x=shoulder_x, y=1.35, z=0.05)
+        )
+
+    # 2. Elbow & Forearm
+    if any(k in raw_lower for k in ["elbow", "forearm", "biceps", "triceps"]) and not has_primary_chest:
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Upper Limb":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Upper Limb",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Upper Extremity",
+            targetOrgan="Elbow Joint & Forearm Complex",
+            spatialCoordinates=SpatialCoordinates(x=0.25, y=1.10, z=0.05)
+        )
+
+    # 3. Wrist & Hand
+    if any(k in raw_lower for k in ["wrist", "hand", "finger", "thumb", "carpal", "palm"]):
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Upper Limb":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Upper Limb",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Upper Extremity",
+            targetOrgan="Wrist & Carpal Articulations",
+            spatialCoordinates=SpatialCoordinates(x=0.28, y=0.85, z=0.05)
+        )
+
+    # 4. Knee & Lower Extremity Joint Localization
+    if any(k in raw_lower for k in ["knee", "patella", "genu"]):
+        has_left_kw = "left" in raw_lower or "gauche" in raw_lower
+        has_right_kw = "right" in raw_lower or "droite" in raw_lower
+        if has_left_kw and not has_right_kw:
+            knee_x = 0.08
+            knee_label = "Left Knee Joint & Patellar Complex"
+        elif has_right_kw and not has_left_kw:
+            knee_x = -0.08
+            knee_label = "Right Knee Joint & Patellar Complex"
+        else:
+            knee_x = 0.08
+            knee_label = "Knee Joint & Patellar Complex"
+
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Lower Limb":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Lower Limb",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Lower Extremity",
+            targetOrgan=knee_label,
+            spatialCoordinates=SpatialCoordinates(x=knee_x, y=0.45, z=0.08)
+        )
+
+    # 5. Ankle & Foot
+    if any(k in raw_lower for k in ["ankle", "foot", "feet", "heel", "tarsal", "malleol"]):
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Lower Limb":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Lower Limb",
+            secondaryRegions=sec_regions,
+            bodySystem="Musculoskeletal / Lower Extremity",
+            targetOrgan="Ankle Joint & Tarsal Articulations",
+            spatialCoordinates=SpatialCoordinates(x=0.09, y=0.08, z=0.08)
+        )
+
+    # 6. Throat / Neck / Cervical Pharynx
+    if any(k in raw_lower for k in ["throat", "swallow", "pharynx", "larynx", "tonsil", "neck pain"]):
+        sec_regions = list(anatomy.secondaryRegions)
+        if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Head":
+            sec_regions.insert(0, anatomy.primaryRegion)
+        return BodyLocalization(
+            primaryRegion="Head",
+            secondaryRegions=sec_regions,
+            bodySystem="ENT / Respiratory",
+            targetOrgan="Pharynx, Larynx & Cervical Region",
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.42, z=0.08)
+        )
+
+    # 7. Esophagus & Gastroesophageal Junction (Boerhaave / GERD / heartburn)
+    if any(k in raw_lower for k in ["esophag", "acid reflux", "heartburn", "retrosternal burning"]) or top_condition_name == "Boerhaave":
+        return BodyLocalization(
+            primaryRegion="Thorax" if top_condition_name == "Boerhaave" else anatomy.primaryRegion,
+            secondaryRegions=anatomy.secondaryRegions,
+            bodySystem="Digestive",
+            targetOrgan="Esophagus & Gastroesophageal Junction",
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.20, z=0.05)
+        )
+
+    # 8. Standard / Default DDXPlus Condition Anatomical Mapping
+    return BodyLocalization(
+        primaryRegion=anatomy.primaryRegion,
+        secondaryRegions=anatomy.secondaryRegions,
+        bodySystem=anatomy.bodySystem,
+        targetOrgan=anatomy.targetOrgan,
+        spatialCoordinates=SpatialCoordinates(**anatomy.spatialCoordinates)
+    )
+
+
 def process_clinical_analysis(request: AnalyzeRequest) -> AnalyzeResponse:
     """
     Main orchestration function:
@@ -467,35 +751,14 @@ def process_clinical_analysis(request: AnalyzeRequest) -> AnalyzeResponse:
             )
         )
 
-    # Step 6: Anatomical Localization — sourced from ConditionAnatomyMapper (body_mapping.json)
+    # Step 6: Anatomical Localization — resolved from ConditionAnatomyMapper and patient symptoms
     anatomy_mapper = get_anatomy_mapper()
-    anatomy = anatomy_mapper.get_mapping(top_condition_name)
-
-    # Optional: override primaryRegion based on direct pain-location evidence tokens
-    inferred_region: Optional[str] = None
-    for ev in matched_evidences:
-        finding = (ev.get("finding_en") or "").lower()
-        if any(k in finding for k in ["lower chest", "chest", "thorax", "sternal"]):
-            inferred_region = "Thorax"
-            break
-        elif any(k in finding for k in ["head", "forehead", "temple", "orbit"]):
-            inferred_region = "Head"
-            break
-        elif any(k in finding for k in ["epigastrium", "abdomen", "stomach"]):
-            inferred_region = "Abdomen"
-            break
-        elif any(k in finding for k in ["groin", "inguinal", "pelvis"]):
-            inferred_region = "Pelvis"
-            break
-
-    final_region = inferred_region if (inferred_region and anatomy.status == "unmapped") else anatomy.primaryRegion
-
-    body_localization = BodyLocalization(
-        primaryRegion=final_region,
-        secondaryRegions=anatomy.secondaryRegions,
-        bodySystem=anatomy.bodySystem,
-        targetOrgan=anatomy.targetOrgan,
-        spatialCoordinates=SpatialCoordinates(**anatomy.spatialCoordinates)
+    body_localization = _resolve_anatomical_localization(
+        top_condition_name=top_condition_name,
+        raw_symptoms=request.rawSymptoms,
+        extracted_symptoms=extracted_symptoms,
+        matched_evidences=matched_evidences,
+        anatomy_mapper=anatomy_mapper
     )
 
     # Step 7: Storyline & Narrative Breakdown

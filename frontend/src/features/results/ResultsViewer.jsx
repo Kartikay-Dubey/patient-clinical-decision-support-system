@@ -54,7 +54,7 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
     <div className={`master-console flex flex-col h-full overflow-hidden ${className}`}>
       
       {/* ── Navigation Tabs Topbar (Possibilities First) ─────────────────── */}
-      <div className="console-topbar p-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5 flex-shrink-0">
+      <div className="console-topbar p-1.5 sm:p-2 grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-1.5 flex-shrink-0">
         {[
           { id: 'conditions', label: 'Conditions', count: possibleConditions.length, icon: Activity },
           { id: 'remedies', label: 'Remedies', icon: Home },
@@ -69,7 +69,7 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
               type="button"
               onClick={() => setActiveTab(tab.id)}
               title={tab.label}
-              className={`flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2 py-2 rounded-xl transition-all cursor-pointer font-display ${
+              className={`flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-semibold px-1.5 py-2 rounded-xl transition-all cursor-pointer font-display ${
                 active
                   ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/80'
@@ -87,7 +87,7 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
 
       <div className="relative flex-1 min-h-0 overflow-hidden">
         <ResultsPanelFill />
-        <div className="relative z-10 p-4 sm:p-5 h-full overflow-y-auto">
+        <div className="relative z-10 p-3 sm:p-5 h-full overflow-y-auto">
         
         {/* TAB 1: HOME REMEDIES & SELF-CARE */}
         {activeTab === 'remedies' && (

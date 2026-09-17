@@ -205,7 +205,16 @@ export function classifyPartRegion(part) {
       name.includes('triceps brachii') ||
       name.includes('deltoid') ||
       name.includes('axillary') ||
-      name.includes('scapula')) &&
+      name.includes('scapula') ||
+      name.includes('clavicle') ||
+      name.includes('acromion') ||
+      name.includes('supraspinatus') ||
+      name.includes('infraspinatus') ||
+      name.includes('subscapular') ||
+      name.includes('rotator') ||
+      name.includes('teres major') ||
+      name.includes('teres minor') ||
+      name.includes('glenohumeral')) &&
     !name.includes('foot') &&
     !name.includes('leg')
   ) {
@@ -366,42 +375,55 @@ export function classifyPartRegion(part) {
 export const REGION_CAMERA_CONFIGS = {
   All: {
     target: [0, 0.865, 0],
-    camPos: [0.15, 0.90, 2.50],
+    camPos: [0.15, 0.90, 2.45],
     fov: 38,
   },
   'Full Body': {
     target: [0, 0.865, 0],
-    camPos: [0.15, 0.90, 2.50],
+    camPos: [0.15, 0.90, 2.45],
     fov: 38,
   },
   Head: {
     target: [0, 1.56, 0.02],
-    camPos: [0.08, 1.58, 0.72],
+    camPos: [0.04, 1.56, 0.46],
     fov: 34,
   },
   Thorax: {
     target: [0, 1.25, 0.01],
-    camPos: [0.10, 1.27, 0.98],
+    camPos: [0.05, 1.25, 0.52],
     fov: 34,
   },
   Abdomen: {
     target: [0, 1.00, 0.01],
-    camPos: [0.08, 1.02, 0.88],
+    camPos: [0.05, 1.00, 0.52],
     fov: 34,
   },
   Pelvis: {
     target: [0, 0.80, 0.01],
-    camPos: [0.08, 0.82, 0.92],
+    camPos: [0.04, 0.80, 0.54],
     fov: 34,
   },
   'Upper Limb': {
-    target: [0.16, 1.15, 0],
-    camPos: [0.22, 1.18, 1.15],
-    fov: 34,
+    target: [0.0, 1.35, 0],
+    camPos: [0.0, 1.35, 0.58],
+    fov: 30,
   },
   'Lower Limb': {
-    target: [0, 0.42, 0.01],
-    camPos: [0.10, 0.45, 1.40],
+    target: [0.08, 0.45, 0.01],
+    camPos: [0.08, 0.45, 0.78],
     fov: 36,
   },
 };
+
+/**
+ * 3D Anchor coordinates for anatomical annotations and HUD callout leader lines.
+ */
+export const REGION_ANCHORS = {
+  Head: { x: 0.0, y: 1.56, z: 0.12, name: 'Cranial & Cervical Region' },
+  Thorax: { x: 0.0, y: 1.25, z: 0.14, name: 'Thoracic Cavity & Cardiorespiratory' },
+  Abdomen: { x: 0.0, y: 1.00, z: 0.13, name: 'Abdominal Viscera & Gastrointestinal' },
+  Pelvis: { x: 0.0, y: 0.80, z: 0.12, name: 'Pelvic Cavity & Genitourinary' },
+  'Upper Limb': { x: -0.19, y: 1.35, z: 0.05, name: 'Shoulder Joint & Upper Extremity' },
+  'Lower Limb': { x: 0.10, y: 0.45, z: 0.08, name: 'Lower Extremity / Femoral' },
+};
+

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Sparkles, Check, Maximize2, Minimize2 } from 'lucide-react';
+import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Sparkles, Check, Maximize2, Minimize2, ChevronDown } from 'lucide-react';
 import { decodeModelResponse } from './modelLoader';
 import {
   SYSTEMS,
@@ -11,7 +11,9 @@ import {
   REGIONS,
   classifyPartRegion,
   REGION_CAMERA_CONFIGS,
+  REGION_ANCHORS,
 } from './anatomyAtlas';
+import AnatomyHUDCallout from './AnatomyHUDCallout';
 
 const ATLAS_JSON_PATH = '/models/atlas.json';
 
@@ -21,11 +23,17 @@ export default function BodyViewer({
   className = '',
   isScanning = false,
   showControls = true,
+  bodyLocalization = null,
+  conditionName = null,
+  icd10Code = null,
+  modelScore = null,
+  confidenceCategory = null,
 }) {
   const containerRef = useRef(null);
   const viewerWrapperRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [internalRegion, setInternalRegion] = useState('All');
+  const [mobileLayersOpen, setMobileLayersOpen] = useState(false);
   const [activeLayers, setActiveLayers] = useState({
     Muscles: true,
     Skeleton: true,
@@ -36,6 +44,8 @@ export default function BodyViewer({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [hoveredPart, setHoveredPart] = useState(null);
+  const [target2D, setTarget2D] = useState(null);
+  const target2DRef = useRef(null);
 
   // Fullscreen toggle handler
   const toggleFullscreen = useCallback(() => {
@@ -94,25 +104,187 @@ export default function BodyViewer({
     sceneStateRef.current.dirty = true;
   }, [selectedRegion, activeLayers, currentView]);
 
-  const handleRegionClick = useCallback(
-    (region) => {
-      setInternalRegion(region);
-      if (onSelectRegion) onSelectRegion(region);
+  // Smooth camera zoom and focus — computes target + camPos from bodyLocalization
+  // spatialCoordinates, falling back to REGION_CAMERA_CONFIGS defaults.
+  // Smooth camera zoom and focus — computes target + camPos from bodyLocalization
+  // spatialCoordinates, falling back to REGION_CAMERA_CONFIGS defaults.
+  const triggerCameraTransition = useCallback(
+    (region, customTarget = null) => {
+      let target = null;
+      let camPos = null;
 
-      // Trigger smooth camera transition
-      const cfg = REGION_CAMERA_CONFIGS[region] || REGION_CAMERA_CONFIGS.All;
+      if (customTarget && Array.isArray(customTarget)) {
+        // Explicit 3D target passed in (manual click)
+        target = customTarget;
+        camPos = [customTarget[0], customTarget[1], 0.55];
+      } else if (
+        bodyLocalization?.spatialCoordinates &&
+        region !== 'All' &&
+        region !== 'Full Body'
+      ) {
+        const { x, y, z } = bodyLocalization.spatialCoordinates;
+        const cx = x ?? 0.0;
+        const cy = y ?? 1.2;
+        const cz = z ?? 0.0;
+
+        const organLower = (bodyLocalization?.targetOrgan || '').toLowerCase();
+        const sysLower = (bodyLocalization?.bodySystem || '').toLowerCase();
+        const isPosterior =
+          cz < -0.04 ||
+          organLower.includes('spine') ||
+          organLower.includes('spinal') ||
+          organLower.includes('vertebra') ||
+          organLower.includes('back') ||
+          organLower.includes('lumbar') ||
+          organLower.includes('cord');
+
+        if (isPosterior) {
+          // Behind-body coordinate (spine, back muscles, spinal cord) → rotate camera to posterior view
+          const backDist = 0.65;
+          target = [cx, cy, cz];
+          camPos = [cx, cy, cz - backDist]; // behind the body (negative Z)
+          setCurrentView('back');
+        } else if (region === 'Upper Limb' || region === 'Lower Limb') {
+          // Limb regions: camera placed directly in front, aligned to part's x (lateral)
+          const zoomDist = region === 'Upper Limb' ? 0.50 : 0.65;
+          target = [cx, cy, cz];
+          camPos = [cx, cy, Math.abs(cz) + zoomDist];
+          setCurrentView('front');
+        } else if (region === 'Head') {
+          target = [cx, cy, cz];
+          camPos = [cx, cy, cz + 0.44];
+          setCurrentView('front');
+        } else {
+          // Normal anterior (front-facing) target — thorax, abdomen, pelvis
+          target = [cx, cy, cz];
+          camPos = [cx, cy, cz + 0.52];
+          setCurrentView('front');
+        }
+      } else {
+        // No bodyLocalization yet — fall back to atlas region configs
+        const cfg = REGION_CAMERA_CONFIGS[region] || REGION_CAMERA_CONFIGS.All;
+        target = cfg.target;
+        camPos = cfg.camPos;
+        setCurrentView('front');
+      }
+
       if (cameraRef.current && controlsRef.current) {
         const ss = sceneStateRef.current;
         ss.cameraStartPos.copy(cameraRef.current.position);
-        ss.cameraEndPos.set(...cfg.camPos);
+        ss.cameraEndPos.set(...camPos);
         ss.targetStartPos.copy(controlsRef.current.target);
-        ss.targetEndPos.set(...cfg.target);
+        ss.targetEndPos.set(...target);
         ss.camTransitionT = 0;
         ss.transitioningCamera = true;
         ss.dirty = true;
       }
     },
-    [onSelectRegion]
+    [bodyLocalization]
+  );
+
+  // Automatically configure smart layer visibility based on clinical system / target organ
+  useEffect(() => {
+    if (!selectedRegion || selectedRegion === 'All' || selectedRegion === 'Full Body') {
+      setActiveLayers({ Muscles: true, Skeleton: true, Organs: true });
+      return;
+    }
+
+    const sys = (bodyLocalization?.bodySystem || '').toLowerCase();
+    const organ = (bodyLocalization?.targetOrgan || '').toLowerCase();
+
+    // 1. Spine / Spinal Cord / Vertebral Column:
+    // HIDE muscles and organs completely so the spinal column and vertebrae are crystal clear!
+    const isSpinal =
+      organ.includes('spine') ||
+      organ.includes('spinal') ||
+      organ.includes('vertebra') ||
+      organ.includes('cord') ||
+      sys.includes('spine');
+
+    // 2. Esophagus / GI Junction:
+    // Hide muscular and skeletal layers to place esophagus directly in focus
+    const isEsophagus =
+      organ.includes('esophag') ||
+      organ.includes('reflux') ||
+      organ.includes('heartburn') ||
+      organ.includes('boerhaave');
+
+    // 3. Internal Visceral Organs (GI, Heart, Lungs, Kidneys):
+    // Hide outer opaque muscle layer to reveal internal organ
+    const isVisceral =
+      sys.includes('gastro') ||
+      sys.includes('digest') ||
+      sys.includes('cardio') ||
+      sys.includes('heart') ||
+      sys.includes('respir') ||
+      sys.includes('lung') ||
+      sys.includes('urin') ||
+      sys.includes('kidney') ||
+      sys.includes('endocr') ||
+      sys.includes('lymph') ||
+      organ.includes('stomach') ||
+      organ.includes('append') ||
+      organ.includes('heart') ||
+      organ.includes('lung') ||
+      organ.includes('colon') ||
+      organ.includes('liver') ||
+      organ.includes('pancreas') ||
+      organ.includes('trachea');
+
+    // 4. Cranial / Headache / Neurological:
+    // Hide facial/scalp muscles to reveal brain & cranial vessels
+    const isCranial =
+      selectedRegion === 'Head' &&
+      (sys.includes('cranial') ||
+        sys.includes('neuro') ||
+        organ.includes('cranial') ||
+        organ.includes('brain') ||
+        organ.includes('cephalic'));
+
+    // 5. Musculoskeletal Limbs & Joints (Shoulder, Knee, Elbow, Ankle):
+    const isLimbJoint =
+      selectedRegion === 'Upper Limb' ||
+      selectedRegion === 'Lower Limb' ||
+      organ.includes('shoulder') ||
+      organ.includes('knee') ||
+      organ.includes('elbow') ||
+      organ.includes('wrist') ||
+      organ.includes('ankle') ||
+      organ.includes('deltoid') ||
+      organ.includes('patellar') ||
+      organ.includes('hip');
+
+    if (isSpinal) {
+      // Isolate the spinal cord and vertebral column — hide muscles & organs
+      setActiveLayers({ Muscles: false, Skeleton: true, Organs: false });
+    } else if (isEsophagus) {
+      // Isolate esophagus — hide muscles, keep organs
+      setActiveLayers({ Muscles: false, Skeleton: false, Organs: true });
+    } else if (isVisceral || isCranial) {
+      // Reveal internal organ without opaque muscle wall
+      setActiveLayers({ Muscles: false, Skeleton: true, Organs: true });
+    } else if (isLimbJoint) {
+      // Musculoskeletal joint/limb — muscles + skeleton, hide organs
+      setActiveLayers({ Muscles: true, Skeleton: true, Organs: false });
+    } else {
+      setActiveLayers({ Muscles: true, Skeleton: true, Organs: true });
+    }
+  }, [selectedRegion, bodyLocalization]);
+
+  // Auto-focus camera whenever region OR bodyLocalization changes.
+  useEffect(() => {
+    if (!selectedRegion || selectedRegion === 'All' || selectedRegion === 'Full Body') return;
+    triggerCameraTransition(selectedRegion);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRegion, bodyLocalization]);
+
+  const handleRegionClick = useCallback(
+    (region) => {
+      setInternalRegion(region);
+      if (onSelectRegion) onSelectRegion(region);
+      triggerCameraTransition(region);
+    },
+    [onSelectRegion, triggerCameraTransition]
   );
 
   const toggleLayer = useCallback((layerId) => {
@@ -193,13 +365,56 @@ export default function BodyViewer({
     );
     cameraRef.current = camera;
 
-    // Center model view
-    const initialConfig = REGION_CAMERA_CONFIGS.All;
-    camera.position.set(...initialConfig.camPos);
+    // Center model view (frame selectedRegion / bodyLocalization if provided, otherwise Full Body)
+    const initialConfig =
+      selectedRegion && selectedRegion !== 'All' && selectedRegion !== 'Full Body'
+        ? REGION_CAMERA_CONFIGS[selectedRegion] || REGION_CAMERA_CONFIGS.All
+        : REGION_CAMERA_CONFIGS.All;
+
+    let initTarget = initialConfig.target;
+    let initCamPos = initialConfig.camPos;
+
+    if (
+      bodyLocalization?.spatialCoordinates &&
+      selectedRegion &&
+      selectedRegion !== 'All' &&
+      selectedRegion !== 'Full Body'
+    ) {
+      const { x, y, z } = bodyLocalization.spatialCoordinates;
+      const cx = x ?? 0.0;
+      const cy = y ?? 1.2;
+      const cz = z ?? 0.0;
+      const organLower = (bodyLocalization?.targetOrgan || '').toLowerCase();
+      const isPosterior =
+        cz < -0.04 ||
+        organLower.includes('spine') ||
+        organLower.includes('spinal') ||
+        organLower.includes('vertebra') ||
+        organLower.includes('back') ||
+        organLower.includes('lumbar') ||
+        organLower.includes('cord');
+
+      if (isPosterior) {
+        initTarget = [cx, cy, cz];
+        initCamPos = [cx, cy, cz - 0.65];
+      } else if (selectedRegion === 'Upper Limb' || selectedRegion === 'Lower Limb') {
+        const zoomDist = selectedRegion === 'Upper Limb' ? 0.50 : 0.65;
+        initTarget = [cx, cy, cz];
+        initCamPos = [cx, cy, Math.abs(cz) + zoomDist];
+      } else if (selectedRegion === 'Head') {
+        initTarget = [cx, cy, cz];
+        initCamPos = [cx, cy, cz + 0.44];
+      } else {
+        initTarget = [cx, cy, cz];
+        initCamPos = [cx, cy, cz + 0.52];
+      }
+    }
+
+    camera.position.set(...initCamPos);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controlsRef.current = controls;
-    controls.target.set(...initialConfig.target);
+    controls.target.set(...initTarget);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.minDistance = 0.3;
@@ -496,6 +711,7 @@ export default function BodyViewer({
 
         if (!disposed) {
           setIsLoading(false);
+          triggerCameraTransition(selectedRegion);
           sceneStateRef.current.dirty = true;
         }
       } catch (err) {
@@ -614,11 +830,18 @@ export default function BodyViewer({
 
       // Handle Smooth Camera Transitions
       if (ss.transitioningCamera) {
-        ss.camTransitionT += dt * 3.5;
+        ss.camTransitionT += dt * 3.0;
         const t = Math.min(ss.camTransitionT, 1.0);
         const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
         camera.position.lerpVectors(ss.cameraStartPos, ss.cameraEndPos, ease);
+
+        // Orbital arc around body if crossing front-to-back or back-to-front
+        if (ss.cameraStartPos.z * ss.cameraEndPos.z < 0) {
+          const arc = Math.sin(t * Math.PI) * 0.75;
+          camera.position.x += arc;
+        }
+
         controls.target.lerpVectors(ss.targetStartPos, ss.targetEndPos, ease);
         controls.update();
 
@@ -693,6 +916,50 @@ export default function BodyViewer({
         ss.dirty = true;
       }
 
+      // Compute 3D-to-2D projected screen coordinates for HUD Callout & Arrow
+      if (
+        ss.selectedRegion &&
+        ss.selectedRegion !== 'All' &&
+        ss.selectedRegion !== 'Full Body'
+      ) {
+        let anchorPos = REGION_ANCHORS[ss.selectedRegion] || REGION_ANCHORS.Thorax;
+        if (bodyLocalization?.spatialCoordinates) {
+          anchorPos = {
+            x: bodyLocalization.spatialCoordinates.x ?? anchorPos.x,
+            y: bodyLocalization.spatialCoordinates.y ?? anchorPos.y,
+            z: bodyLocalization.spatialCoordinates.z ?? anchorPos.z,
+          };
+        }
+
+        const v = new THREE.Vector3(anchorPos.x, anchorPos.y, anchorPos.z);
+        v.project(camera);
+
+        const w = el.clientWidth;
+        const h = el.clientHeight;
+        const screenX = ((v.x + 1) / 2) * w;
+        const screenY = ((-v.y + 1) / 2) * h;
+        const isVisible = v.z < 1.0 && screenX >= 5 && screenX <= w - 5 && screenY >= 5 && screenY <= h - 5;
+
+        const roundedX = Math.round(screenX);
+        const roundedY = Math.round(screenY);
+
+        if (
+          !target2DRef.current ||
+          Math.abs(target2DRef.current.x - roundedX) > 0.5 ||
+          Math.abs(target2DRef.current.y - roundedY) > 0.5 ||
+          target2DRef.current.visible !== isVisible
+        ) {
+          const nextT2D = { x: roundedX, y: roundedY, visible: isVisible };
+          target2DRef.current = nextT2D;
+          setTarget2D(nextT2D);
+        }
+      } else {
+        if (target2DRef.current !== null) {
+          target2DRef.current = null;
+          setTarget2D(null);
+        }
+      }
+
       controls.update();
 
       if (ss.dirty) {
@@ -740,10 +1007,10 @@ export default function BodyViewer({
     >
       {/* ── Top Floating Bar: Vertical Layers (Left) & View Orientation + Fullscreen (Right) ──────────── */}
       {showControls && !isScanning && !isLoading && (
-        <div className="absolute top-3 left-3 right-3 z-10 flex items-start justify-between gap-2 pointer-events-none animate-in fade-in duration-200">
+        <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-start justify-between gap-2 pointer-events-none animate-in fade-in duration-200">
           
-          {/* Vertical Layer Visibility Stack (No Overlap) */}
-          <div className="pointer-events-auto flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xs">
+          {/* Desktop: Vertical Layer Visibility Stack */}
+          <div className="pointer-events-auto hidden sm:flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xs">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground px-1 pb-0.5 border-b border-border/60 font-display">
               <Layers className="h-3 w-3 text-primary" />
               <span>Layers</span>
@@ -780,9 +1047,57 @@ export default function BodyViewer({
             </div>
           </div>
 
+          {/* Mobile: Compact Collapsible Layer Dropdown Pill */}
+          <div className="pointer-events-auto sm:hidden relative">
+            <button
+              onClick={() => setMobileLayersOpen((v) => !v)}
+              className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full border shadow-xs backdrop-blur-md transition-all cursor-pointer ${
+                mobileLayersOpen
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-white/95 text-foreground border-border'
+              }`}
+              title="Toggle Layer Filters"
+            >
+              <Layers className="h-3 w-3" />
+              <span>Layers ({Object.values(activeLayers).filter(Boolean).length})</span>
+              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${mobileLayersOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {mobileLayersOpen && (
+              <div className="absolute top-full left-0 mt-1.5 flex flex-col gap-1 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl border border-border shadow-lg min-w-[135px] z-30 animate-in fade-in zoom-in-95">
+                {LAYER_DEFINITIONS.map(({ id, label, color }) => {
+                  const isActive = activeLayers[id];
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => toggleLayer(id)}
+                      className={`text-[10px] px-2 py-1.5 rounded-xl transition-all cursor-pointer font-semibold flex items-center justify-between gap-2 border ${
+                        isActive
+                          ? 'bg-accent text-foreground border-primary/25'
+                          : 'bg-white text-muted-foreground border-border hover:text-foreground'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="h-2 w-2 rounded-full flex-shrink-0"
+                          style={{
+                            backgroundColor: isActive ? color : '#94A3B8',
+                            boxShadow: isActive ? `0 0 6px ${color}88` : 'none',
+                          }}
+                        />
+                        <span>{label}</span>
+                      </div>
+                      {isActive && <Check className="h-2.5 w-2.5 text-primary" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Right Controls: View Presets (Front / Back / Side / 3/4) & Fullscreen Button */}
-          <div className="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-border shadow-xs">
-            <Compass className="h-3 w-3 text-muted-foreground ml-1 mr-0.5" />
+          <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 sm:p-1.5 rounded-full border border-border shadow-xs">
+            <Compass className="h-3 w-3 text-muted-foreground ml-0.5 sm:ml-1 mr-0.5 hidden xs:inline-block" />
             {[
               { id: 'front', label: 'Front' },
               { id: 'three-quarter', label: '3/4' },
@@ -792,7 +1107,7 @@ export default function BodyViewer({
               <button
                 key={id}
                 onClick={() => handleViewChange(id)}
-                className={`text-[10px] px-2.5 py-1 rounded-full transition-all cursor-pointer font-semibold ${
+                className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full transition-all cursor-pointer font-semibold ${
                   currentView === id
                     ? 'bg-primary text-primary-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -802,20 +1117,20 @@ export default function BodyViewer({
               </button>
             ))}
 
-            <div className="h-4 w-px bg-border mx-0.5" />
+            <div className="h-3.5 sm:h-4 w-px bg-border mx-0.5" />
 
             {/* Fullscreen Toggle Button */}
             <button
               onClick={toggleFullscreen}
-              className={`p-1.5 rounded-full transition-all cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted ${
+              className={`p-1 sm:p-1.5 rounded-full transition-all cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted ${
                 isFullscreen ? 'bg-accent text-primary' : ''
               }`}
               title={isFullscreen ? 'Exit Fullscreen' : 'Full Screen Anatomy Exploration'}
             >
               {isFullscreen ? (
-                <Minimize2 className="h-3.5 w-3.5 text-primary" />
+                <Minimize2 className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-primary" />
               ) : (
-                <Maximize2 className="h-3.5 w-3.5" />
+                <Maximize2 className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
               )}
             </button>
           </div>
@@ -828,7 +1143,7 @@ export default function BodyViewer({
         style={{
           background:
             'radial-gradient(ellipse at 50% 40%, #FAFCFB 0%, #F0F7F4 65%, #E2EFE9 100%)',
-          minHeight: '320px',
+          minHeight: '280px',
         }}
       >
         {/* Three.js Container */}
@@ -894,12 +1209,25 @@ export default function BodyViewer({
           </div>
         )}
 
+        {/* Holographic 3D Anatomical Callout & Arrow */}
+        {showControls && !isLoading && !isScanning && (
+          <AnatomyHUDCallout
+            target2D={target2D}
+            region={selectedRegion}
+            bodyLocalization={bodyLocalization}
+            conditionName={conditionName}
+            icd10Code={icd10Code}
+            modelScore={modelScore}
+            onFocusRegion={() => triggerCameraTransition(selectedRegion)}
+          />
+        )}
+
         {/* ── Bottom Bar: Region Pills & Navigation ────────────────────── */}
         {showControls && !isScanning && !isLoading && (
-          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between flex-wrap gap-2 pointer-events-none z-10 animate-in fade-in duration-200">
+          <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none z-10 animate-in fade-in duration-200">
             
-            {/* Interaction Help Pill */}
-            <div className="pointer-events-auto flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-border shadow-xs text-[11px] text-muted-foreground">
+            {/* Interaction Help Pill (Hidden on mobile/tablet to save space) */}
+            <div className="pointer-events-auto hidden md:flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-border shadow-xs text-[11px] text-muted-foreground flex-shrink-0">
               <span className="flex items-center gap-1 font-medium">
                 <Eye className="h-3.5 w-3.5 text-muted-foreground" /> Drag · Scroll
               </span>
@@ -909,17 +1237,17 @@ export default function BodyViewer({
               </span>
             </div>
 
-            {/* Region Selection Pills */}
-            <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-full border border-border shadow-xs flex-wrap">
+            {/* Region Selection Pills - Horizontal scrolling strip on mobile */}
+            <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-full border border-border shadow-xs overflow-x-auto no-scrollbar max-w-full flex-nowrap w-full md:w-auto justify-start md:justify-end">
               <button
                 onClick={() => handleRegionClick('All')}
-                className={`text-[10px] px-2.5 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1 font-semibold ${
+                className={`text-[10px] px-2.5 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1 font-semibold flex-shrink-0 whitespace-nowrap ${
                   selectedRegion === 'All' || selectedRegion === 'Full Body'
                     ? 'bg-primary text-primary-foreground shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
-                <RotateCcw className="h-2.5 w-2.5" /> Full Body
+                <RotateCcw className="h-2.5 w-2.5 flex-shrink-0" /> Full Body
               </button>
 
               {['Head', 'Thorax', 'Abdomen', 'Pelvis', 'Upper Limb', 'Lower Limb'].map(
@@ -929,7 +1257,7 @@ export default function BodyViewer({
                     <button
                       key={reg}
                       onClick={() => handleRegionClick(reg)}
-                      className={`text-[10px] px-2.5 py-1.5 rounded-full transition-all cursor-pointer font-semibold ${
+                      className={`text-[10px] px-2.5 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer font-semibold flex-shrink-0 whitespace-nowrap ${
                         isSelected
                           ? 'bg-primary text-primary-foreground shadow-xs'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
