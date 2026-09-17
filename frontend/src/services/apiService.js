@@ -3,7 +3,10 @@
  * Communicates with the real FastAPI + DDXPlus ML Diagnostic backend.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+const RAW_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+const API_BASE_URL = RAW_URL.endsWith('/api/v1') 
+  ? RAW_URL.slice(0, -7) 
+  : RAW_URL;
 
 /**
  * Analyzes patient symptom text and tags using the real DDXPlus AI model & NLP pipeline.
