@@ -14,5 +14,9 @@ os.chdir(ROOT)
 
 if __name__ == "__main__":
     import uvicorn
-    print(f"[Backend Server] Starting from project root: {ROOT}")
-    uvicorn.run("backend.app.main:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    is_reload = os.environ.get("RENDER") is None and os.environ.get("ENV") != "production"
+    print(f"[Backend Server] Starting CDSS API on {host}:{port} (root: {ROOT})")
+    uvicorn.run("backend.app.main:app", host=host, port=port, reload=is_reload)
+

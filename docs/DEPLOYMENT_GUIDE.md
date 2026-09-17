@@ -39,8 +39,9 @@ This guide provides end-to-end instructions for deploying the **Patient Clinical
      ```
    - **Start Command**:
      ```bash
-     uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+     python run_server.py
      ```
+     *(Or: `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT`)*
 4. Click **Create Web Service**. Once deployed, Render will provide a public URL like:
    `https://cdss-backend.onrender.com`
 
