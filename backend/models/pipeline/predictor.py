@@ -24,18 +24,25 @@ class DDXPlusBaselinePredictor:
         self.model_dir = Path(model_dir) if model_dir else DEFAULT_MODEL_DIR
         self.raw_dir = Path(raw_dir) if raw_dir else DEFAULT_RAW_DIR
 
-        # Load artifacts
-        try:
-            self.model = joblib.load(self.model_dir / "baseline_logistic_regression.joblib")
-            self.feature_extractor = joblib.load(self.model_dir / "feature_extractor.joblib")
-            self.label_encoder = joblib.load(self.model_dir / "label_encoder.joblib")
-        except Exception as e:
-            print(f"[DDXPlusPredictor Warning] Failed to load ML model artifact: {e}")
-            raise e
-
         # Load conditions metadata for ICD-10 & severity enrichment
         with open(self.raw_dir / "release_conditions.json", "r", encoding="utf-8") as f:
             self.conditions_meta = json.load(f)
+
+        # 1. Deterministic Cross-Platform Feature Extractor
+        from .feature_extractor import DDXPlusFeatureExtractor
+        self.feature_extractor = DDXPlusFeatureExtractor(raw_data_dir=self.raw_dir).fit_from_metadata()
+
+        # 2. Deterministic Cross-Platform Label Encoder
+        from sklearn.preprocessing import LabelEncoder
+        conditions = sorted(list(self.conditions_meta.keys()))
+        self.label_encoder = LabelEncoder().fit(conditions)
+
+        # 3. Load Trained Baseline Logistic Regression Model Weights
+        try:
+            self.model = joblib.load(self.model_dir / "baseline_logistic_regression.joblib")
+        except Exception as e:
+            print(f"[DDXPlusPredictor Warning] Failed to load ML model artifact: {e}")
+            raise e
 
     def predict_top_k(
         self,
