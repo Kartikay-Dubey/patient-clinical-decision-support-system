@@ -8,10 +8,13 @@
 [![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.7.2-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.17-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Live Demo](https://img.shields.io/badge/Demo-Live_Vercel_App-brightgreen?logo=vercel&logoColor=white)](https://patient-clinical-decision-support-s.vercel.app/)
 [![ICD-10](https://img.shields.io/badge/Standard-ICD--10_CM-107C41)](https://www.who.int/standards/classifications/classification-of-diseases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An evidence-based **Clinical Decision Support System (CDSS)** featuring an interactive **3D Anatomical Atlas (BodyParts3D Foundation)**, machine-learning-driven differential diagnosis across 49 pathologies, real-time physiological layer toggles, ICD-10 diagnostic localization, and structured clinical guidance for patients and healthcare practitioners.
+
+> 🌐 **Live Demo & Cloud Deployment**: [https://patient-clinical-decision-support-s.vercel.app/](https://patient-clinical-decision-support-s.vercel.app/)
 
 ---
 
@@ -109,13 +112,13 @@ patient-diagnosis-system/
 │
 ├── backend/                       # Python 3.11 + FastAPI + ML Service
 │   ├── Dockerfile                 # Backend production container configuration
-│   ├── README.md                  # Comprehensive backend architecture & API guide
 │   ├── requirements.txt           # Python dependencies (FastAPI, Scikit-Learn, Gunicorn)
 │   ├── app/                       # FastAPI application (routes, schemas, services)
 │   ├── data/                      # DDXPlus clinical dataset & 3D coordinate mappings
 │   └── models/                    # Trained diagnostic models, evaluation metrics & pipeline
 │
 ├── docs/                          # Architectural, Clinical & Presentation Documents
+│   ├── BackendGuide.md            # Comprehensive backend architecture & API guide
 │   ├── PPT_PRESENTATION_CONTENT.md# Complete presentation slide deck content (11 slides)
 │   ├── ARCHITECTURE.md            # System design, data flow & component boundaries
 │   ├── DEPLOYMENT_GUIDE.md        # Production deployment guide (Render, Vercel, Docker, VPS)
@@ -224,7 +227,7 @@ The supervised diagnostic classifier is trained on the official **DDXPlus** data
 - 📊 [**Presentation Content Guide (PPT)**](docs/PPT_PRESENTATION_CONTENT.md) — 11-slide complete presentation script with problem statement, architecture, ML metrics, and references.
 - 🚀 [**Production Deployment Guide**](docs/DEPLOYMENT_GUIDE.md) — Step-by-step instructions for Render (backend), Vercel (frontend), Docker, and VPS Nginx deployment.
 - 🩺 [**System Features & Interaction Guide**](docs/SYSTEM_FEATURES.md) — Guide to 3D camera controls, beacon reticle, draggable HUD card, vertical scrollbar, and layer isolation.
-- ⚙️ [**Backend Architecture & API Specs**](backend/README.md) — REST endpoints, Pydantic schemas, and NLP evidence mapping.
+- ⚙️ [**Backend Architecture & API Specs**](docs/BackendGuide.md) — REST endpoints, Pydantic schemas, and NLP evidence mapping.
 
 ---
 
