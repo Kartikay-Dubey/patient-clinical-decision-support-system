@@ -417,13 +417,18 @@ export const REGION_CAMERA_CONFIGS = {
 
 /**
  * 3D Anchor coordinates for anatomical annotations and HUD callout leader lines.
+ * Z coordinates are precisely calibrated to sit within the physical volume of the 3D mesh.
  */
 export const REGION_ANCHORS = {
-  Head: { x: 0.0, y: 1.56, z: 0.12, name: 'Cranial & Cervical Region' },
-  Thorax: { x: 0.0, y: 1.25, z: 0.14, name: 'Thoracic Cavity & Cardiorespiratory' },
-  Abdomen: { x: 0.0, y: 1.00, z: 0.13, name: 'Abdominal Viscera & Gastrointestinal' },
-  Pelvis: { x: 0.0, y: 0.80, z: 0.12, name: 'Pelvic Cavity & Genitourinary' },
-  'Upper Limb': { x: -0.19, y: 1.35, z: 0.05, name: 'Shoulder Joint & Upper Extremity' },
-  'Lower Limb': { x: 0.10, y: 0.45, z: 0.08, name: 'Lower Extremity / Femoral' },
+  // Z coordinates are set deeper inside the body volume (not just surface).
+  // This ensures the 3D→2D projection stays within the body silhouette
+  // regardless of camera angle (Front, Side, 3/4, Back).
+  Head:         { x: 0.0,   y: 1.56, z: 0.10, name: 'Cranial & Cephalic Region' },
+  Thorax:       { x: 0.0,   y: 1.25, z: 0.10, name: 'Thoracic Cavity & Cardiorespiratory' },
+  Abdomen:      { x: 0.0,   y: 1.02, z: 0.09, name: 'Abdominal Viscera & Gastrointestinal' },
+  Pelvis:       { x: 0.0,   y: 0.80, z: 0.08, name: 'Pelvic Cavity & Genitourinary' },
+  'Upper Limb': { x: -0.16, y: 1.32, z: 0.05, name: 'Shoulder Joint & Upper Extremity' },
+  'Lower Limb': { x: 0.06,  y: 0.45, z: 0.06, name: 'Lower Extremity / Femoral' },
 };
+
 

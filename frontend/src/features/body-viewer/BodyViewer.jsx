@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Sparkles, Check, Maximize2, Minimize2, ChevronDown } from 'lucide-react';
+import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Sparkles, Check, Maximize2, Minimize2, ChevronDown, ChevronUp } from 'lucide-react';
 import { decodeModelResponse } from './modelLoader';
 import {
   SYSTEMS,
@@ -16,6 +16,10 @@ import {
 import AnatomyHUDCallout from './AnatomyHUDCallout';
 
 const ATLAS_JSON_PATH = '/models/atlas.json';
+
+// Vertical exploration bounds in 3D world space (Head down to Lower Extremities)
+const MIN_ELEVATION_Y = 0.42; // Lower extremity / Femoral level
+const MAX_ELEVATION_Y = 1.58; // Cranial / Cephalic level
 
 export default function BodyViewer({
   activeRegion = 'All',
@@ -47,29 +51,114 @@ export default function BodyViewer({
   const [target2D, setTarget2D] = useState(null);
   const target2DRef = useRef(null);
 
-  // Fullscreen toggle handler
-  const toggleFullscreen = useCallback(() => {
-    if (!viewerWrapperRef.current) return;
-    if (!document.fullscreenElement) {
-      viewerWrapperRef.current.requestFullscreen?.().catch((err) => {
-        console.warn('Fullscreen request failed:', err);
-      });
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen?.().catch((err) => {
-        console.warn('Exit fullscreen failed:', err);
-      });
-      setIsFullscreen(false);
+  // Vertical exploration scrollbar refs
+  const verticalTrackRef = useRef(null);
+  const verticalThumbRef = useRef(null);
+  const isDraggingElevationRef = useRef(false);
+
+  // Smooth vertical exploration controller
+  const applyVerticalElevation = useCallback((ratio) => {
+    const clampedRatio = Math.max(0, Math.min(1, ratio));
+    const targetY = MIN_ELEVATION_Y + clampedRatio * (MAX_ELEVATION_Y - MIN_ELEVATION_Y);
+
+    if (controlsRef.current && cameraRef.current) {
+      const deltaY = targetY - controlsRef.current.target.y;
+      controlsRef.current.target.y = targetY;
+      cameraRef.current.position.y += deltaY;
+      controlsRef.current.update();
+      sceneStateRef.current.dirty = true;
+    }
+
+    if (verticalThumbRef.current) {
+      verticalThumbRef.current.style.bottom = `${clampedRatio * 100}%`;
     }
   }, []);
 
+  const handleVerticalTrackPointerDown = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      isDraggingElevationRef.current = true;
+
+      const track = verticalTrackRef.current;
+      if (!track) return;
+
+      if (e.target?.setPointerCapture && e.pointerId !== undefined) {
+        try {
+          e.target.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+
+      const updateFromPointer = (clientY) => {
+        const rect = track.getBoundingClientRect();
+        if (rect.height <= 0) return;
+        // Top of track is Head (ratio 1.0), bottom of track is Legs (ratio 0.0)
+        const ratio = 1 - (clientY - rect.top) / rect.height;
+        applyVerticalElevation(ratio);
+      };
+
+      updateFromPointer(e.clientY);
+
+      const onPointerMove = (ev) => {
+        if (isDraggingElevationRef.current) {
+          updateFromPointer(ev.clientY);
+        }
+      };
+
+      const onPointerUp = (ev) => {
+        isDraggingElevationRef.current = false;
+        if (ev.target?.releasePointerCapture && ev.pointerId !== undefined) {
+          try {
+            ev.target.releasePointerCapture(ev.pointerId);
+          } catch (_) {}
+        }
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+      };
+
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+    },
+    [applyVerticalElevation]
+  );
+
+  const stepVerticalCamera = useCallback(
+    (step) => {
+      if (!controlsRef.current) return;
+      const currentY = controlsRef.current.target.y;
+      const currentRatio = (currentY - MIN_ELEVATION_Y) / (MAX_ELEVATION_Y - MIN_ELEVATION_Y);
+      applyVerticalElevation(currentRatio + step);
+    },
+    [applyVerticalElevation]
+  );
+
+  // Fullscreen toggle handler with mobile device fallback
+  const toggleFullscreen = useCallback(() => {
+    if (!viewerWrapperRef.current) return;
+    if (!isFullscreen) {
+      if (viewerWrapperRef.current.requestFullscreen) {
+        viewerWrapperRef.current.requestFullscreen().catch(() => {});
+      }
+      setIsFullscreen(true);
+    } else {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+      setIsFullscreen(false);
+    }
+  }, [isFullscreen]);
+
   useEffect(() => {
     const onFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      if (document.fullscreenElement) {
+        setIsFullscreen(true);
+      } else if (!document.fullscreenElement && isFullscreen) {
+        setIsFullscreen(false);
+      }
     };
     document.addEventListener('fullscreenchange', onFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
-  }, []);
+  }, [isFullscreen]);
 
   const selectedRegion = activeRegion !== undefined ? activeRegion : internalRegion;
 
@@ -116,8 +205,11 @@ export default function BodyViewer({
         target = customTarget;
         camPos = [customTarget[0], customTarget[1], 0.55];
       } else if (
+        // Only use bodyLocalization.spatialCoordinates when focusing on the clinical primary region
+        // (or when auto-focusing with no region specified). All other region button clicks
+        // will properly navigate to their respective REGION_CAMERA_CONFIGS!
         bodyLocalization?.spatialCoordinates &&
-        (region === bodyLocalization.primaryRegion || region === 'Auto' || !region)
+        (region === bodyLocalization?.primaryRegion || !region)
       ) {
         const { x, y, z } = bodyLocalization.spatialCoordinates;
         const cx = x ?? 0.0;
@@ -135,13 +227,11 @@ export default function BodyViewer({
           organLower.includes('cord');
 
         if (isPosterior) {
-          // Behind-body coordinate (spine, back muscles, spinal cord) → rotate camera to posterior view
           const backDist = 0.65;
           target = [cx, cy, cz];
-          camPos = [cx, cy, cz - backDist]; // behind the body (negative Z)
+          camPos = [cx, cy, cz - backDist];
           setCurrentView('back');
         } else if (region === 'Upper Limb' || region === 'Lower Limb') {
-          // Limb regions: camera placed directly in front, aligned to part's x (lateral)
           const zoomDist = region === 'Upper Limb' ? 0.50 : 0.65;
           target = [cx, cy, cz];
           camPos = [cx, cy, Math.abs(cz) + zoomDist];
@@ -151,18 +241,19 @@ export default function BodyViewer({
           camPos = [cx, cy, cz + 0.44];
           setCurrentView('front');
         } else {
-          // Normal anterior (front-facing) target — thorax, abdomen, pelvis
+          // Anterior target (Thorax, Abdomen, Pelvis)
           target = [cx, cy, cz];
           camPos = [cx, cy, cz + 0.52];
           setCurrentView('front');
         }
       } else {
-        // Explicit standard region selected (Abdomen, Thorax, Head, Pelvis, Upper Limb, Lower Limb, Full Body)
+        // Generic region selected without clinical spatial data — use REGION_CAMERA_CONFIGS
         const cfg = REGION_CAMERA_CONFIGS[region] || REGION_CAMERA_CONFIGS.All;
         target = cfg.target;
         camPos = cfg.camPos;
         setCurrentView('front');
       }
+
 
       if (cameraRef.current && controlsRef.current) {
         const ss = sceneStateRef.current;
@@ -351,7 +442,7 @@ export default function BodyViewer({
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     renderer.domElement.style.display = 'block';
-    renderer.domElement.style.touchAction = 'pan-y'; // Allow smooth page scrolling on vertical swipe
+    renderer.domElement.style.touchAction = 'none'; // Critical for mobile touch: allows OrbitControls to rotate and pinch-zoom without browser cancellation
     el.appendChild(renderer.domElement);
 
     // 2. Scene, Camera, Controls
@@ -377,7 +468,8 @@ export default function BodyViewer({
       bodyLocalization?.spatialCoordinates &&
       selectedRegion &&
       selectedRegion !== 'All' &&
-      selectedRegion !== 'Full Body'
+      selectedRegion !== 'Full Body' &&
+      (selectedRegion === bodyLocalization?.primaryRegion || !selectedRegion)
     ) {
       const { x, y, z } = bodyLocalization.spatialCoordinates;
       const cx = x ?? 0.0;
@@ -420,6 +512,14 @@ export default function BodyViewer({
     controls.maxDistance = 6.0;
     controls.minPolarAngle = Math.PI / 16;
     controls.maxPolarAngle = Math.PI - Math.PI / 16;
+    // Native mobile touch gestures: 1 finger rotate, 2 finger zoom/pan
+    controls.touches = {
+      ONE: THREE.TOUCH.ROTATE,
+      TWO: THREE.TOUCH.DOLLY_PAN,
+    };
+    controls.enableZoom = true;
+    controls.enableRotate = true;
+    controls.enablePan = true;
     controls.addEventListener('change', () => {
       sceneStateRef.current.dirty = true;
     });
@@ -502,9 +602,9 @@ export default function BodyViewer({
         metalness: 0.08,
         roughness: 0.52,
         side: THREE.DoubleSide,
-        transparent: isSkin,
+        transparent: true,
         opacity: isSkin ? 0.12 : 1.0,
-        depthWrite: !isSkin,
+        depthWrite: true,
       });
 
       m.onBeforeCompile = (shader) => {
@@ -538,14 +638,24 @@ export default function BodyViewer({
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <clipping_planes_fragment>',
           '#include <clipping_planes_fragment>\n' +
-            'if (partVisible < 0.5) discard;'
+            'if (partVisible < 0.05) discard;'
         );
 
-        // Mix clinical coral accent (#C84B31) on selected/highlighted parts
+        // Affected region fully highlighted; all other regions retain natural opacity (no ghosting)
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <color_fragment>',
           '#include <color_fragment>\n' +
-            'diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.784, 0.294, 0.192), partSelected * 0.85);'
+            'if (partSelected > 0.8) {\n' +
+            '  // PRIMARY affected region: fully opaque with a warm anatomical accent\n' +
+            '  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.82, 0.30, 0.20), 0.18);\n' +
+            '  diffuseColor.a = 1.0;\n' +
+            '} else if (partSelected > 0.4) {\n' +
+            '  // Full-body mode or secondary region: full natural opacity\n' +
+            '  diffuseColor.a = 0.95;\n' +
+            '} else {\n' +
+            '  // Non-affected context: full natural opacity (no ghosting/transparency)\n' +
+            '  diffuseColor.a = 0.95;\n' +
+            '}'
         );
       };
 
@@ -780,8 +890,25 @@ export default function BodyViewer({
       }
     };
 
+    // Differentiate drag from click so rotating on mobile phones doesn't accidentally trigger part selection
+    let pointerDownPos = { x: 0, y: 0 };
+    let isDragGesture = false;
+
+    const handlePointerDown = (e) => {
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+      isDragGesture = false;
+    };
+
+    const handlePointerUp = (e) => {
+      const dx = e.clientX - pointerDownPos.x;
+      const dy = e.clientY - pointerDownPos.y;
+      if (Math.hypot(dx, dy) > 8) {
+        isDragGesture = true;
+      }
+    };
+
     const handlePointerClick = (e) => {
-      if (isLoading || !atlasData) return;
+      if (isLoading || !atlasData || isDragGesture) return;
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -812,6 +939,8 @@ export default function BodyViewer({
       }
     };
 
+    renderer.domElement.addEventListener('pointerdown', handlePointerDown);
+    renderer.domElement.addEventListener('pointerup', handlePointerUp);
     renderer.domElement.addEventListener('pointermove', handlePointerMove);
     renderer.domElement.addEventListener('click', handlePointerClick);
 
@@ -898,13 +1027,19 @@ export default function BodyViewer({
           // Visibility: is system active in layers?
           partData[i * 4 + 3] = sysAllowed ? 1.0 : 0.0;
 
-          // Selection / Highlighting: is part in active clinical region?
-          const isSelected =
-            curRegion !== 'All' &&
-            curRegion !== 'Full Body' &&
-            partReg === curRegion;
+          // Selection / Highlighting & Regional Focus Opacity:
+          let selValue = 0;
+          if (curRegion === 'All' || curRegion === 'Full Body') {
+            selValue = 128; // Full body mode -> 0.5 (95% natural opacity)
+          } else if (partReg === curRegion) {
+            selValue = 255; // Primary affected region -> 1.0 (100% OPAQUE & ILLUMINATED)
+          } else if (bodyLocalization?.secondaryRegions?.includes(partReg)) {
+            selValue = 128; // Secondary region -> 0.5 (semi-opaque)
+          } else {
+            selValue = 0;   // Unaffected context -> 0.0 (22% translucent ghosting)
+          }
 
-          selectionData[i * 4] = isSelected ? 255 : 0;
+          selectionData[i * 4] = selValue;
         }
 
         partTexture.needsUpdate = true;
@@ -915,18 +1050,32 @@ export default function BodyViewer({
         ss.dirty = true;
       }
 
-      // Compute 3D-to-2D projected screen coordinates for HUD Callout & Arrow
+      // Compute 3D-to-2D projected screen coordinates for HUD Reticle
+      const clinicalRegion = bodyLocalization?.primaryRegion || ss.selectedRegion;
+      const isViewingClinicalFocus =
+        !ss.selectedRegion ||
+        ss.selectedRegion === 'All' ||
+        ss.selectedRegion === 'Full Body' ||
+        ss.selectedRegion === clinicalRegion;
+
       if (
-        ss.selectedRegion &&
-        ss.selectedRegion !== 'All' &&
-        ss.selectedRegion !== 'Full Body'
+        isViewingClinicalFocus &&
+        (bodyLocalization?.spatialCoordinates ||
+          (ss.selectedRegion && ss.selectedRegion !== 'All' && ss.selectedRegion !== 'Full Body'))
       ) {
-        let anchorPos = REGION_ANCHORS[ss.selectedRegion] || REGION_ANCHORS.Thorax;
+        // Always prefer clinical spatial coordinates when available;
+        // fall back to static REGION_ANCHORS only if no clinical data.
+        let anchorPos = REGION_ANCHORS[clinicalRegion] || REGION_ANCHORS.Thorax;
         if (bodyLocalization?.spatialCoordinates) {
+          // Use clinical spatial coordinates with deep Z blended from atlas anchor
+          // (clinical z is often near-surface; atlas anchor z is deeper inside the body).
           anchorPos = {
             x: bodyLocalization.spatialCoordinates.x ?? anchorPos.x,
             y: bodyLocalization.spatialCoordinates.y ?? anchorPos.y,
-            z: bodyLocalization.spatialCoordinates.z ?? anchorPos.z,
+            z: Math.max(
+              anchorPos.z,
+              (bodyLocalization.spatialCoordinates.z ?? 0) * 0.4 + anchorPos.z * 0.6
+            ),
           };
         }
 
@@ -935,12 +1084,27 @@ export default function BodyViewer({
 
         const w = el.clientWidth;
         const h = el.clientHeight;
-        const screenX = ((v.x + 1) / 2) * w;
-        const screenY = ((-v.y + 1) / 2) * h;
-        const isVisible = v.z < 1.0 && screenX >= 5 && screenX <= w - 5 && screenY >= 5 && screenY <= h - 5;
+        const rawX = ((v.x + 1) / 2) * w;
+        const rawY = ((-v.y + 1) / 2) * h;
 
-        const roundedX = Math.round(screenX);
-        const roundedY = Math.round(screenY);
+        // Body-silhouette clamping: keep beacon within the body column on screen
+        const bodyLeft   = w * 0.18;
+        const bodyRight  = w * 0.82;
+        const bodyTop    = h * 0.03;
+        const bodyBottom = h * 0.96;
+
+        const clampedX = Math.max(bodyLeft,  Math.min(bodyRight,  rawX));
+        const clampedY = Math.max(bodyTop,   Math.min(bodyBottom, rawY));
+
+        const rawInBounds =
+          v.z < 1.0 &&
+          rawX >= -w * 0.4 && rawX <= w * 1.4 &&
+          rawY >= -h * 0.3 && rawY <= h * 1.3;
+
+        const isVisible = rawInBounds;
+
+        const roundedX = Math.round(clampedX);
+        const roundedY = Math.round(clampedY);
 
         if (
           !target2DRef.current ||
@@ -959,6 +1123,15 @@ export default function BodyViewer({
         }
       }
 
+      // Keep vertical elevation scroll thumb in sync during OrbitControls / Camera transitions
+      if (!isDraggingElevationRef.current && verticalThumbRef.current && controls) {
+        const curRatio = Math.max(
+          0,
+          Math.min(1, (controls.target.y - MIN_ELEVATION_Y) / (MAX_ELEVATION_Y - MIN_ELEVATION_Y))
+        );
+        verticalThumbRef.current.style.bottom = `${curRatio * 100}%`;
+      }
+
       controls.update();
 
       if (ss.dirty) {
@@ -975,6 +1148,8 @@ export default function BodyViewer({
       abortController.abort();
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
+      renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
+      renderer.domElement.removeEventListener('pointerup', handlePointerUp);
       renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.domElement.removeEventListener('click', handlePointerClick);
       controls.dispose();
@@ -1146,7 +1321,7 @@ export default function BodyViewer({
         }}
       >
         {/* Three.js Container */}
-        <div ref={containerRef} className="w-full h-full body-viewer-canvas" />
+        <div ref={containerRef} className="w-full h-full min-h-[280px] sm:min-h-[320px] body-viewer-canvas" />
 
         {/* Loading Overlay */}
         {isLoading && (
@@ -1208,6 +1383,75 @@ export default function BodyViewer({
           </div>
         )}
 
+        {/* ── Vertical Anatomy Exploration Scroll Bar ────────────────────────── */}
+        {!isLoading && !loadError && showControls && (
+          <div
+            className="absolute right-2 sm:right-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-auto flex flex-col items-center select-none animate-in fade-in duration-300"
+            title="Vertical Anatomical Explorer — Drag or click to explore upper and lower body"
+          >
+            <div className="bg-white/92 backdrop-blur-md border border-border/80 shadow-md rounded-full py-2 px-1 sm:px-1.5 flex flex-col items-center gap-1.5">
+              {/* Up Button (Head) */}
+              <button
+                type="button"
+                onClick={() => stepVerticalCamera(0.12)}
+                className="p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/60 transition-colors cursor-pointer"
+                title="Explore Upper Body (Head)"
+              >
+                <ChevronUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              </button>
+
+              {/* Interactive Vertical Slider Track */}
+              <div
+                ref={verticalTrackRef}
+                onPointerDown={handleVerticalTrackPointerDown}
+                className="relative w-2 sm:w-2.5 h-32 sm:h-40 bg-muted/90 hover:bg-muted rounded-full cursor-pointer touch-none flex flex-col justify-between py-1 items-center"
+              >
+                {/* Anatomical Level Ticks */}
+                {[
+                  { label: 'Head', yRatio: 0.95 },
+                  { label: 'Thorax', yRatio: 0.70 },
+                  { label: 'Abdomen', yRatio: 0.48 },
+                  { label: 'Pelvis', yRatio: 0.30 },
+                  { label: 'Lower Limb', yRatio: 0.05 },
+                ].map((tick) => (
+                  <div
+                    key={tick.label}
+                    className="absolute w-1.5 h-0.5 bg-slate-400/60 rounded-full pointer-events-none"
+                    style={{
+                      bottom: `${tick.yRatio * 100}%`,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                    }}
+                    title={tick.label}
+                  />
+                ))}
+
+                {/* Draggable Slider Thumb */}
+                <div
+                  ref={verticalThumbRef}
+                  className="absolute left-1/2 -translate-x-1/2 w-4 h-5 sm:w-4.5 sm:h-6 rounded-full bg-primary shadow-xs border border-white/80 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-105"
+                  style={{ bottom: '50%', transform: 'translate(-50%, 50%)' }}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <div className="w-2 h-0.5 bg-white/80 rounded-full" />
+                    <div className="w-2 h-0.5 bg-white/80 rounded-full" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Down Button (Lower Limb) */}
+              <button
+                type="button"
+                onClick={() => stepVerticalCamera(-0.12)}
+                className="p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-muted/60 transition-colors cursor-pointer"
+                title="Explore Lower Body (Legs)"
+              >
+                <ChevronDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Holographic 3D Anatomical Callout & Arrow */}
         {showControls && !isLoading && !isScanning && (
           <AnatomyHUDCallout
@@ -1217,7 +1461,8 @@ export default function BodyViewer({
             conditionName={conditionName}
             icd10Code={icd10Code}
             modelScore={modelScore}
-            onFocusRegion={() => triggerCameraTransition(selectedRegion)}
+            onFocusRegion={() => handleRegionClick(bodyLocalization?.primaryRegion || selectedRegion)}
+            isHoveringPart={Boolean(hoveredPart)}
           />
         )}
 
@@ -1237,7 +1482,10 @@ export default function BodyViewer({
             </div>
 
             {/* Region Selection Pills - Horizontal scrolling strip on mobile */}
-            <div className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-full border border-border shadow-xs overflow-x-auto no-scrollbar max-w-full flex-nowrap w-full md:w-auto justify-start md:justify-end">
+            <div
+              className="pointer-events-auto flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-full border border-border shadow-xs overflow-x-auto no-scrollbar max-w-full flex-nowrap w-full md:w-auto justify-start md:justify-end"
+              style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+            >
               <button
                 onClick={() => handleRegionClick('All')}
                 className={`text-[10px] px-2.5 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1 font-semibold flex-shrink-0 whitespace-nowrap ${
@@ -1252,16 +1500,24 @@ export default function BodyViewer({
               {['Head', 'Thorax', 'Abdomen', 'Pelvis', 'Upper Limb', 'Lower Limb'].map(
                 (reg) => {
                   const isSelected = selectedRegion === reg;
+                  const isClinicalFocus = bodyLocalization?.primaryRegion === reg;
                   return (
                     <button
                       key={reg}
                       onClick={() => handleRegionClick(reg)}
-                      className={`text-[10px] px-2.5 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer font-semibold flex-shrink-0 whitespace-nowrap ${
+                      className={`text-[10px] px-2.5 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer font-semibold flex-shrink-0 whitespace-nowrap flex items-center gap-1 ${
                         isSelected
                           ? 'bg-primary text-primary-foreground shadow-xs'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       }`}
                     >
+                      {isClinicalFocus && (
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            isSelected ? 'bg-white animate-pulse' : 'bg-primary'
+                          }`}
+                        />
+                      )}
                       {reg}
                     </button>
                   );

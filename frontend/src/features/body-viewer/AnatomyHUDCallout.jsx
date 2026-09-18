@@ -1,220 +1,382 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Focus, Crosshair, X, ChevronRight } from 'lucide-react';
+import { Activity, Focus, Crosshair, X, ChevronRight, GripHorizontal } from 'lucide-react';
 
 /**
- * Holographic 3D-anchored Anatomical HUD Callout & Dynamic Pointer Arrow.
- * 
- * Renders a pulsing beacon on the 3D coordinate, a connecting curved leader line,
- * and a translucent glassmorphic clinical focus card docked in the top-left area
- * so it never obscures the central 3D anatomical model.
+ * AnatomyHUDCallout — Medical Targeting Reticle + Floating Info Panel
+ *
+ * Renders:
+ *   1. A professional medical targeting reticle at the 3D-projected anchor point
+ *   2. A draggable glassmorphic info card that auto-positions near the beacon
+ *      but can be repositioned by the user via drag
  */
 export default function AnatomyHUDCallout({
-  target2D, // { x: number, y: number, visible: boolean }
+  target2D,
   region,
   bodyLocalization,
   conditionName,
   icd10Code,
   modelScore,
   onFocusRegion,
+  isHoveringPart = false,
 }) {
   const [isMinimized, setIsMinimized] = useState(false);
+  // Drag state — offset from the auto-position
+  const [dragOffset, setDragOffset] = useState({ dx: 0, dy: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef(null);
+  const cardRef = useRef(null);
 
-  // If region is All/Full Body or target is not visible, hide callout
-  if (!target2D || !target2D.visible || region === 'All' || region === 'Full Body') {
+  // Reset drag when region changes
+  useEffect(() => {
+    setDragOffset({ dx: 0, dy: 0 });
+    setIsMinimized(false);
+  }, [region]);
+
+  // ── Drag handlers ───────────────────────────────────────────────────────────
+  const onMouseDown = useCallback((e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    dragStart.current = {
+      mx: e.clientX,
+      my: e.clientY,
+      dx: dragOffset.dx,
+      dy: dragOffset.dy,
+    };
+  }, [dragOffset]);
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (e) => {
+      if (!dragStart.current) return;
+      setDragOffset({
+        dx: dragStart.current.dx + (e.clientX - dragStart.current.mx),
+        dy: dragStart.current.dy + (e.clientY - dragStart.current.my),
+      });
+    };
+    const onUp = () => setIsDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [isDragging]);
+
+  // Touch drag
+  const onTouchStart = useCallback((e) => {
+    const t = e.touches[0];
+    setIsDragging(true);
+    dragStart.current = {
+      mx: t.clientX,
+      my: t.clientY,
+      dx: dragOffset.dx,
+      dy: dragOffset.dy,
+    };
+  }, [dragOffset]);
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (e) => {
+      if (e.cancelable) e.preventDefault();
+      const t = e.touches ? e.touches[0] : e;
+      setDragOffset({
+        dx: dragStart.current.dx + (t.clientX - dragStart.current.mx),
+        dy: dragStart.current.dy + (t.clientY - dragStart.current.my),
+      });
+    };
+    const onEnd = () => setIsDragging(false);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd);
+    return () => {
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+  }, [isDragging]);
+
+  // ── Guard ───────────────────────────────────────────────────────────────────
+  if (!target2D || !target2D.visible) {
     return null;
   }
 
   const { x, y } = target2D;
 
-  const targetOrgan = bodyLocalization?.targetOrgan || (region === 'Thorax' ? 'Heart & Coronary Vessels' : `${region} Structures`);
-  const bodySystem = bodyLocalization?.bodySystem || 'Cardiovascular';
+  const targetOrgan = bodyLocalization?.targetOrgan
+    || (region === 'Thorax' ? 'Heart & Coronary Vessels' : `${region} Structures`);
+  const bodySystem = bodyLocalization?.bodySystem || 'General';
 
-  // Card is docked gracefully on the upper-left of the 3D canvas so it NEVER obstructs the central body
-  const cardLeft = 14;
-  const cardTop = 14;
-  const cardWidth = 230;
+  // ── Card auto-position (responsive for mobile & desktop) ───────────────────
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 600;
+  const isMobile = vw < 640;
 
-  // SVG Leader line anchor from bottom-right of the docked card to Target 2D Point
-  const cardAnchorX = cardLeft + cardWidth - 12;
-  const cardAnchorY = cardTop + 46;
+  const CARD_W = isMobile ? Math.min(215, vw - 24) : 228;
+  const CARD_H = 165;
+  const BEACON_GAP = isMobile ? 18 : 28;
+  const TOP_SAFE_Y = isMobile ? 42 : 48;
 
-  // Compute curved smooth leader line
-  const midX = (cardAnchorX + x) / 2;
-  const pathD = `M ${cardAnchorX} ${cardAnchorY} Q ${midX} ${cardAnchorY} ${x} ${y}`;
+  let baseLeft = 0;
+  let baseTop = 0;
+
+  if (isMobile) {
+    baseLeft = Math.max(10, Math.min(vw - CARD_W - 10, x - CARD_W / 2));
+    if (y < vh * 0.48) {
+      baseTop = y + BEACON_GAP + 6;
+    } else {
+      baseTop = y - BEACON_GAP - CARD_H;
+    }
+    baseTop = Math.max(TOP_SAFE_Y, Math.min(vh - CARD_H - 52, baseTop));
+  } else {
+    // Prefer right; flip left if overflow
+    baseLeft = x + BEACON_GAP;
+    if (baseLeft + CARD_W > vw - 12) {
+      baseLeft = x - BEACON_GAP - CARD_W;
+    }
+    // Never overlap layers panel
+    if (baseLeft < 156 && x + BEACON_GAP + CARD_W <= vw - 12) {
+      baseLeft = x + BEACON_GAP;
+    }
+    if (baseLeft < 8) baseLeft = 8;
+
+    // Vertically center on beacon; clamp edges
+    baseTop = y - CARD_H / 2;
+    if (baseTop < TOP_SAFE_Y) baseTop = TOP_SAFE_Y;
+    if (baseTop + CARD_H > vh - 56) baseTop = vh - 56 - CARD_H;
+    if (baseTop < TOP_SAFE_Y) baseTop = TOP_SAFE_Y;
+  }
+
+  const cardLeft = baseLeft + dragOffset.dx;
+  const cardTop  = baseTop  + dragOffset.dy;
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
-      {/* ── 1. SVG Dynamic Leader Line & Pointer Arrow ──────────────────────── */}
-      <svg className="w-full h-full absolute inset-0 overflow-visible pointer-events-none">
-        <defs>
-          <linearGradient id="hudLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#0D9488" stopOpacity="0.75" />
-            <stop offset="100%" stopColor="#0EA5E9" stopOpacity="0.95" />
-          </linearGradient>
-          <filter id="hudGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-          <marker
-            id="hudArrowhead"
-            markerWidth="8"
-            markerHeight="8"
-            refX="6"
-            refY="4"
-            orient="auto"
-          >
-            <polygon points="0 1, 8 4, 0 7, 2 4" fill="#0D9488" />
-          </marker>
-        </defs>
-
-        {!isMinimized && (
-          <>
-            {/* Background Soft Glow Line */}
-            <path
-              d={pathD}
-              fill="none"
-              stroke="#0D9488"
-              strokeWidth="3.5"
-              strokeOpacity="0.25"
-              filter="url(#hudGlow)"
-            />
-            {/* Main Crisp Leader Line */}
-            <path
-              d={pathD}
-              fill="none"
-              stroke="url(#hudLineGrad)"
-              strokeWidth="1.75"
-              strokeDasharray="4 2"
-              markerEnd="url(#hudArrowhead)"
-            />
-          </>
-        )}
-      </svg>
-
-      {/* ── 2. Pulsing 3D Anatomical Beacon Reticle (Pinned to exact 3D Coord) ─ */}
+    <div
+      className={`absolute inset-0 pointer-events-none overflow-hidden z-20 transition-opacity duration-200 ${
+        isHoveringPart ? 'opacity-20 pointer-events-none' : 'opacity-100'
+      }`}
+    >
+      {/* ── 1. MINIMAL MEDICAL TARGETING RETICLE ── */}
       <div
-        className="absolute transition-transform duration-75 ease-out -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto cursor-pointer group"
-        style={{ left: `${x}px`, top: `${y}px` }}
+        className="absolute pointer-events-auto cursor-pointer group transition-all duration-200 hover:opacity-40"
+        style={{ left: `${x}px`, top: `${y}px`, transform: 'translate(-50%, -50%)' }}
         onClick={onFocusRegion}
-        title={`Focus on ${targetOrgan}`}
+        title={`Primary Clinical Focus: ${targetOrgan} (Click to center)`}
       >
-        {/* Outer Radar Ripple */}
-        <span className="absolute h-10 w-10 rounded-full bg-teal-500/20 animate-ping duration-1000" />
-        
-        {/* Secondary Focus Ring */}
-        <span className="absolute h-6 w-6 rounded-full border border-teal-500/60 animate-pulse" />
-        
-        {/* Central Glowing Reticle Core */}
-        <div className="h-3.5 w-3.5 rounded-full bg-teal-600 shadow-[0_0_14px_rgba(13,148,136,0.95)] flex items-center justify-center border-2 border-white group-hover:scale-125 transition-transform">
-          <div className="h-1 w-1 rounded-full bg-white" />
+        {/* Soft ambient pulse wave (single clean thin ring) */}
+        <div
+          className="absolute -inset-2 rounded-full animate-ping pointer-events-none"
+          style={{
+            border: '1px solid rgba(16,185,129,0.35)',
+            animationDuration: '2.6s',
+          }}
+        />
+
+        {/* Minimal clean outer target ring */}
+        <div
+          className="relative flex items-center justify-center rounded-full transition-all duration-200 group-hover:scale-110"
+          style={{
+            width: 20,
+            height: 20,
+            background: 'rgba(16,185,129,0.12)',
+            border: '1.5px solid rgba(16,185,129,0.95)',
+            boxShadow: '0 0 10px rgba(16,185,129,0.35)',
+          }}
+        >
+          {/* Crisp center micro-dot */}
+          <div
+            className="rounded-full"
+            style={{
+              width: 5,
+              height: 5,
+              background: '#10b981',
+              boxShadow: '0 0 4px #10b981',
+            }}
+          />
         </div>
       </div>
 
-      {/* ── 3. Translucent Glassmorphic Clinical HUD Card (Corner-Docked) ── */}
+      {/* ── 2. DRAGGABLE INFO CARD ────────────────────────────────────────────── */}
       <AnimatePresence>
         {!isMinimized ? (
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, x: -8 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.94, x: -8 }}
-            transition={{ duration: 0.2 }}
+            key="card"
+            ref={cardRef}
+            initial={{ opacity: 0, scale: 0.88, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className="absolute pointer-events-auto"
-            style={{ left: `${cardLeft}px`, top: `${cardTop}px`, width: `${cardWidth}px` }}
+            style={{
+              left: cardLeft,
+              top: cardTop,
+              width: CARD_W,
+              userSelect: 'none',
+              cursor: isDragging ? 'grabbing' : 'default',
+            }}
           >
-            {/* Frosted Glass Container with high translucency so body behind is visible */}
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-white/10 shadow-lg shadow-teal-950/5 p-2.5 flex flex-col gap-1.5 overflow-hidden relative hover:bg-white/85 transition-colors">
-              {/* Top Accent Gradient Bar */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 via-emerald-400 to-sky-400" />
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                background: 'rgba(255,255,255,0.92)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(16,185,129,0.25)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(16,185,129,0.10)',
+              }}
+            >
+              {/* Top accent bar */}
+              <div
+                className="absolute top-0 left-0 right-0"
+                style={{ height: 3, background: 'linear-gradient(90deg, #10b981, #34d399, #06b6d4)' }}
+              />
 
-              {/* Header Badge & Action Icons */}
-              <div className="flex items-center justify-between gap-1.5 pt-0.5">
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[9.5px] font-bold tracking-wider font-display uppercase border border-teal-500/20">
-                  <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
-                  Primary Focus
-                </span>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={onFocusRegion}
-                    className="p-1 rounded-lg hover:bg-teal-500/15 text-muted-foreground hover:text-teal-700 transition-colors cursor-pointer"
-                    title="Zoom camera to focus area"
-                  >
-                    <Focus className="h-3 w-3" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsMinimized(true)}
-                    className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-                    title="Minimize HUD"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
+              {/* Drag handle */}
+              <div
+                className="flex items-center justify-center py-1.5 cursor-grab active:cursor-grabbing select-none"
+                style={{ borderBottom: '1px solid rgba(16,185,129,0.12)', touchAction: 'none' }}
+                onMouseDown={onMouseDown}
+                onTouchStart={onTouchStart}
+                title="Drag to reposition"
+              >
+                <GripHorizontal className="h-3.5 w-3.5 text-emerald-400 opacity-70" />
               </div>
 
-              {/* Region & Target Organ Title */}
-              <div className="flex flex-col gap-0.5">
-                <h4 className="text-[11.5px] font-bold text-foreground font-display flex items-center gap-1.5 truncate">
-                  <Activity className="h-3 w-3 text-teal-600 flex-shrink-0" />
-                  <span className="truncate">{targetOrgan}</span>
-                </h4>
-                <div className="flex items-center gap-1 text-[9.5px] text-muted-foreground font-medium">
-                  <span className="text-teal-700 font-semibold">{region} Cavity</span>
-                  <span>•</span>
-                  <span className="truncate">{bodySystem}</span>
-                </div>
-              </div>
+              <div className="px-3 pb-3 pt-2 flex flex-col gap-2">
 
-              {/* Clinical Match Mini Strip */}
-              {conditionName && (
-                <div className="bg-white/50 dark:bg-slate-800/50 rounded-xl px-2 py-1.5 flex items-center justify-between gap-1 border border-teal-900/5">
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-foreground text-[10px] truncate max-w-[130px]">
-                      {conditionName}
-                    </span>
-                    {icd10Code && icd10Code !== 'Unknown' && (
-                      <span className="text-[8.5px] text-muted-foreground font-mono">
-                        ICD-10: <span className="font-semibold text-foreground">{icd10Code}</span>
+                {/* Header: badge + actions */}
+                <div className="flex items-center justify-between gap-1">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase"
+                    style={{
+                      background: 'rgba(16,185,129,0.10)',
+                      color: '#059669',
+                      border: '1px solid rgba(16,185,129,0.28)',
+                    }}
+                  >
+                    <span
+                      className="animate-pulse rounded-full"
+                      style={{ width: 6, height: 6, background: '#10b981', display:'inline-block' }}
+                    />
+                    Primary Focus
+                  </span>
+
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={onFocusRegion}
+                      className="p-1 rounded-lg transition-colors cursor-pointer"
+                      style={{ color: '#94a3b8' }}
+                      onMouseEnter={e => e.currentTarget.style.background='rgba(16,185,129,0.12)'}
+                      onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                      title="Re-center camera"
+                    >
+                      <Focus className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsMinimized(true)}
+                      className="p-1 rounded-lg transition-colors cursor-pointer"
+                      style={{ color: '#94a3b8' }}
+                      onMouseEnter={e => e.currentTarget.style.color='#ef4444'}
+                      onMouseLeave={e => e.currentTarget.style.color='#94a3b8'}
+                      title="Minimize"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Organ / region title */}
+                <div className="flex flex-col gap-0.5">
+                  <h4 className="text-[11.5px] font-bold flex items-center gap-1.5 truncate leading-snug" style={{ color:'#0f172a' }}>
+                    <Activity className="h-3 w-3 flex-shrink-0" style={{ color:'#10b981' }} />
+                    <span className="truncate">{targetOrgan}</span>
+                  </h4>
+                  <div className="flex items-center gap-1 text-[9px] font-medium flex-wrap" style={{ color:'#64748b' }}>
+                    <span className="font-semibold" style={{ color:'#059669' }}>{region}</span>
+                    <span>•</span>
+                    <span className="truncate">{bodySystem}</span>
+                  </div>
+                </div>
+
+                {/* Clinical match strip */}
+                {conditionName && (
+                  <div
+                    className="rounded-xl px-2 py-1.5 flex items-center justify-between gap-1"
+                    style={{
+                      background: 'rgba(16,185,129,0.07)',
+                      border: '1px solid rgba(16,185,129,0.16)',
+                    }}
+                  >
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-semibold text-[10px] truncate max-w-[120px]" style={{ color:'#0f172a' }}>
+                        {conditionName}
+                      </span>
+                      {icd10Code && icd10Code !== 'Unknown' && (
+                        <span className="text-[8px] font-mono" style={{ color:'#94a3b8' }}>
+                          ICD-10: <span className="font-semibold" style={{ color:'#475569' }}>{icd10Code}</span>
+                        </span>
+                      )}
+                    </div>
+                    {modelScore != null && (
+                      <span
+                        className="px-1.5 py-0.5 rounded-md font-bold text-[9px] flex-shrink-0"
+                        style={{
+                          background:'rgba(16,185,129,0.15)',
+                          color:'#059669',
+                          border:'1px solid rgba(16,185,129,0.30)',
+                        }}
+                      >
+                        {modelScore}%
                       </span>
                     )}
                   </div>
-                  {modelScore != null && (
-                    <span className="px-1.5 py-0.5 rounded-md bg-teal-500/15 text-teal-700 dark:text-teal-300 font-bold text-[9px] font-display flex-shrink-0">
-                      {modelScore}% Match
-                    </span>
-                  )}
-                </div>
-              )}
+                )}
 
-              {/* Action Button */}
-              <button
-                type="button"
-                onClick={onFocusRegion}
-                className="w-full flex items-center justify-center gap-1 text-[9.5px] font-semibold py-1 px-2 rounded-xl bg-teal-600 text-white hover:bg-teal-700 transition-all cursor-pointer shadow-xs font-display"
-              >
-                <Focus className="h-2.5 w-2.5" />
-                <span>Zoom & Center Target</span>
-              </button>
+                {/* Action button */}
+                <button
+                  type="button"
+                  onClick={onFocusRegion}
+                  className="w-full flex items-center justify-center gap-1.5 text-[9.5px] font-semibold py-1.5 px-2 rounded-xl transition-all cursor-pointer"
+                  style={{
+                    background: '#10b981',
+                    color: 'white',
+                    boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background='#059669'}
+                  onMouseLeave={e => e.currentTarget.style.background='#10b981'}
+                >
+                  <Focus className="h-2.5 w-2.5" />
+                  Zoom & Center Target
+                </button>
+              </div>
             </div>
           </motion.div>
         ) : (
-          /* Minimized Frosted Floating Pill */
+          /* Minimized pill */
           <motion.button
+            key="pill"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => setIsMinimized(false)}
-            className="absolute pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl border border-teal-500/30 shadow-md text-[10px] font-bold text-teal-700 dark:text-teal-300 cursor-pointer hover:bg-white/95 transition-all font-display"
-            style={{ left: `${cardLeft}px`, top: `${cardTop}px` }}
+            className="absolute pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold cursor-pointer transition-all"
+            style={{
+              left: cardLeft,
+              top: cardTop,
+              background: 'rgba(255,255,255,0.90)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(16,185,129,0.38)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+              color: '#059669',
+            }}
           >
-            <Crosshair className="h-3 w-3 text-teal-600 animate-pulse" />
+            <Crosshair className="h-3 w-3 animate-pulse" style={{ color:'#10b981' }} />
             <span className="truncate max-w-[140px]">{targetOrgan}</span>
-            <ChevronRight className="h-2.5 w-2.5 text-muted-foreground" />
+            <ChevronRight className="h-2.5 w-2.5" style={{ color:'#94a3b8' }} />
           </motion.button>
         )}
       </AnimatePresence>
     </div>
   );
 }
-

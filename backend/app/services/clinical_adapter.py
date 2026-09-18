@@ -407,13 +407,21 @@ def _resolve_anatomical_localization(
                 targetOrgan="Cervical Spine & Spinal Cord",
                 spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.09)
             )
+        if is_cervical:
+            return BodyLocalization(
+                primaryRegion="Head",
+                secondaryRegions=sec_regions,
+                bodySystem="Nervous System / Cervical Spine",
+                targetOrgan="Cervical Spine & Spinal Cord",
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.06)
+            )
         elif is_lower_back:
             return BodyLocalization(
                 primaryRegion="Pelvis",
                 secondaryRegions=sec_regions,
                 bodySystem="Nervous System / Lumbar Spine",
                 targetOrgan="Lumbar Spine & Spinal Cord",
-                spatialCoordinates=SpatialCoordinates(x=0.0, y=0.92, z=-0.10)
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=0.92, z=-0.06)
             )
         else:
             return BodyLocalization(
@@ -421,7 +429,7 @@ def _resolve_anatomical_localization(
                 secondaryRegions=sec_regions,
                 bodySystem="Nervous System / Spinal Cord",
                 targetOrgan="Thoracic Spine & Spinal Cord",
-                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.20, z=-0.12)
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.20, z=-0.06)
             )
 
     # ─── Priority 2: Gastrointestinal / Stomach / Esophagus / Reflux ──────────
@@ -439,7 +447,7 @@ def _resolve_anatomical_localization(
                 secondaryRegions=sec_regions,
                 bodySystem="Digestive / Inguinal",
                 targetOrgan="Inguinal Canal & Groin Structures",
-                spatialCoordinates=SpatialCoordinates(x=0.06, y=0.78, z=0.10)
+                spatialCoordinates=SpatialCoordinates(x=0.06, y=0.78, z=0.01)
             )
 
         # Pancreatic Neoplasm -> Abdomen / Pancreas
@@ -449,7 +457,7 @@ def _resolve_anatomical_localization(
                 secondaryRegions=sec_regions,
                 bodySystem="Digestive / Endocrine",
                 targetOrgan="Pancreas & Retroperitoneal Cavity",
-                spatialCoordinates=SpatialCoordinates(x=0.02, y=1.08, z=0.06)
+                spatialCoordinates=SpatialCoordinates(x=0.02, y=1.08, z=0.01)
             )
 
         # GERD / Esophagus / Acid Reflux / Gastric Pain
@@ -459,7 +467,7 @@ def _resolve_anatomical_localization(
                 secondaryRegions=sec_regions,
                 bodySystem="Digestive",
                 targetOrgan="Mid & Lower Esophagus",
-                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.22, z=0.05)
+                spatialCoordinates=SpatialCoordinates(x=0.0, y=1.22, z=0.01)
             )
 
         return BodyLocalization(
@@ -467,7 +475,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Gastrointestinal / Digestive",
             targetOrgan="Stomach & Gastroesophageal Junction",
-            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.05, z=0.18)
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.05, z=0.01)
         )
 
     # ─── Priority 3: Hip & Pelvic Articulations ──────────────────────────────
@@ -480,7 +488,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Musculoskeletal / Pelvic",
             targetOrgan="Hip Joint & Femoral Head",
-            spatialCoordinates=SpatialCoordinates(x=0.09, y=0.82, z=0.06)
+            spatialCoordinates=SpatialCoordinates(x=0.09, y=0.82, z=0.01)
         )
 
     # ─── Priority 4: Head & Cranial (when not overshadowed by acute GI/Chest) ─
@@ -493,7 +501,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem=anatomy.bodySystem if "neuro" in anatomy.bodySystem.lower() else "Neurological / Cranial",
             targetOrgan="Cranial Region & Cephalic Structures",
-            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.62, z=0.10)
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.62, z=0.02)
         )
 
     # ─── Priority 5: Neck & Cervical Musculature ─────────────────────────────
@@ -506,11 +514,10 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Musculoskeletal / Cervical",
             targetOrgan="Cervical Spine & Neck Musculature",
-            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.08)
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.45, z=-0.06)
         )
 
     # 1. Shoulder & Upper Extremity Joint Localization
-    # Checks for shoulder, deltoid, rotator cuff, scapula, clavicle
     is_shoulder = (
         "shoulder" in raw_lower or
         "shoulder" in all_tokens or
@@ -519,11 +526,7 @@ def _resolve_anatomical_localization(
         any("shoulder" in tok for tok in evidence_tokens)
     )
 
-    # Check if patient reports primary chest/cardiac pain radiating to shoulder vs isolated shoulder
-
-
-    if is_shoulder and not has_primary_chest:
-        # Determine lateral side (BodyParts3D: Left arm is +X, Right arm is -X)
+    if is_shoulder and not has_explicit_chest_text:
         has_left_kw = "left" in raw_lower or "gauche" in raw_lower
         has_right_kw = "right" in raw_lower or "droite" in raw_lower
 
@@ -534,7 +537,6 @@ def _resolve_anatomical_localization(
             shoulder_x = -0.19
             organ_name = "Right Shoulder Joint & Deltoid Musculature"
         else:
-            # Fallback to evidence tokens or default
             if any(k in all_tokens for k in ["shoulder(l)", "épaule(g)"]) and not any(k in all_tokens for k in ["shoulder(r)", "épaule(d)"]):
                 shoulder_x = 0.19
                 organ_name = "Left Shoulder Joint & Deltoid Musculature"
@@ -551,11 +553,11 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Musculoskeletal / Upper Extremity",
             targetOrgan=organ_name,
-            spatialCoordinates=SpatialCoordinates(x=shoulder_x, y=1.35, z=0.05)
+            spatialCoordinates=SpatialCoordinates(x=shoulder_x, y=1.35, z=0.00)
         )
 
     # 2. Elbow & Forearm
-    if any(k in raw_lower for k in ["elbow", "forearm", "biceps", "triceps"]) and not has_primary_chest:
+    if any(k in raw_lower for k in ["elbow", "forearm", "biceps", "triceps"]) and not has_explicit_chest_text:
         sec_regions = list(anatomy.secondaryRegions)
         if anatomy.primaryRegion not in sec_regions and anatomy.primaryRegion != "Upper Limb":
             sec_regions.insert(0, anatomy.primaryRegion)
@@ -564,7 +566,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Musculoskeletal / Upper Extremity",
             targetOrgan="Elbow Joint & Forearm Complex",
-            spatialCoordinates=SpatialCoordinates(x=0.25, y=1.10, z=0.05)
+            spatialCoordinates=SpatialCoordinates(x=0.25, y=1.10, z=0.00)
         )
 
     # 3. Wrist & Hand
@@ -577,7 +579,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Musculoskeletal / Upper Extremity",
             targetOrgan="Wrist & Carpal Articulations",
-            spatialCoordinates=SpatialCoordinates(x=0.28, y=0.85, z=0.05)
+            spatialCoordinates=SpatialCoordinates(x=0.28, y=0.85, z=0.00)
         )
 
     # 4. Knee & Lower Extremity Joint Localization
@@ -602,7 +604,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Musculoskeletal / Lower Extremity",
             targetOrgan=knee_label,
-            spatialCoordinates=SpatialCoordinates(x=knee_x, y=0.45, z=0.08)
+            spatialCoordinates=SpatialCoordinates(x=knee_x, y=0.45, z=0.02)
         )
 
     # 5. Ankle & Foot
@@ -615,7 +617,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="Musculoskeletal / Lower Extremity",
             targetOrgan="Ankle Joint & Tarsal Articulations",
-            spatialCoordinates=SpatialCoordinates(x=0.09, y=0.08, z=0.08)
+            spatialCoordinates=SpatialCoordinates(x=0.09, y=0.08, z=0.02)
         )
 
     # 6. Throat / Neck / Cervical Pharynx
@@ -628,7 +630,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=sec_regions,
             bodySystem="ENT / Respiratory",
             targetOrgan="Pharynx, Larynx & Cervical Region",
-            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.42, z=0.08)
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.42, z=0.01)
         )
 
     # 7. Esophagus & Gastroesophageal Junction (Boerhaave / GERD / heartburn)
@@ -638,7 +640,7 @@ def _resolve_anatomical_localization(
             secondaryRegions=anatomy.secondaryRegions,
             bodySystem="Digestive",
             targetOrgan="Esophagus & Gastroesophageal Junction",
-            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.20, z=0.05)
+            spatialCoordinates=SpatialCoordinates(x=0.0, y=1.20, z=0.01)
         )
 
     # 8. Standard / Default DDXPlus Condition Anatomical Mapping
