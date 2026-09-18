@@ -79,10 +79,86 @@ Integrated web-ready Z-Anatomy GLB model asset into `frontend/public/models/huma
 
 ---
 
-### F4 — Clinical Results & ICD-10 Explorer
-*(Not yet started)*
+### F4 — Clinical Results & ICD-10 Explorer ✅ COMPLETE
+**Completed**: 2026-09-12
+
+Implemented the full tabbed clinical guidance console on the right panel.
+
+**Key Accomplishments**:
+- **Conditions Tab**: Ranked candidate pathologies with ICD-10 codes, DDXPlus urgency ratings (Level 1–5), expandable detail panels, and exact-match symptom highlights.
+- **Remedies Tab**: Evidence-based, non-pharmacological home care instructions per condition.
+- **Why It Happens Tab**: Clear empathetic pathophysiology explanations.
+- **Red Flags Tab**: Urgent clinical warning symptoms with escalation triggers.
+- **ScoreGauge**: Animated SVG circular match percentage dial with confidence color tiers (teal / amber / rose).
 
 ---
 
-### F5 — Backend API Integration
-*(Not yet started)*
+### F5 — Backend API Integration ✅ COMPLETE
+**Completed**: 2026-09-13
+
+Replaced all mock data with live FastAPI backend inference.
+
+**Key Accomplishments**:
+- **API Service** (`apiService.js`): Calls `POST /api/v1/analyze` with graceful fallback to local mock data on backend timeout/unavailability.
+- **Vite Proxy Configuration**: `/api` → `http://127.0.0.1:8000` for local development.
+- **FastAPI Backend** (`backend/app/`): Full routing, request validation (Pydantic v2), and response serialization.
+- **NLP Matcher** (`nlp_matcher.py`): Clinical synonym dictionary + TF-IDF cosine similarity symptom extractor.
+- **DDXPlus Feature Extractor**: 1,213-dimensional sparse feature vector from raw patient presentation.
+- **Logistic Regression Classifier**: Trained on 1,025,602 DDXPlus records; 99.69% Top-1 accuracy on test split.
+- **Anatomy Mapper** (`anatomy_mapper.py`): Condition → 3D spatial coordinates + region + organ.
+- **Clinical Adapter** (`clinical_adapter.py`): Condition → structured guidance (remedies, red flags, why it happens).
+
+---
+
+### F6 — 3D Anatomy Atlas Upgrade (BodyParts3D) ✅ COMPLETE
+**Completed**: 2026-09-12
+
+Replaced the procedural geometric mannequin with the full scientific BodyParts3D dataset.
+
+**Key Accomplishments**:
+- **2,234 Real Anatomical Meshes**: Bones, muscles, visceral organs, arteries, veins, nerves — all from BodyParts3D open scientific data.
+- **GPU DataTexture Rendering**: Part visibility and region selection driven by Float32Array data textures + custom GLSL vertex shaders. Zero per-mesh material updates; <1ms toggle latency.
+- **Binary Chunk Streaming**: Geometry packed into indexed `.bin`/`.gz` chunks with concurrent streaming; `atlas.json` manifest of 2,234 structures.
+- **Region Classifier** (`anatomyAtlas.js`): Classifies parts into 6 anatomical regions by name keyword + Y-height brackets.
+- **Smart Layer Isolation**: Auto-configures Muscles/Skeleton/Organs visibility based on the clinical target organ.
+- **15 Anatomical System Colors**: Skeletal, Muscular, Cardiac, Respiratory, Digestive, Urinary, Nervous, Endocrine, Sensory, Arterial, Venous, Lymphatic, Reproductive, Connective, Integumentary.
+
+---
+
+### F7 — HUD Callout, Beacon & Pointer System ✅ COMPLETE
+**Completed**: 2026-09-16
+
+Redesigned the HUD overlay, region pointer, and medical beacon.
+
+**Key Accomplishments**:
+- **Draggable Glassmorphic Info Card** (`AnatomyHUDCallout.jsx`): Anchors near the 3D beacon; auto-positions right/left/above depending on screen edge; drag-to-reposition with touch support.
+- **Minimal Medical Reticle**: Pulsing emerald outer ring + crisp 5px center dot — professional and non-noisy.
+- **3D → 2D World Projection**: Every frame projects the 3D `spatialCoordinates` anchor onto viewport pixels using `Vector3.project(camera)` and NDC conversion.
+- **Beacon Transparency on Hover**: Opacity drops to 20% when orbiting over body parts, preventing HUD from obscuring the anatomy.
+- **Accurate Region Anchors** (`REGION_ANCHORS`): Z-depths calibrated to sit inside the body volume from all camera angles.
+
+---
+
+### F8 — Mobile Support & Vertical Explorer ✅ COMPLETE
+**Completed**: 2026-09-17
+
+Added full mobile touch support and vertical anatomy navigation.
+
+**Key Accomplishments**:
+- **Touch Gesture Handling**: `touchAction: none` on renderer canvas; OrbitControls configured for mobile rotate/pinch-zoom; `isDragGesture` threshold prevents phantom tap-clicks after rotating.
+- **Mobile-Responsive HUD**: Card resizes for small viewports; repositions above/below beacon based on available space.
+- **Vertical Anatomy Scrollbar**: Draggable thumb rail (Up/Down buttons) synced to `controls.target.y`; range Y=0.42 (Lower Limb) to Y=1.58 (Head).
+- **Region Button Fix**: `triggerCameraTransition` now routes region-pill clicks through `REGION_CAMERA_CONFIGS` presets only when the click is not for the clinical primary region.
+
+---
+
+### F9 — Production Deployment ✅ COMPLETE
+**Completed**: 2026-09-17
+
+Deployed backend to Render and frontend to Vercel.
+
+**Key Accomplishments**:
+- **Backend (Render)**: Python 3.11 Web Service, auto-deploy from GitHub `main`. Dynamic `$PORT` binding in `run_server.py`. Deterministic in-memory feature extractor to fix `WindowsPath` joblib deserialization on Linux.
+- **Frontend (Vercel)**: Vite static build, `VITE_API_URL` environment variable. `API_BASE_URL` sanitization strips trailing slashes.
+- **Scikit-Learn pinned to 1.7.2** for cross-platform joblib pickle compatibility.
+- **Live URL**: `https://patient-clinical-decision-support-system.onrender.com`
