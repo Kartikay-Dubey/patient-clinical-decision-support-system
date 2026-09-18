@@ -15,13 +15,9 @@ An evidence-based **Clinical Decision Support System (CDSS)** featuring an inter
 
 ---
 
-<!-- HERO BANNER / DEMO PREVIEW IMAGE PLACEHOLDER -->
-<div align="center">
-
-<!-- Replace with your hero screenshot or animated GIF -->
-<!-- ![Patient CDSS Platform Overview](docs/images/hero_preview.png) -->
-
-</div>
+<p align="center">
+  <img src="Screenshots/HeroBanner.png" alt="Patient CDSS Hero Preview" width="100%" />
+</p>
 
 ---
 
@@ -38,8 +34,9 @@ An evidence-based **Clinical Decision Support System (CDSS)** featuring an inter
 - **Vertical Anatomy Exploration Scrollbar**: A custom interactive slider on the canvas margin enabling smooth vertical scanning from head to feet.
 - **Interactive Raycasting & Tooltips**: Hover over or click any anatomical structure to view its name, physiological system, and anatomical region.
 
-<!-- 3D VIEWER SCREENSHOT PLACEHOLDER -->
-<!-- ![3D Anatomy Atlas & Region Highlighting](docs/images/3d_viewer_demo.png) -->
+<p align="center">
+  <img src="Screenshots/3D%20Anatomy%20Atlas%20%26%20Region.png" alt="3D Anatomy Atlas and Region Highlighting" width="100%" />
+</p>
 
 ---
 
@@ -49,8 +46,9 @@ An evidence-based **Clinical Decision Support System (CDSS)** featuring an inter
 - **Verified Benchmark Accuracy**: **99.69% Top-1 Accuracy** and **99.99% Top-3 Accuracy** on 134,529 held-out test cases with full clinical evidence.
 - **Free-Text Clinical NLP**: Tokenizes and extracts medical evidence from colloquial patient symptom narratives (e.g., *"stomach pain, acid reflux, mild headache"*), translating natural language into calibrated differential probability distributions.
 
-<!-- NLP & SCANNING CONSOLE SCREENSHOT PLACEHOLDER -->
-<!-- ![Clinical NLP & Intake Scanner](docs/images/nlp_intake_console.png) -->
+<p align="center">
+  <img src="Screenshots/AnalysisStage.png" alt="Clinical NLP & Intake Scanner" width="100%" />
+</p>
 
 ---
 
@@ -60,8 +58,9 @@ An evidence-based **Clinical Decision Support System (CDSS)** featuring an inter
 - **Pathophysiology Tab**: Understand *"Why It Happens"* with clear, educational explanations of the underlying anatomical and physiological mechanisms.
 - **Red Flags Tab**: Urgent clinical warning signs and red-flag indicators mandating immediate emergency medical evaluation.
 
-<!-- CLINICAL RESULTS CONSOLE SCREENSHOT PLACEHOLDER -->
-<!-- ![Clinical Guidance Console & ICD-10 Differential](docs/images/clinical_guidance_console.png) -->
+<p align="center">
+  <img src="Screenshots/Full.png" alt="Clinical Guidance Console & ICD-10 Differential" width="100%" />
+</p>
 
 ---
 
@@ -71,8 +70,9 @@ An evidence-based **Clinical Decision Support System (CDSS)** featuring an inter
 - **Two-Finger Pan**: Effortlessly adjust camera height and focus.
 - **Adaptive Touch Sliders & Buttons**: Mobile-optimized touch targets, vertical scroll controls, and collapsible panels.
 
-<!-- MOBILE INTERFACE SCREENSHOT PLACEHOLDER -->
-<!-- ![Mobile Responsive CDSS View](docs/images/mobile_view_demo.png) -->
+<p align="center">
+  <img src="Screenshots/Responsiveness.png" alt="Mobile Responsive CDSS View" width="100%" />
+</p>
 
 ---
 
