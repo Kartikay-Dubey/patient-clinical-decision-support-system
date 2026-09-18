@@ -231,6 +231,14 @@ The supervised diagnostic classifier is trained on the official **DDXPlus** data
 
 ---
 
+## 👥 Collaborators
+
+- [@himanshiraghav24](https://github.com/himanshiraghav24)
+- [@kanaksinghal837](https://github.com/kanaksinghal837)
+- [@Himanshu26-HM](https://github.com/Himanshu26-HM)
+
+---
+
 ## 📜 Attribution & License
 
 - **Anatomical Geometry**: Adapted from **BodyParts3D**, © The Database Center for Life Science (DBCLS), licensed under [CC Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). See [`frontend/public/models/ATTRIBUTION.md`](frontend/public/models/ATTRIBUTION.md) for full citation.
