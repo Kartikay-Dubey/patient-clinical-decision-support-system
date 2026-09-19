@@ -10,6 +10,7 @@ import {
   LAYER_DEFINITIONS,
   REGIONS,
   classifyPartRegion,
+  isSensitiveAnatomy,
   REGION_CAMERA_CONFIGS,
   REGION_ANCHORS,
 } from './anatomyAtlas';
@@ -699,10 +700,12 @@ export default function BodyViewer({
         partDataRef.current = partData;
         selectionDataRef.current = selectionData;
 
-        // Populate part regions & bounds
+        // Populate part regions, bounds & sensitive anatomy flags
+        const isSensitive = new Uint8Array(partsCount);
         atlasData.parts.forEach((p, idx) => {
           const reg = classifyPartRegion(p);
           partRegions[idx] = reg;
+          isSensitive[idx] = isSensitiveAnatomy(p) ? 1 : 0;
           const box = new THREE.Box3(
             new THREE.Vector3(...p.bounds[0]),
             new THREE.Vector3(...p.bounds[1])
@@ -712,13 +715,14 @@ export default function BodyViewer({
 
         sceneStateRef.current.atlas = atlasData;
         sceneStateRef.current.partRegions = partRegions;
+        sceneStateRef.current.isSensitive = isSensitive;
 
-        // Initialize textures (all visible, none selected initially)
+        // Initialize textures (non-sensitive parts visible by default, sensitive parts hidden)
         for (let i = 0; i < partsCount; i++) {
           partData[i * 4 + 0] = 0; // dx
           partData[i * 4 + 1] = 0; // dy
           partData[i * 4 + 2] = 0; // dz
-          partData[i * 4 + 3] = 1.0; // visible
+          partData[i * 4 + 3] = isSensitive[i] === 1 ? 0.0 : 1.0; // visible
           selectionData[i * 4] = 0; // selected
         }
         partTexture.needsUpdate = true;
@@ -860,9 +864,11 @@ export default function BodyViewer({
       let nearestDist = Infinity;
       let foundIndex = -1;
 
+      const isSens = sceneStateRef.current.isSensitive;
       for (let i = 0; i < partPickers.length; i++) {
         const mesh = partPickers[i];
         if (!mesh || !partData || partData[i * 4 + 3] < 0.5) continue;
+        if (isSens && isSens[i] === 1) continue;
         if (atlasData.parts[i]?.system === 'integumentary') continue;
 
         hitBox.copy(partBounds[i]);
@@ -918,9 +924,11 @@ export default function BodyViewer({
       let nearestDist = Infinity;
       let foundIndex = -1;
 
+      const isSens = sceneStateRef.current.isSensitive;
       for (let i = 0; i < partPickers.length; i++) {
         const mesh = partPickers[i];
         if (!mesh || !partData || partData[i * 4 + 3] < 0.5) continue;
+        if (isSens && isSens[i] === 1) continue;
         if (atlasData.parts[i]?.system === 'integumentary') continue;
 
         hitBox.copy(partBounds[i]);
@@ -1019,13 +1027,15 @@ export default function BodyViewer({
           activeSystems.add('reproductive');
         }
 
+        const isSens = ss.isSensitive;
         for (let i = 0; i < partsCount; i++) {
           const part = atlasData.parts[i];
           const partReg = partRegions[i];
           const sysAllowed = activeSystems.has(part.system);
+          const isPartSensitive = isSens && isSens[i] === 1;
 
-          // Visibility: is system active in layers?
-          partData[i * 4 + 3] = sysAllowed ? 1.0 : 0.0;
+          // Visibility: sensitive anatomy is permanently hidden / transparent
+          partData[i * 4 + 3] = (!isPartSensitive && sysAllowed) ? 1.0 : 0.0;
 
           // Selection / Highlighting & Regional Focus Opacity:
           let selValue = 0;
@@ -1063,19 +1073,17 @@ export default function BodyViewer({
         (bodyLocalization?.spatialCoordinates ||
           (ss.selectedRegion && ss.selectedRegion !== 'All' && ss.selectedRegion !== 'Full Body'))
       ) {
-        // Always prefer clinical spatial coordinates when available;
-        // fall back to static REGION_ANCHORS only if no clinical data.
+        // Fall back to calibrated REGION_ANCHORS (which are situated at core Z ~ 0.00)
         let anchorPos = REGION_ANCHORS[clinicalRegion] || REGION_ANCHORS.Thorax;
         if (bodyLocalization?.spatialCoordinates) {
-          // Use clinical spatial coordinates with deep Z blended from atlas anchor
-          // (clinical z is often near-surface; atlas anchor z is deeper inside the body).
+          const rawZ = bodyLocalization.spatialCoordinates.z ?? anchorPos.z;
+          // Clamp Z strictly within volumetric core [-0.02, 0.02] so pointer stays
+          // anchored to the body even when rotated 360° to side or back views
+          const safeZ = Math.max(-0.02, Math.min(0.02, rawZ));
           anchorPos = {
             x: bodyLocalization.spatialCoordinates.x ?? anchorPos.x,
             y: bodyLocalization.spatialCoordinates.y ?? anchorPos.y,
-            z: Math.max(
-              anchorPos.z,
-              (bodyLocalization.spatialCoordinates.z ?? 0) * 0.4 + anchorPos.z * 0.6
-            ),
+            z: safeZ,
           };
         }
 
@@ -1087,21 +1095,11 @@ export default function BodyViewer({
         const rawX = ((v.x + 1) / 2) * w;
         const rawY = ((-v.y + 1) / 2) * h;
 
-        // Body-silhouette clamping: keep beacon within the body column on screen
-        const bodyLeft   = w * 0.18;
-        const bodyRight  = w * 0.82;
-        const bodyTop    = h * 0.03;
-        const bodyBottom = h * 0.96;
+        // Keep beacon within the rendered viewport boundaries without artificial column distortion
+        const clampedX = Math.max(16, Math.min(w - 16, rawX));
+        const clampedY = Math.max(16, Math.min(h - 16, rawY));
 
-        const clampedX = Math.max(bodyLeft,  Math.min(bodyRight,  rawX));
-        const clampedY = Math.max(bodyTop,   Math.min(bodyBottom, rawY));
-
-        const rawInBounds =
-          v.z < 1.0 &&
-          rawX >= -w * 0.4 && rawX <= w * 1.4 &&
-          rawY >= -h * 0.3 && rawY <= h * 1.3;
-
-        const isVisible = rawInBounds;
+        const isVisible = v.z < 1.0 && rawX >= 0 && rawX <= w && rawY >= 0 && rawY <= h;
 
         const roundedX = Math.round(clampedX);
         const roundedY = Math.round(clampedY);

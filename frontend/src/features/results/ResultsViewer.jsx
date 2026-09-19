@@ -304,6 +304,16 @@ export default function ResultsViewer({ analysisData, isLoading, className = '' 
                             ICD-10: {item.icd10Code}
                           </span>
                         </div>
+
+                        {/* Animated Probability Fill Bar */}
+                        <div className="w-full bg-border/40 h-1.5 rounded-full overflow-hidden mt-2">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.max(4, scorePercent)}%` }}
+                            transition={{ duration: 0.9, delay: index * 0.08, ease: 'easeOut' }}
+                            className="h-full rounded-full bg-gradient-to-r from-primary/70 via-primary to-primary"
+                          />
+                        </div>
                       </div>
                     </div>
 

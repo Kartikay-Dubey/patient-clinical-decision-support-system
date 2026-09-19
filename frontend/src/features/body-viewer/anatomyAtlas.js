@@ -155,7 +155,6 @@ export const LAYER_DEFINITIONS = [
       'arterial',
       'venous',
       'lymphatic',
-      'reproductive',
     ],
     description: 'Internal visceral & vascular systems',
   },
@@ -170,6 +169,17 @@ export const REGIONS = [
   'Upper Limb',
   'Lower Limb',
 ];
+
+/**
+ * Filter for sensitive / reproductive / external genital / anal anatomical parts.
+ * Ensures anatomical models remain strictly clean, dignified, and presentation-ready for mentors.
+ */
+export function isSensitiveAnatomy(part) {
+  if (!part) return false;
+  if (part.system === 'reproductive') return true;
+  const name = (part.name || '').toLowerCase();
+  return /\b(penis|testis|testicle|scrotum|epididymis|prostate|seminal|vulva|vagina|clitoris|anus|anal|perineal|perineum|pudendal|deferent)\b/i.test(name);
+}
 
 /**
  * Classifies a BodyParts3D part into one of the 6 CDSS regions.
@@ -420,15 +430,15 @@ export const REGION_CAMERA_CONFIGS = {
  * Z coordinates are precisely calibrated to sit within the physical volume of the 3D mesh.
  */
 export const REGION_ANCHORS = {
-  // Z coordinates are set deeper inside the body volume (not just surface).
-  // This ensures the 3D→2D projection stays within the body silhouette
-  // regardless of camera angle (Front, Side, 3/4, Back).
-  Head:         { x: 0.0,   y: 1.56, z: 0.10, name: 'Cranial & Cephalic Region' },
-  Thorax:       { x: 0.0,   y: 1.25, z: 0.10, name: 'Thoracic Cavity & Cardiorespiratory' },
-  Abdomen:      { x: 0.0,   y: 1.02, z: 0.09, name: 'Abdominal Viscera & Gastrointestinal' },
-  Pelvis:       { x: 0.0,   y: 0.80, z: 0.08, name: 'Pelvic Cavity & Genitourinary' },
-  'Upper Limb': { x: -0.16, y: 1.32, z: 0.05, name: 'Shoulder Joint & Upper Extremity' },
-  'Lower Limb': { x: 0.06,  y: 0.45, z: 0.06, name: 'Lower Extremity / Femoral' },
+  // Z coordinates are set strictly to the true volumetric 3D core (z ~ 0.00).
+  // This guarantees the 3D→2D projected reticle and HUD beacon remain locked
+  // inside the physical anatomical structure across all 360° orbital angles (Front, Side, 3/4, Back).
+  Head:         { x: 0.0,   y: 1.55, z: 0.00,  name: 'Cranial & Cephalic Region' },
+  Thorax:       { x: 0.0,   y: 1.25, z: 0.01,  name: 'Thoracic Cavity & Cardiorespiratory' },
+  Abdomen:      { x: 0.0,   y: 1.05, z: 0.00,  name: 'Abdominal Viscera & Gastrointestinal' },
+  Pelvis:       { x: 0.0,   y: 0.88, z: 0.01,  name: 'Pelvic Cavity & Genitourinary' },
+  'Upper Limb': { x: -0.16, y: 1.25, z: -0.01, name: 'Shoulder Joint & Upper Extremity' },
+  'Lower Limb': { x: 0.08,  y: 0.45, z: 0.01,  name: 'Lower Extremity / Femoral' },
 };
 
 

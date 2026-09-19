@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
- * ScoreGauge — Circular pastel ring metric gauge
- * Inspired by the prominent circular confidence dial in Reference 2.
+ * ScoreGauge — Circular pastel ring metric gauge with dynamic filling effect
+ * Features smooth ease-out count-up animation and stroke progress filling.
  */
 export default function ScoreGauge({ 
   value = 85, 
@@ -11,10 +11,38 @@ export default function ScoreGauge({
   label = 'Clinical Match', 
   confidence = 'High'
 }) {
+  const clampedValue = Math.min(Math.max(Math.round(value), 0), 100);
+  const [animatedValue, setAnimatedValue] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp = null;
+    const duration = 1100; // ms animation duration
+    let animId;
+
+    const animateFill = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // Cubic ease-out curve
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      setAnimatedValue(Math.round(easeOut * clampedValue));
+
+      if (progress < 1) {
+        animId = requestAnimationFrame(animateFill);
+      }
+    };
+
+    // Reset to 0 and start animation
+    setAnimatedValue(0);
+    animId = requestAnimationFrame(animateFill);
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [clampedValue]);
+
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const clampedValue = Math.min(Math.max(value, 0), 100);
-  const strokeDashoffset = circumference - (clampedValue / 100) * circumference;
+  const strokeDashoffset = circumference - (animatedValue / 100) * circumference;
 
   return (
     <div className="flex flex-col items-center justify-center relative select-none">
@@ -47,14 +75,16 @@ export default function ScoreGauge({
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             fill="transparent"
-            className="transition-all duration-1000 ease-out"
+            style={{
+              transition: 'stroke-dashoffset 80ms linear',
+            }}
           />
         </svg>
 
-        {/* Center Metric Display */}
+        {/* Center Metric Display with Animated Count-Up */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <span className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-none">
-            {clampedValue}%
+            {animatedValue}%
           </span>
           <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">
             {confidence}
