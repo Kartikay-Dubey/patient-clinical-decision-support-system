@@ -14,7 +14,7 @@ If you see the red notification `Clinical analysis error (HTTP 500)` on the fron
 - **Why running `python -m uvicorn backend.app.main:app` from inside `backend/` fails:**
   When your terminal is inside the `backend/` directory, Python does not include the project root in its module search path (`sys.path`), causing `ModuleNotFoundError: No module named 'backend'`.
 
----
+
 
 ### Method A: Start via the Dedicated Runner (Recommended)
 

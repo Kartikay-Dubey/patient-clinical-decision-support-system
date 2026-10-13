@@ -10,11 +10,8 @@ import {
   HelpCircle,
   Stethoscope,
   AlertTriangle,
-  Home,
   CheckCircle2,
   Scan,
-  Lock,
-  FileSearch,
 } from 'lucide-react';
 import { MOCK_CLINICAL_PRESETS } from '../../mock/clinicalData';
 import WaveGraphic from '../../components/WaveGraphic';
@@ -29,26 +26,7 @@ const PROCESS_STEPS = [
   { n: '03', label: 'Guide', hint: 'Care + red flags' },
 ];
 
-const VALUE_ROWS = [
-  {
-    icon: Scan,
-    title: '3D anatomy auto-focus',
-    body: 'Zooms to lungs, heart, brain, joints, and more.',
-    tone: 'primary',
-  },
-  {
-    icon: Home,
-    title: 'Why it happens & home care',
-    body: 'Root-cause context and safe self-care steps.',
-    tone: 'primary',
-  },
-  {
-    icon: AlertTriangle,
-    title: 'Warning red flags',
-    body: 'When self-care is enough vs. when to seek care.',
-    tone: 'alert',
-  },
-];
+
 
 export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null, onClearError = () => {} }) {
   const [rawText, setRawText] = useState('');
@@ -149,7 +127,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
         };
 
   return (
-    <div className="flex flex-col gap-5 w-full max-w-[1240px] mx-auto">
+    <div className="w-full max-w-[1240px] mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch">
         <motion.aside className="lg:col-span-5 flex flex-col gap-4" {...fadeUp(0.04)}>
           <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-white/85 border border-primary/15 shadow-subtle text-xs font-semibold text-foreground">
@@ -202,7 +180,9 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
             ))}
           </div>
 
-          <AnatomyPulse />
+          <div className="flex-1 flex">
+            <AnatomyPulse />
+          </div>
         </motion.aside>
 
         <motion.section className="lg:col-span-7 flex" {...fadeUp(0.1)}>
@@ -446,32 +426,6 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
           </div>
         </motion.section>
       </div>
-
-      <motion.div
-        className="grid grid-cols-2 lg:grid-cols-4 gap-2.5"
-        {...fadeUp(0.16)}
-      >
-        {[
-          { icon: Lock, label: 'Private session', detail: 'No account required' },
-          { icon: FileSearch, label: 'ICD-aligned', detail: 'Coded possible findings' },
-          { icon: Scan, label: '3D localization', detail: 'Interactive body map' },
-          { icon: AlertTriangle, label: 'Triage flags', detail: 'Know when to seek care' },
-        ].map((item) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={item.label}
-              className="flex items-center gap-2.5 rounded-2xl border border-border bg-white/80 px-3 py-2.5"
-            >
-              <Icon className="h-4 w-4 text-primary flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold font-display text-foreground leading-tight">{item.label}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{item.detail}</p>
-              </div>
-            </div>
-          );
-        })}
-      </motion.div>
     </div>
   );
 }

@@ -141,4 +141,7 @@ Thumbs.db
 # External repositories
 Bio repo/
 
-
+# Local-only assets & agent config
+frontend/visual assets/
+Project Docs/
+.agents/
