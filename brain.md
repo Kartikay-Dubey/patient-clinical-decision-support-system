@@ -65,7 +65,8 @@
 ### Frontend (`frontend/src/`)
 | File Path | Role & Key Logic |
 | :--- | :--- |
-| `frontend/src/App.jsx` | Main clinical journey controller (`input` ➔ `analyzing` ➔ `results` state machine). Renders ScoreGauge, top summary card, and master console layout |
+| `frontend/src/App.jsx` | Main clinical journey controller (`input` ➔ `analyzing` ➔ `results` state machine). Gated with Clerk `<Show>` components, ScoreGauge, top summary card, and master console layout |
+| `frontend/src/features/auth/AuthPage.jsx` | Clinical authentication portal with Clerk `<SignIn />`, `<SignUp />`, and zero-crash setup fallback |
 | `frontend/src/index.css` | Editorial design system tokens, typography, glassmorphism utilities, warm palette |
 | `frontend/src/services/apiService.js` | API client calling `POST /api/v1/analyze` with graceful client-side fallback |
 | `frontend/src/components/ScoreGauge.jsx` | Animated circular SVG match dial with ease-out count-up animation (`0%` ➔ target %) |

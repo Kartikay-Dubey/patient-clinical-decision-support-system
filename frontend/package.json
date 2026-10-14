@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@clerk/react": "^6.17.8",
     "@fontsource-variable/geist": "^5.3.0",
     "@react-three/drei": "^9.121.4",
     "@react-three/fiber": "^8.17.14",

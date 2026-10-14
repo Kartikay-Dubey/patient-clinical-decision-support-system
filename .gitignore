@@ -138,10 +138,35 @@ lerna-debug.log*
 ehthumbs.db
 Thumbs.db
 
-# External repositories
+# External repositories & temporary submodules
 Bio repo/
 
-# Local-only assets & agent config
+# Local-only assets, agent config & private docs
 frontend/visual assets/
 Project Docs/
 .agents/
+docs/drafts/
+docs/temp/
+*.draft.md
+*.local.md
+
+# Additional secrets & environment variants
+**/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.key
+**/*.cert
+credentials.json
+
+# Local IDE, editor & OS temp
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.sublime-workspace
+*.sublime-project
+Desktop.ini
+$RECYCLE.BIN/
+*.orig
+

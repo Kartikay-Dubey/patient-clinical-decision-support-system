@@ -28,7 +28,7 @@ const PROCESS_STEPS = [
 
 
 
-export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null, onClearError = () => {} }) {
+export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null, onClearError = () => {}, externalText = '' }) {
   const [rawText, setRawText] = useState('');
   const [tags, setTags] = useState([]);
   const [newTagInput, setNewTagInput] = useState('');
@@ -44,6 +44,13 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
   const isOverLimit = charCount > MAX_CHARS;
   const isEmpty = !rawText.trim() && tags.length === 0;
   const showTypewriter = !userTouched && !rawText && !isFocused;
+
+  useEffect(() => {
+    if (externalText) {
+      setRawText(externalText);
+      setUserTouched(true);
+    }
+  }, [externalText]);
 
   useEffect(() => {
     if (reduceMotion) return undefined;
@@ -127,36 +134,36 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
         };
 
   return (
-    <div className="w-full max-w-[1240px] mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch">
-        <motion.aside className="lg:col-span-5 flex flex-col gap-4" {...fadeUp(0.04)}>
-          <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-white/85 border border-primary/15 shadow-subtle text-xs font-semibold text-foreground">
-            <Stethoscope className="h-3.5 w-3.5 text-primary" />
+    <div className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col justify-center min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch min-h-0">
+        <motion.aside className="lg:col-span-5 flex flex-col gap-2.5 sm:gap-3 justify-between min-h-0" {...fadeUp(0.04)}>
+          <div className="inline-flex items-center gap-1.5 self-start px-2.5 py-0.5 rounded-full bg-white/85 border border-primary/15 shadow-subtle text-[11px] font-semibold text-foreground">
+            <Stethoscope className="h-3 w-3 text-primary" />
             Clinical intake
             <span className="h-1 w-1 rounded-full bg-primary/40" />
             <span className="text-muted-foreground font-medium">Non-diagnostic</span>
           </div>
 
           <div>
-            <h2 className="font-display text-[1.7rem] sm:text-[2.05rem] font-semibold text-foreground tracking-tight leading-[1.18]">
+            <h2 className="font-display text-[1.35rem] sm:text-[1.65rem] font-semibold text-foreground tracking-tight leading-[1.18]">
               Describe symptoms.
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600">
                 See the body, get a care path.
               </span>
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
               Everyday language is enough. We map your words to 3D anatomy, ranked possible conditions, and home-care guidance.
             </p>
           </div>
 
-          <div className="relative flex flex-col gap-2">
-            <span className="absolute left-[15px] top-3 bottom-3 w-px bg-gradient-to-b from-teal-400 via-cyan-300 to-sky-200" />
+          <div className="relative flex flex-col gap-1.5">
+            <span className="absolute left-[13px] top-2 bottom-2 w-px bg-gradient-to-b from-teal-400 via-cyan-300 to-sky-200" />
             {PROCESS_STEPS.map((step, i) => (
               <motion.button
                 type="button"
                 key={step.n}
                 onClick={() => setActiveStep(i)}
-                className={`relative pl-9 pr-3 py-2 rounded-2xl text-left border transition-colors ${
+                className={`relative pl-8 pr-2.5 py-1.5 rounded-xl text-left border transition-colors ${
                   activeStep === i
                     ? 'bg-white border-primary/25 shadow-subtle'
                     : 'bg-white/50 border-transparent hover:bg-white/80'
@@ -165,7 +172,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                 transition={{ duration: 0.45 }}
               >
                 <span
-                  className={`absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border-2 ${
+                  className={`absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 ${
                     activeStep === i ? 'border-teal-500 bg-teal-400' : 'border-teal-300 bg-white'
                   }`}
                 />
@@ -173,54 +180,54 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                   <span className="text-xs font-semibold font-display text-foreground">
                     {step.n} · {step.label}
                   </span>
-                  {activeStep === i && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                  {activeStep === i && <CheckCircle2 className="h-3 w-3 text-primary" />}
                 </div>
-                <p className="text-[11px] text-muted-foreground">{step.hint}</p>
+                <p className="text-[10px] text-muted-foreground">{step.hint}</p>
               </motion.button>
             ))}
           </div>
 
-          <div className="flex-1 flex">
+          <div className="flex-1 flex min-h-0">
             <AnatomyPulse />
           </div>
         </motion.aside>
 
-        <motion.section className="lg:col-span-7 flex" {...fadeUp(0.1)}>
-          <div className="master-console overflow-hidden flex flex-col w-full h-full">
-            <div className="console-topbar px-5 py-2.5 flex items-center justify-between gap-4 flex-shrink-0">
-              <div className="flex items-center gap-2.5">
-                <span className="relative flex h-2.5 w-2.5">
+        <motion.section className="lg:col-span-7 flex min-h-0" {...fadeUp(0.1)}>
+          <div className="master-console overflow-hidden flex flex-col w-full h-full justify-between">
+            <div className="console-topbar px-4 py-2 flex items-center justify-between gap-4 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-60" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
                 </span>
                 <span className="text-xs font-semibold text-foreground font-display">
                   Patient intake console
                 </span>
               </div>
-              <div className="hidden sm:flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+              <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
                 <Sparkles className="h-3 w-3 text-primary" />
                 Guided consultation
               </div>
             </div>
 
-            <div className="p-5 sm:p-6 relative z-10 flex-1 flex flex-col">
-              <div className="mb-4">
-                <h3 className="font-display text-xl sm:text-[1.45rem] font-semibold text-foreground tracking-tight">
+            <div className="p-3.5 sm:p-4 relative z-10 flex-1 flex flex-col justify-between min-h-0">
+              <div className="mb-2">
+                <h3 className="font-display text-base sm:text-lg font-semibold text-foreground tracking-tight">
                   What symptoms are you experiencing?
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                   Include onset, location, and how it feels — that helps the model.
                 </p>
               </div>
 
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2.5">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-xs font-bold text-foreground uppercase tracking-wider font-display">
+              <div className="mb-2">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-[10px] font-bold text-foreground uppercase tracking-wider font-display">
                     Try an example
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {MOCK_CLINICAL_PRESETS.map((preset) => (
                     <motion.button
                       whileHover={reduceMotion ? undefined : { y: -1 }}
@@ -228,9 +235,9 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                       key={preset.id}
                       type="button"
                       onClick={() => handleSelectPreset(preset)}
-                      className="text-xs px-3 py-1.5 rounded-full font-semibold border bg-white hover:bg-accent border-border hover:border-primary/35 text-foreground transition-colors duration-150 cursor-pointer flex items-center gap-1.5"
+                      className="text-[11px] px-2.5 py-1 rounded-full font-medium border bg-white hover:bg-accent border-border hover:border-primary/35 text-foreground transition-colors duration-150 cursor-pointer flex items-center gap-1"
                     >
-                      <span className="text-[10px] text-primary font-bold">[{preset.category}]</span>
+                      <span className="text-[9px] text-primary font-bold">[{preset.category}]</span>
                       {preset.label}
                     </motion.button>
                   ))}
@@ -238,8 +245,8 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
               </div>
 
               {errorMessage && (
-                <div className="mb-3.5 p-3 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-start gap-2.5 animate-in fade-in">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <div className="mb-2 p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-start gap-2 animate-in fade-in">
+                  <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <span className="font-bold">Input Notice:</span> {errorMessage}
                   </div>
@@ -253,23 +260,23 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 flex-1 justify-between min-h-0">
+                <div className="flex flex-col gap-1">
                   <label
                     htmlFor="symptom-text"
-                    className="text-xs font-bold text-foreground flex items-center justify-between gap-2"
+                    className="text-[11px] font-bold text-foreground flex items-center justify-between gap-2"
                   >
                     <span>Describe how you feel</span>
-                    <span className="text-[11px] font-normal text-muted-foreground hidden sm:inline">
+                    <span className="text-[10px] font-normal text-muted-foreground hidden sm:inline">
                       Shift + Enter for a new line
                     </span>
                   </label>
 
                   <div
                     className={`
-                      relative rounded-2xl border transition-all duration-200 bg-white min-h-[150px] h-[150px]
+                      relative rounded-xl border transition-all duration-200 bg-white min-h-[96px] h-[96px]
                       ${isFocused
-                        ? 'border-primary ring-4 ring-primary/15 bg-white shadow-sm'
+                        ? 'border-primary ring-3 ring-primary/15 bg-white shadow-xs'
                         : 'border-border hover:border-primary/40'
                       }
                       ${isOverLimit ? 'border-red-400 ring-2 ring-red-100' : ''}
@@ -277,13 +284,13 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                   >
                     {showTypewriter && (
                       <div
-                        className="absolute inset-0 px-4 pt-3.5 pb-8 pointer-events-none text-sm leading-relaxed font-medium text-muted-foreground/85"
+                        className="absolute inset-0 px-3.5 pt-2.5 pb-6 pointer-events-none text-xs sm:text-sm leading-relaxed font-medium text-muted-foreground/85"
                         aria-hidden="true"
                       >
-                        <span className="inline-flex mb-2 rounded-full bg-accent text-primary text-[10px] font-bold px-2 py-0.5 font-display">
+                        <span className="inline-flex mb-1 rounded-full bg-accent text-primary text-[9px] font-bold px-1.5 py-0.5 font-display">
                           {MOCK_CLINICAL_PRESETS[exampleIndex]?.category} example
                         </span>
-                        <p className="mt-2">
+                        <p className="mt-1">
                           {reduceMotion ? TYPING_EXAMPLES[0] : typedExample}
                           {!reduceMotion && <span className="typing-caret" />}
                         </p>
@@ -303,14 +310,14 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                       placeholder={showTypewriter ? '' : 'e.g. I have had a cough for the last few days, throat irritation, and a tickle when I breathe...'}
                       aria-label="Describe your symptoms"
                       aria-describedby="symptom-char-count"
-                      className="absolute inset-0 w-full h-full bg-transparent rounded-2xl px-4 pt-3.5 pb-8 text-sm text-foreground leading-relaxed font-medium placeholder:text-muted-foreground/60 focus:outline-none resize-none overflow-y-auto"
+                      className="absolute inset-0 w-full h-full bg-transparent rounded-xl px-3.5 pt-2.5 pb-6 text-xs sm:text-sm text-foreground leading-relaxed font-medium placeholder:text-muted-foreground/60 focus:outline-none resize-none overflow-y-auto"
                       style={{ caretColor: 'var(--primary)' }}
                     />
 
                     <div
                       id="symptom-char-count"
                       aria-live="polite"
-                      className={`absolute bottom-2.5 right-3.5 text-[11px] font-mono tabular-nums font-semibold z-10 ${
+                      className={`absolute bottom-1.5 right-2.5 text-[10px] font-mono tabular-nums font-semibold z-10 ${
                         isOverLimit
                           ? 'text-red-500 font-bold'
                           : charCount > MAX_CHARS * 0.85
@@ -329,23 +336,23 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold text-foreground uppercase tracking-wider font-display">
+                    <p className="text-[10px] font-bold text-foreground uppercase tracking-wider font-display">
                       Clinical key tags
                     </p>
                     {tags.length > 0 && (
-                      <span className="text-xs font-semibold text-primary">{tags.length} detected</span>
+                      <span className="text-[10px] font-semibold text-primary">{tags.length} detected</span>
                     )}
                   </div>
 
                   <div
-                    className={`flex flex-wrap items-center gap-2 p-3 rounded-2xl border border-border bg-white min-h-[48px] ${
+                    className={`flex flex-wrap items-center gap-1.5 p-2 rounded-xl border border-border bg-white min-h-[36px] ${
                       tags.length === 0 ? 'border-dashed bg-muted/40' : ''
                     }`}
                   >
                     {tags.length === 0 && (
-                      <span className="text-xs text-muted-foreground italic">
+                      <span className="text-[11px] text-muted-foreground italic">
                         Indicators will appear automatically as you type symptoms above.
                       </span>
                     )}
@@ -357,9 +364,9 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                           animate={{ scale: 1, opacity: 1 }}
                           exit={reduceMotion ? { opacity: 0 } : { scale: 0.85, opacity: 0 }}
                           key={tag}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent text-accent-foreground border border-border shadow-xs"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-accent text-accent-foreground border border-border shadow-xs"
                         >
-                          <span className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" aria-hidden="true" />
+                          <span className="h-1 w-1 rounded-full bg-primary flex-shrink-0" aria-hidden="true" />
                           {tag}
                           <button
                             type="button"
@@ -367,7 +374,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                             aria-label={`Remove ${tag}`}
                             className="ml-0.5 rounded-full p-0.5 text-primary hover:text-destructive hover:bg-destructive/10 transition-colors duration-150 cursor-pointer"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-2.5 w-2.5" />
                           </button>
                         </motion.span>
                       ))}
@@ -385,12 +392,12 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                       }}
                       placeholder={tags.length === 0 ? 'Type an indicator & press Enter' : 'Add custom indicator…'}
                       aria-label="Add symptom indicator"
-                      className="bg-transparent text-xs text-foreground font-medium placeholder:text-muted-foreground/60 focus:outline-none min-w-[150px] flex-1 px-1"
+                      className="bg-transparent text-[11px] text-foreground font-medium placeholder:text-muted-foreground/60 focus:outline-none min-w-[130px] flex-1 px-1"
                     />
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 flex-shrink-0">
+                <div className="flex flex-col gap-2 flex-shrink-0 pt-0.5">
                   <motion.button
                     whileHover={reduceMotion ? undefined : { scale: 1.01 }}
                     whileTap={reduceMotion ? undefined : { scale: 0.99 }}
@@ -398,31 +405,31 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                     type="submit"
                     disabled={isLoading || isEmpty || isOverLimit}
                     aria-busy={isLoading}
-                    className="relative w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-full font-bold text-xs sm:text-sm font-display flex items-center justify-center gap-2 sm:gap-3 transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40 disabled:cursor-not-allowed group bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 shadow-lg shadow-teal-600/25 hover:shadow-xl hover:shadow-cyan-600/30 text-white"
+                    className="relative w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-full font-bold text-xs sm:text-sm font-display flex items-center justify-center gap-2 sm:gap-3 transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40 disabled:cursor-not-allowed group bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600 shadow-md shadow-teal-600/20 hover:shadow-lg hover:shadow-cyan-600/25 text-white"
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="h-4 sm:h-5 w-4 sm:w-5 animate-spin text-white/80 flex-shrink-0" />
+                        <Loader2 className="h-4 w-4 animate-spin text-white/80 flex-shrink-0" />
                         <span className="truncate">Running Clinical Localization…</span>
                       </>
                     ) : (
                       <>
-                        <FlaskConical className="h-4 sm:h-5 w-4 sm:w-5 text-white/90 flex-shrink-0" />
+                        <FlaskConical className="h-4 w-4 text-white/90 flex-shrink-0" />
                         <span className="truncate">Analyze Symptoms & Map 3D Body</span>
-                        <ArrowRight className="h-4 sm:h-5 w-4 sm:w-5 ml-auto text-white/90 group-hover:translate-x-1.5 transition-transform duration-200 flex-shrink-0" />
+                        <ArrowRight className="h-4 w-4 ml-auto text-white/90 group-hover:translate-x-1.5 transition-transform duration-200 flex-shrink-0" />
                       </>
                     )}
                   </motion.button>
 
-                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                    <HelpCircle className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
+                    <HelpCircle className="h-3 w-3 text-primary flex-shrink-0" />
                     <span>Evidence-based support. Not a formal diagnosis substitute.</span>
                   </div>
                 </div>
               </form>
             </div>
 
-            <WaveGraphic height={64} opacity={0.5} />
+            <WaveGraphic height={24} opacity={0.35} />
           </div>
         </motion.section>
       </div>

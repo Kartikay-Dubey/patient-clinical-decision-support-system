@@ -40,7 +40,79 @@
 
 ## 3. Recent Activity & Change Log
 
-### [2026-10-13] — Home Page Layout Cleanup & Space Optimization
+### [2026-10-14] — Groq Llama-3.3-70B AI Engine, Full Mobile View Optimization & Repository Cleanup
+- **Groq AI Integration with Gemini Fallback (`ClinicalChatbot.jsx`)**:
+  - Implemented Groq Cloud API as primary AI provider (`llama-3.3-70b-versatile`) with 128k token context window, sub-second latency, and multi-turn conversation memory.
+  - Added seamless fallback to Google Gemini (`gemini-2.0-flash`, `gemini-1.5-flash`) if Groq key or rate limits are encountered.
+  - Added multi-turn message history array passed to Groq so bot remembers ongoing context and conversation flow.
+- **Mobile Responsive Design Overhaul (`ChatbotFab.jsx`, `ClinicalChatbot.jsx`)**:
+  - Replaced static viewport styling with dynamic viewport height (`h-[100dvh]`) to prevent mobile browser navigation bars from overlapping chat input.
+  - Added iOS safe-area insets (`env(safe-area-inset-bottom)`, `env(safe-area-inset-top)`) for notch and bottom home bar protection.
+  - Set input font size to `text-base sm:text-xs` to stop iOS Safari from auto-zooming on focus.
+  - Optimized Chatbot FAB: compact responsive scale on narrow mobile (`bottom-[calc(1rem+env(safe-area-inset-bottom))]`, `xs:`/`sm:` dynamic label display), full pill on desktop.
+  - Added `overscroll-contain` and smooth touch scrolling on quick prompt carousel.
+- **Asset Hygiene & Security (`.gitignore`)**:
+  - Removed obsolete `AI_robo.webm` and space-named redundant video file; standard asset is `medical_robot.mp4`.
+  - Updated `.gitignore` with comprehensive rules for docs drafts, local md, OS caches, and recursive secret protections (`**/.env*`).
+- **Verification**: `npm run build` executed cleanly in production mode with zero errors.
+
+### [2026-10-14] — MedAssist Professional Tone, Report Context & Mild Symptom Reassurance
+- **Tone Overhaul (`ClinicalChatbot.jsx`)**:
+  - Removed all sarcastic/witty persona (Dr. House / Jarvis tone) — replaced with professional, warm, reassuring clinical English.
+  - Rebranded chatbot from "Dr. Cortex" to **MedAssist** (Clinical Support Assistant).
+  - Updated subtitle, typing indicator, footer disclaimer, and quick prompt labels to match new tone.
+- **Diagnostic Report Context Integration**:
+  - `ClinicalChatbot` now accepts `analysisData` prop passed from `App.jsx`.
+  - `buildReportContext()` serialises top 3 predicted conditions, region, body system, and clinical overview into the Gemini system prompt so MedAssist can reference the patient's actual analysis.
+  - Welcome message updates dynamically when a report is available ("Report Loaded" badge shown in header).
+- **Mild Symptom Reassurance Logic**:
+  - `detectMildSymptomPattern()` detects messages containing mild keywords (headache, mild fever, etc.) + duration phrases (from last 2 days, since 3 days, etc.) without severity markers.
+  - If triggered: bypasses Gemini call and returns a pre-built reassurance message explaining predictions are statistical, most likely viral fever, and self-resolving in 5–7 days.
+  - Two variants: with report context (cites top condition & score) and without report (general reassurance).
+- **Gemini Model Updated**: endpoint updated from `gemini-3.8-flash` → `gemini-2.0-flash` for stability.
+- **Files Modified**: `frontend/src/components/chat/ClinicalChatbot.jsx`, `frontend/src/App.jsx`.
+
+### [2026-10-14] — Dr. Cortex Rebrand, Medical Robot Video & Gemini 3.8 Flash Activation
+
+- **Video Replacement & Button Resizing**:
+  - Replaced logo with `Medical Robot Checking Patient Report.mp4` copied to [`frontend/public/assets/medical_robot.mp4`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/public/assets/medical_robot.mp4).
+  - Compacted floating action button in [`ChatbotFab.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/chat/ChatbotFab.jsx) (`10x10 / 11x11`) to balanced proportions without visual occlusion.
+  - Replaced avatar in [`ClinicalChatbot.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/chat/ClinicalChatbot.jsx) with `medical_robot.mp4`.
+- **Bot Rebrand & Personality**:
+  - Rebranded assistant to **Dr. Cortex** (AI MD & Sarcastic Clinical Scribe).
+- **Gemini API Key & Model Activation**:
+  - Saved user key into [`frontend/.env`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/.env).
+  - Diagnosed offline cause: Google retired `gemini-1.5-flash` for this key; updated endpoint to active `gemini-3.8-flash:generateContent`. Tested live via API test script (verified 200 OK with sarcastic clinical response).
+
+### [2026-10-14] — Navbar Redesign, Layout Gap Filling & Layman Chatbot
+- **Bespoke Navbar Redesign**:
+  - Replaced AI-generic centered segmented stepper (`Intake | Analyze | Results`) with clinical session telemetry: live pulse indicator, stage context, and `v2.4 Live` badge.
+  - Added "Ask AI Assistant" trigger button with quick access.
+  - Redesigned "New Intake" consultation button with subtle clinical slate styling instead of generic gradient pill.
+- **Landing Page Space Filling & Proportions**:
+  - Widened outer main canvas to `max-w-[1520px]` and input grid to `max-w-[1480px]`, eliminating wide empty cyan voids on 1080p/desktop displays.
+  - Completely redesigned [`AnatomyPulse.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/landing/AnatomyPulse.jsx): transformed empty white card into a high-density clinical telemetry showcase with active region chips (`Head & ENT`, `Thorax`, `Abdomen`, `Spine & Joints`) and 3 verification KPI cards (`49 Classes`, `2,234 Parts`, `DDXPlus`).
+- **Clinical Layman Copilot (Chatbot)**:
+  - Built [`ClinicalChatbot.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/chat/ClinicalChatbot.jsx): slide-over assistant drawer designed specifically for non-medical users.
+  - Translates everyday descriptions into clinical terms (pyrosis, dyspnea, photophobia, OPQRST pain framework, emergency red-flags).
+  - Built-in zero-latency knowledge engine + "Paste into Consultation" action button that automatically populates the symptom textarea.
+
+### [2026-10-14] — Intake Layout Sizing & Viewport Scroll Elimination
+- **Zero-Scroll Viewport Optimization**:
+  - Compacted Header height to `56px` (`sm:60px`), eliminating top overflow.
+  - Locked desktop view to `lg:h-screen lg:overflow-hidden` while retaining natural mobile touch scrolling.
+  - Streamlined [`SymptomInput.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/symptom-input/SymptomInput.jsx): reduced title scale, compacted process step buttons, tuned textarea from `150px` to `96px`, and reduced tags/buttons/spacing.
+  - Adjusted [`AnatomyPulse.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/landing/AnatomyPulse.jsx) video container to `max-h-[140px]`.
+  - Scaled down decorative `WaveGraphic` from `64px` to `24px` and tightened footer padding.
+- **Verification**: `npm run build` passed — 0 errors, 11.64s.
+
+### [2026-10-14] — Clerk Authentication Integration & Login Page
+- **Clerk Package Setup**: Installed `@clerk/react` (^6.17.8) for React 18 / Vite.
+- **Environment Configuration**: Created [`frontend/.env.example`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/.env.example) and [`frontend/.env`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/.env) for `VITE_CLERK_PUBLISHABLE_KEY`.
+- **Clerk Provider Setup**: Updated [`frontend/src/main.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/main.jsx) to wrap `<App />` in `<ClerkProvider>` when key is present, or display setup walkthrough when key is missing (zero crashes).
+- **Clinical Authentication Page**: Built [`frontend/src/features/auth/AuthPage.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/auth/AuthPage.jsx) matching the platform's teal/glassmorphic design system with `<SignIn />`, `<SignUp />`, and key setup guide.
+- **Route Gating & User Profile**: Gated clinical workstation inside [`frontend/src/App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx) with `@clerk/react` Core 3 `<Show when="signed-in">` and `<Show when="signed-out">`, integrated `<UserButton />` into [`frontend/src/components/Header.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/Header.jsx).
+- **Verification**: `npm run build` passed — 2325 modules transformed, 0 errors, 5.23s.
 - **Removed Four Bottom Info Boxes**: Deleted the `Private session`, `ICD-aligned`, `3D localization`, `Triage flags` grid from [`SymptomInput.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/symptom-input/SymptomInput.jsx). Cleaned up dead imports (`Lock`, `FileSearch`, `Home`) and unused `VALUE_ROWS` constant.
 - **Fixed Uneven Column Heights**: Made [`AnatomyPulse.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/landing/AnatomyPulse.jsx) use `flex-1` so the left aside column stretches to match the right console height. Video container also grows dynamically.
 - **Eliminated Whitespace**: Removed outer `flex-col gap-5` wrapper (no second row needed), tightened layout to single grid row.

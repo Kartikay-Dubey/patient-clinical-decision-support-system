@@ -9,12 +9,18 @@ import ResultsViewer from './features/results/ResultsViewer';
 import ScoreGauge from './components/ScoreGauge';
 import { analyzeSymptoms } from './services/apiService';
 import { Activity, Sparkles, Clock } from 'lucide-react';
+import { Show } from '@clerk/react';
+import AuthPage from './features/auth/AuthPage';
+import ClinicalChatbot from './components/chat/ClinicalChatbot';
+import ChatbotFab from './components/chat/ChatbotFab';
 
 export default function App() {
   const [appState, setAppState] = useState('input'); // 'input' | 'analyzing' | 'results'
   const [analysisData, setAnalysisData] = useState(null);
   const [activeRegion, setActiveRegion] = useState('All');
   const [errorMessage, setErrorMessage] = useState(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [assistantInputSuggestion, setAssistantInputSuggestion] = useState('');
   const pendingResultRef = useRef(null);
 
   const handleAnalyze = async (payload) => {
@@ -71,12 +77,20 @@ export default function App() {
   const topScore = topCondition ? Math.round(topCondition.modelScore * 100) : 85;
 
   return (
-    <div className="min-h-screen flex flex-col font-sans relative overflow-x-hidden">
+    <>
+      <Show when="signed-out">
+        <AuthPage isConfigured={true} />
+      </Show>
+      <Show when="signed-in">
+        <div className="min-h-screen lg:h-screen lg:max-h-screen flex flex-col font-sans relative overflow-x-hidden lg:overflow-hidden">
       {appState === 'input' && <LandingBackdrop />}
 
-      <Header onReset={handleReset} appState={appState} />
+      <Header 
+        onReset={handleReset} 
+        appState={appState} 
+      />
 
-      <main className="relative z-10 flex-1 w-full mx-auto px-4 sm:px-6 py-4 sm:py-5 max-w-[1440px] flex flex-col min-h-0">
+      <main className="relative z-10 flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 max-w-[1520px] flex flex-col min-h-0 justify-center">
         <AnimatePresence mode="wait">
           {/* STATE 1: INPUT / LANDING PAGE */}
           {appState === 'input' && (
@@ -86,13 +100,14 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35 }}
-              className="flex flex-col w-full"
+              className="flex flex-col w-full flex-1 min-h-0 justify-center"
             >
               <SymptomInput
                 onAnalyze={handleAnalyze}
                 isLoading={false}
                 errorMessage={errorMessage}
                 onClearError={() => setErrorMessage(null)}
+                externalText={assistantInputSuggestion}
               />
             </motion.div>
           )}
@@ -219,11 +234,31 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <footer className="relative z-10 py-3 px-6 text-center text-xs text-muted-foreground font-medium flex flex-col items-center justify-center gap-0.5 flex-shrink-0 border-t border-border/60 bg-white/40 backdrop-blur-md">
-        <span className="font-display font-semibold text-foreground text-[11px]">Patient Clinical Decision Support System &copy; 2026</span>
-        <span className="text-[10px]">Designed for calm, human-centered evidence-based medical engagement</span>
+      <footer className="relative z-10 py-1.5 px-4 text-center text-xs text-muted-foreground font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-4 flex-shrink-0 border-t border-border/60 bg-white/40 backdrop-blur-md">
+        <span className="font-display font-semibold text-foreground text-[10px]">Patient Clinical Decision Support System &copy; 2026</span>
+        <span className="text-[10px] hidden sm:inline">&bull;</span>
+        <span className="text-[10px]">Evidence-based clinical assistance platform</span>
       </footer>
-    </div>
+
+      {/* Clinical Layman Copilot Drawer */}
+      <ClinicalChatbot
+        isOpen={isAssistantOpen}
+        onClose={() => setIsAssistantOpen(false)}
+        analysisData={analysisData}
+        onUseSuggestion={(text) => {
+          setAssistantInputSuggestion(text);
+          setAppState('input');
+        }}
+      />
+
+      {/* Dynamic Floating Action Button */}
+      <ChatbotFab 
+        onClick={() => setIsAssistantOpen(true)} 
+        isOpen={isAssistantOpen} 
+      />
+        </div>
+      </Show>
+    </>
   );
 }
 
