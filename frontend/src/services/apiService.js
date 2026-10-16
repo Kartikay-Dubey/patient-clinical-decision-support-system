@@ -3,7 +3,12 @@
  * Communicates with the real FastAPI + DDXPlus ML Diagnostic backend.
  */
 
-const RAW_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
+const DEFAULT_PROD_API = 'https://patient-clinical-decision-support-system.onrender.com';
+const RAW_URL = (
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? DEFAULT_PROD_API : '')
+).trim().replace(/\/+$/, '');
 const API_BASE_URL = RAW_URL.endsWith('/api/v1') 
   ? RAW_URL.slice(0, -7) 
   : RAW_URL;

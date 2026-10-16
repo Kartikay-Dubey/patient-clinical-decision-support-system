@@ -40,6 +40,21 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-16] — Production Backend Proxy, Groq Multi-Model Support & Mobile Auth UI Fix
+- **Backend API Production Auto-Routing (`apiService.js`, `frontend/vercel.json`)**:
+  - Diagnosed symptom analysis 404 on live Vercel domain: Vercel called local `/api/v1/analyze` without proxy destination.
+  - Added `DEFAULT_PROD_API = 'https://patient-clinical-decision-support-system.onrender.com'` fallback in `apiService.js` when running in production.
+  - Created `frontend/vercel.json` with reverse proxy rewrites (`/api/:path*` -> Render backend) and SPA fallback routing (`/(.*)` -> `/index.html`).
+- **Chatbot Multi-Model Fallback Engine (`ClinicalChatbot.jsx`)**:
+  - Diagnosed Groq 404: `llama-3.3-70b-versatile` was not enabled on user's key tier.
+  - Updated `tryGroq` with priority multi-model list: `['qwen/qwen3.8-27b', 'llama-3.3-70b-versatile', 'llama3-70b-8192', 'openai/gpt-oss-20b']`. Tested live with user key: `qwen/qwen3.8-27b` returns instant, high-quality clinical guidance.
+  - Updated `tryGemini` with active model tier: `['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']`.
+- **Mobile Auth Layout Overhaul (`AuthPage.jsx`)**:
+  - Fixed mobile scroll issue: reordered grid layout so the Clerk Login Card is `order-1` on mobile (shows immediately above the fold without any scrolling).
+  - Hid secondary marketing feature cards on small screens (`hidden sm:grid`) to prevent vertical page bloat on phones.
+  - Retained full rich desktop view (`order-2 lg:order-1`) with feature telemetry and clinical badges.
+- **Verification**: `npm run build` completed successfully (exit code 0, 2327 modules transformed). Tested live Render backend directly (verified 200 OK).
+
 ### [2026-10-14] — Groq Llama-3.3-70B AI Engine, Full Mobile View Optimization & Repository Cleanup
 - **Groq AI Integration with Gemini Fallback (`ClinicalChatbot.jsx`)**:
   - Implemented Groq Cloud API as primary AI provider (`llama-3.3-70b-versatile`) with 128k token context window, sub-second latency, and multi-turn conversation memory.

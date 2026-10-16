@@ -270,36 +270,54 @@ Formatting:
     return apiMessages;
   }
 
-  // Try Groq API (Llama 3.3 70B) — primary
+  // Try Groq API with multi-model fallback — primary
   async function tryGroq(userPrompt) {
     if (!groqKey || groqKey.trim() === '' || groqKey === 'YOUR_GROQ_KEY_HERE') return null;
 
     const apiMessages = buildConversationMessages(userPrompt);
+    const GROQ_MODELS = [
+      'qwen/qwen3.8-27b',
+      'llama-3.3-70b-versatile',
+      'llama3-70b-8192',
+      'llama3-8b-8192',
+      'openai/gpt-oss-20b'
+    ];
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${groqKey.trim()}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: apiMessages,
-        temperature: 0.3,
-        max_tokens: 800,
-        stream: false
-      })
-    });
+    let lastErr = null;
+    for (const model of GROQ_MODELS) {
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${groqKey.trim()}`
+          },
+          body: JSON.stringify({
+            model,
+            messages: apiMessages,
+            temperature: 0.3,
+            max_tokens: 800,
+            stream: false
+          })
+        });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error?.message || `Groq HTTP ${response.status}`);
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          lastErr = new Error(errData.error?.message || `Groq ${model} HTTP ${response.status}`);
+          console.warn(`Groq ${model} not available:`, lastErr.message);
+          continue;
+        }
+
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content;
+        if (text && text.trim()) return text;
+      } catch (err) {
+        lastErr = err;
+      }
     }
 
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content;
-    if (!text) throw new Error('Empty Groq response');
-    return text;
+    if (lastErr) throw lastErr;
+    return null;
   }
 
   // Try Gemini API — fallback
@@ -309,7 +327,7 @@ Formatting:
     const reportContext = buildReportContext();
     const fullPrompt = SYSTEM_PROMPT + (reportContext ? `\n${reportContext}` : '') + `\n\nPatient message: "${userPrompt}"`;
 
-    const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro'];
+    const MODELS = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro'];
     for (const model of MODELS) {
       try {
         const response = await fetch(
