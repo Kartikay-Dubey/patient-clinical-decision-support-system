@@ -21,6 +21,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [assistantInputSuggestion, setAssistantInputSuggestion] = useState('');
+  const [pendingResult, setPendingResult] = useState(null);
   const pendingResultRef = useRef(null);
 
   const handleAnalyze = async (payload) => {
@@ -28,11 +29,16 @@ export default function App() {
     setAnalysisData(null);
     setActiveRegion(null); // Neutral presentation until region step completes
     setErrorMessage(null);
+    setPendingResult(null);
     pendingResultRef.current = null;
 
     try {
       const result = await analyzeSymptoms(payload);
       pendingResultRef.current = result;
+      setPendingResult(result);
+      if (result.bodyLocalization?.primaryRegion) {
+        setActiveRegion(result.bodyLocalization.primaryRegion);
+      }
     } catch (err) {
       console.error('Model analysis failure:', err);
       setErrorMessage(
@@ -44,21 +50,20 @@ export default function App() {
 
   const handleStepChange = (stepIndex) => {
     // Step 2 = "Identifying the primary affected region" (0-indexed: step 2 is 3rd step)
-    if (stepIndex >= 2 && pendingResultRef.current?.bodyLocalization?.primaryRegion) {
-      setActiveRegion(pendingResultRef.current.bodyLocalization.primaryRegion);
+    const current = pendingResultRef.current || pendingResult;
+    if (stepIndex >= 2 && current?.bodyLocalization?.primaryRegion) {
+      setActiveRegion(current.bodyLocalization.primaryRegion);
     }
   };
 
   const handleAnalysisComplete = () => {
-    if (pendingResultRef.current) {
-      setAnalysisData(pendingResultRef.current);
-      if (pendingResultRef.current.bodyLocalization?.primaryRegion) {
-        setActiveRegion(pendingResultRef.current.bodyLocalization.primaryRegion);
+    const resultToUse = pendingResultRef.current || pendingResult;
+    if (resultToUse) {
+      setAnalysisData(resultToUse);
+      if (resultToUse.bodyLocalization?.primaryRegion) {
+        setActiveRegion(resultToUse.bodyLocalization.primaryRegion);
       }
       setAppState('results');
-    } else {
-      // Safety fallback if mock request failed or timed out
-      setAppState('input');
     }
   };
 
@@ -126,6 +131,7 @@ export default function App() {
                 <AnalysisStatus
                   onStepChange={handleStepChange}
                   onComplete={handleAnalysisComplete}
+                  isReady={Boolean(pendingResult)}
                 />
               </div>
               <div className="lg:col-span-4 h-[280px] sm:h-[360px] lg:h-[460px] master-console p-2 sm:p-3 overflow-hidden">

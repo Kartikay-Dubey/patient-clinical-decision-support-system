@@ -40,6 +40,20 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-17] — Fix Premature Analysis Timeout & Cloud Latency Race Condition
+- **Root Cause Diagnosed**:
+  - `AnalysisStatus.jsx` ran a hardcoded 3.15-second timer (`STEP_DURATION_MS = 550ms * 5 steps`).
+  - At 3.15s, it unconditionally called `onComplete()`.
+  - In `App.jsx`, `handleAnalysisComplete()` checked `if (pendingResultRef.current) ... else setAppState('input')`.
+  - On localhost, the API answered in ~100ms, so `pendingResultRef.current` was already ready.
+  - On live cloud (Vercel -> Render), internet latency + Render container inference takes 3–6 seconds. The 3.15s animation timer expired *before* the API returned, aborting the screen right back to `'input'` and discarding the output!
+- **Resolution (`AnalysisStatus.jsx`, `App.jsx`)**:
+  - Added `isReady` synchronization prop to `AnalysisStatus`.
+  - Step progression automatically holds on the final step ("Preparing possible conditions...") with the active spinner while the API is in flight.
+  - As soon as the API response arrives, `AnalysisStatus` immediately completes the sequence and seamlessly transitions to the `results` view.
+  - `App.jsx` tracks `pendingResult` in state and will never prematurely abort to `'input'` while awaiting cloud inference.
+- **Verification**: `npm run build` compiled 2,327 modules cleanly (exit code 0).
+
 ### [2026-10-16] — Production Backend Proxy, Groq Multi-Model Support & Mobile Auth UI Fix
 - **Backend API Production Auto-Routing (`apiService.js`, `frontend/vercel.json`)**:
   - Diagnosed symptom analysis 404 on live Vercel domain: Vercel called local `/api/v1/analyze` without proxy destination.

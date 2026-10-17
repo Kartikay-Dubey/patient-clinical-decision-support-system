@@ -14,7 +14,7 @@ const ANALYSIS_STEPS = [
 const STEP_DURATION_MS = 550; // ~550ms per step = 2.75s sequence
 const FINAL_PAUSE_MS = 400;   // 400ms pause when complete before transitioning
 
-export default function AnalysisStatus({ onStepChange, onComplete }) {
+export default function AnalysisStatus({ onStepChange, onComplete, isReady = false }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -23,12 +23,36 @@ export default function AnalysisStatus({ onStepChange, onComplete }) {
   const finishTimerRef = useRef(null);
   const onStepChangeRef = useRef(onStepChange);
   const onCompleteRef = useRef(onComplete);
+  const isReadyRef = useRef(isReady);
+  const stepIndexRef = useRef(0);
 
   // Keep callback refs updated to prevent stale closures
   useEffect(() => {
     onStepChangeRef.current = onStepChange;
     onCompleteRef.current = onComplete;
-  }, [onStepChange, onComplete]);
+    isReadyRef.current = isReady;
+  }, [onStepChange, onComplete, isReady]);
+
+  function completeSequence() {
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    setIsFinished(true);
+    if (onStepChangeRef.current) {
+      onStepChangeRef.current(ANALYSIS_STEPS.length);
+    }
+
+    finishTimerRef.current = setTimeout(() => {
+      if (onCompleteRef.current) {
+        onCompleteRef.current();
+      }
+    }, FINAL_PAUSE_MS);
+  }
+
+  // Trigger completion as soon as API response arrives if steps reached the end
+  useEffect(() => {
+    if (isReady && stepIndexRef.current >= ANALYSIS_STEPS.length - 1 && !isFinished) {
+      completeSequence();
+    }
+  }, [isReady, isFinished]);
 
   // Check for reduced motion preference
   useEffect(() => {
@@ -44,32 +68,24 @@ export default function AnalysisStatus({ onStepChange, onComplete }) {
   useEffect(() => {
     setCurrentStep(0);
     setIsFinished(false);
+    stepIndexRef.current = 0;
 
     if (onStepChangeRef.current) {
       onStepChangeRef.current(0);
     }
 
-    let stepIndex = 0;
-
     stepTimerRef.current = setInterval(() => {
-      stepIndex += 1;
-      if (stepIndex < ANALYSIS_STEPS.length) {
-        setCurrentStep(stepIndex);
+      if (stepIndexRef.current < ANALYSIS_STEPS.length - 1) {
+        stepIndexRef.current += 1;
+        setCurrentStep(stepIndexRef.current);
         if (onStepChangeRef.current) {
-          onStepChangeRef.current(stepIndex);
+          onStepChangeRef.current(stepIndexRef.current);
         }
       } else {
-        clearInterval(stepTimerRef.current);
-        setIsFinished(true);
-        if (onStepChangeRef.current) {
-          onStepChangeRef.current(ANALYSIS_STEPS.length);
+        // On final step: wait until isReady is true before completing
+        if (isReadyRef.current) {
+          completeSequence();
         }
-
-        finishTimerRef.current = setTimeout(() => {
-          if (onCompleteRef.current) {
-            onCompleteRef.current();
-          }
-        }, FINAL_PAUSE_MS);
       }
     }, STEP_DURATION_MS);
 
