@@ -8,13 +8,17 @@ import BodyViewer from './features/body-viewer/BodyViewer';
 import ResultsViewer from './features/results/ResultsViewer';
 import ScoreGauge from './components/ScoreGauge';
 import { analyzeSymptoms } from './services/apiService';
+import { normalizeSymptomText } from './services/symptomNormalizer';
 import { Activity, Sparkles, Clock } from 'lucide-react';
 import { Show } from '@clerk/react';
 import AuthPage from './features/auth/AuthPage';
 import ClinicalChatbot from './components/chat/ClinicalChatbot';
 import ChatbotFab from './components/chat/ChatbotFab';
+import ExperienceSelector from './components/ExperienceSelector';
+import { usePersona } from './context/PersonaContext';
 
 export default function App() {
+  const { hasChosenPersona, showExperiencePicker, setShowExperiencePicker } = usePersona();
   const [appState, setAppState] = useState('input'); // 'input' | 'analyzing' | 'results'
   const [analysisData, setAnalysisData] = useState(null);
   const [activeRegion, setActiveRegion] = useState('All');
@@ -33,7 +37,17 @@ export default function App() {
     pendingResultRef.current = null;
 
     try {
-      const result = await analyzeSymptoms(payload);
+      // AI pre-processing: normalize colloquial text → medical terminology
+      const { normalized, wasNormalized } = await normalizeSymptomText(payload.rawSymptoms);
+      if (wasNormalized) {
+        console.log('[CDSS] AI normalized input:', normalized);
+      }
+      const enrichedPayload = {
+        ...payload,
+        rawSymptoms: wasNormalized ? `${normalized}\n\n[Original: ${payload.rawSymptoms}]` : payload.rawSymptoms,
+      };
+
+      const result = await analyzeSymptoms(enrichedPayload);
       pendingResultRef.current = result;
       setPendingResult(result);
       if (result.bodyLocalization?.primaryRegion) {
@@ -97,25 +111,39 @@ export default function App() {
 
       <main className="relative z-10 flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 max-w-[1520px] flex flex-col min-h-0 justify-center">
         <AnimatePresence mode="wait">
-          {/* STATE 1: INPUT / LANDING PAGE */}
-          {appState === 'input' && (
-            <motion.div 
-              key="input"
-              initial={{ opacity: 0, y: 12 }}
+          {/* POST-LOGIN EXPERIENCE SELECTOR: Displayed if user hasn't chosen a mode yet */}
+          {!hasChosenPersona ? (
+            <motion.div
+              key="choose-experience"
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
+              exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.35 }}
-              className="flex flex-col w-full flex-1 min-h-0 justify-center"
+              className="flex flex-col w-full flex-1 min-h-0 justify-center items-center"
             >
-              <SymptomInput
-                onAnalyze={handleAnalyze}
-                isLoading={false}
-                errorMessage={errorMessage}
-                onClearError={() => setErrorMessage(null)}
-                externalText={assistantInputSuggestion}
-              />
+              <ExperienceSelector />
             </motion.div>
-          )}
+          ) : (
+            <>
+              {/* STATE 1: INPUT / LANDING PAGE */}
+              {appState === 'input' && (
+                <motion.div 
+                  key="input"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35 }}
+                  className="flex flex-col w-full flex-1 min-h-0 justify-center"
+                >
+                  <SymptomInput
+                    onAnalyze={handleAnalyze}
+                    isLoading={false}
+                    errorMessage={errorMessage}
+                    onClearError={() => setErrorMessage(null)}
+                    externalText={assistantInputSuggestion}
+                  />
+                </motion.div>
+              )}
 
           {/* STATE 2: ANALYZING */}
           {appState === 'analyzing' && (
@@ -232,10 +260,21 @@ export default function App() {
 
               {/* Right Column: Guidance Tabs & Clinical Content */}
               <div className="lg:col-span-5 flex flex-col min-h-[460px] lg:min-h-0 lg:h-full">
-                <ResultsViewer analysisData={analysisData} isLoading={false} className="h-full" />
+                <ResultsViewer
+                  analysisData={analysisData}
+                  isLoading={false}
+                  className="h-full"
+                  onAskMedAssist={() => setIsAssistantOpen(true)}
+                  onView3D={() => {
+                    const el = document.getElementById('body-viewer-canvas') || document.querySelector('.master-console');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                />
               </div>
 
             </motion.div>
+          )}
+            </>
           )}
         </AnimatePresence>
       </main>
@@ -262,6 +301,11 @@ export default function App() {
         onClick={() => setIsAssistantOpen(true)} 
         isOpen={isAssistantOpen} 
       />
+
+      {/* Experience Selector Modal (can be triggered anytime from Switch Mode) */}
+      {showExperiencePicker && (
+        <ExperienceSelector isModal onClose={() => setShowExperiencePicker(false)} />
+      )}
         </div>
       </Show>
     </>

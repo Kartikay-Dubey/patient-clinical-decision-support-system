@@ -4,25 +4,28 @@ import {
   X, Send, Sparkles, ArrowRight, Bot, FileText,
   HelpCircle, CheckCircle2, AlertTriangle, Key
 } from 'lucide-react';
+import { usePersona } from '../../context/PersonaContext';
 
-const QUICK_PROMPTS = [
-  {
-    label: "Explain my results",
-    prompt: "Can you explain the conditions shown in my diagnostic report and why I might be experiencing these symptoms?",
-  },
-  {
-    label: "Describe symptoms better",
-    prompt: "How can I accurately describe the location, intensity, and type of pain I am feeling in medical terms?",
-  },
-  {
-    label: "Is this serious?",
-    prompt: "How do I know if my symptoms are serious enough to visit a doctor or if I can manage at home?",
-  },
-  {
-    label: "Emergency warning signs",
-    prompt: "What symptoms require immediate emergency medical attention?",
-  }
-];
+const PERSONA_QUICK_PROMPTS = {
+  patient: [
+    { label: "Explain in simple words", prompt: "Can you explain what these conditions mean in plain English without medical jargon?" },
+    { label: "Safe home comfort", prompt: "What safe supportive home comfort steps can I take while monitoring my symptoms?" },
+    { label: "When to see a doctor", prompt: "What signs should tell me to schedule an in-person doctor appointment?" },
+    { label: "Emergency warning signs", prompt: "What are red-flag symptoms that require immediate emergency attention?" }
+  ],
+  student: [
+    { label: "Explain pathophysiology", prompt: "What is the detailed molecular and anatomical pathophysiology behind the top matched condition?" },
+    { label: "Compare DDX conditions", prompt: "Compare the top differential diagnoses: what clinical findings differentiate them?" },
+    { label: "Recommended lab workup", prompt: "What primary diagnostic labs, imaging, and biomarkers should be ordered for this clinical presentation?" },
+    { label: "Anatomical correlation", prompt: "How does the anatomical localization in this report correlate with the patient's presenting symptoms?" }
+  ],
+  technician: [
+    { label: "Generate SOAP summary", prompt: "Summarize this case in standard SOAP format (Subjective, Objective, Assessment, Plan) with ICD-10 codes." },
+    { label: "Audit posterior confidence", prompt: "Analyze the model score distribution and evaluate potential false positives or confounding symptom vectors." },
+    { label: "Review coordinate anchors", prompt: "Audit the spatial 3D anatomy anchors and ESI triage priority assignment for this telemetry record." },
+    { label: "Export clinical payload", prompt: "Provide a condensed clinical data review summary ready for EHR ingestion." }
+  ]
+};
 
 // Professional offline knowledge base
 const CLINICAL_KNOWLEDGE = [
@@ -181,6 +184,8 @@ function parseInlineFormatting(str) {
 }
 
 export default function ClinicalChatbot({ isOpen, onClose, onUseSuggestion, analysisData }) {
+  const { persona, personaConfig } = usePersona();
+  const currentQuickPrompts = PERSONA_QUICK_PROMPTS[persona] || PERSONA_QUICK_PROMPTS.patient;
   const groqKey = import.meta.env.VITE_GROQ_API_KEY;
   const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const isAIConnected = Boolean(
@@ -189,11 +194,23 @@ export default function ClinicalChatbot({ isOpen, onClose, onUseSuggestion, anal
   );
   const hasReport = Boolean(analysisData?.possibleConditions?.length);
 
+  const welcomeMessages = {
+    patient: "Hello. I am MedAssist, your Clinical Support Assistant. I am here to help you understand your symptoms and guide you through the diagnostic process.\n\nIf you are unsure how to describe what you are feeling, or would like to understand any medical terms, I am here to assist you. Please feel free to describe your symptoms or ask any questions.",
+    student: "Greetings! I am MedAssist Academic Preceptor. I am here to assist your clinical reasoning, differential diagnosis (DDX) development, pathophysiology analysis, and OSCE preparation.\n\nAsk me about mechanisms of disease, comparing candidate etiologies, or interpreting anatomical correlations from the 3D atlas.",
+    technician: "MedAssist Reviewer active. Clinical data telemetry and diagnostic audit mode ready.\n\nAsk me for structured SOAP summaries, posterior confidence audits, ESI triage grading, or EHR payload generation."
+  };
+
+  const welcomeReportMessages = {
+    patient: "Hello. I can see that your symptom analysis has been completed. I have access to your diagnostic report and I am here to help you understand the findings in plain, everyday language.\n\nFeel free to ask me to explain the predicted conditions, clarify what the results mean, or discuss what you should do next.",
+    student: "Diagnostic evaluation complete. Report telemetry loaded. I am ready to review the differential diagnosis ranking, ICD-10 codings, pathophysiology cascade, and anatomical localization with you for your clinical case study.",
+    technician: "Telemetry payload ingested. Posterior model probabilities, anatomical coordinate anchors, and ICD-10 records are available for audit, SOAP compilation, or EHR export."
+  };
+
   const [messages, setMessages] = useState([
     {
       id: 'welcome',
       role: 'assistant',
-      text: "Hello. I am MedAssist, your Clinical Support Assistant. I am here to help you understand your symptoms and guide you through the diagnostic process.\n\nIf you are unsure how to describe what you are feeling, or would like to understand any medical terms, I am here to assist you. Please feel free to describe your symptoms or ask any questions.",
+      text: welcomeMessages[persona] || welcomeMessages.patient,
       suggestedInput: null,
       timestamp: 'Just now'
     }
@@ -202,18 +219,26 @@ export default function ClinicalChatbot({ isOpen, onClose, onUseSuggestion, anal
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // When report data becomes available, update welcome message
+  // When report data becomes available or persona changes, update welcome message
   useEffect(() => {
     if (analysisData?.possibleConditions?.length) {
       setMessages([{
         id: 'welcome-report',
         role: 'assistant',
-        text: `Hello. I can see that your symptom analysis has been completed. I have access to your diagnostic report and I am here to help you understand the findings.\n\nFeel free to ask me to explain the predicted conditions, clarify what the results mean, or discuss what you should do next.`,
+        text: welcomeReportMessages[persona] || welcomeReportMessages.patient,
+        suggestedInput: null,
+        timestamp: 'Just now'
+      }]);
+    } else {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        text: welcomeMessages[persona] || welcomeMessages.patient,
         suggestedInput: null,
         timestamp: 'Just now'
       }]);
     }
-  }, [analysisData?.possibleConditions?.length]);
+  }, [analysisData?.possibleConditions?.length, persona]);
 
   useEffect(() => {
     if (isOpen) {
@@ -233,8 +258,8 @@ export default function ClinicalChatbot({ isOpen, onClose, onUseSuggestion, anal
     return `\n\n[PATIENT DIAGNOSTIC CONTEXT]\nAffected Region: ${region}\nBody System: ${system}\nTop Predicted Conditions:\n${conditions}\nClinical Overview: ${overview}\nCare Timeline: ${timeline}\n[END CONTEXT]`;
   }
 
-  const SYSTEM_PROMPT = `You are MedAssist, a Clinical Support Assistant integrated into a Patient Clinical Decision Support System. Your role is to help patients who may not have a medical background understand their symptoms, diagnostic results, and medical terminology.
-
+  const personaPrompts = {
+    patient: `You are MedAssist, a Clinical Support Assistant helping an everyday patient or non-medical user understand their symptoms, diagnostic results, and medical terminology.
 Tone and Style:
 - Speak in a professional, warm, clear, and reassuring manner
 - Use simple, accessible language and avoid unnecessary jargon
@@ -243,12 +268,36 @@ Tone and Style:
 - For mild, common symptoms like headache or mild fever lasting a few days, reassure the patient that this is most likely a viral infection and they should not worry excessively
 - Always encourage the patient to consult a licensed healthcare provider for a proper medical evaluation
 - If the patient describes emergency warning signs (chest pain radiating to arm/jaw, sudden severe headache, stroke symptoms, difficulty breathing at rest), immediately advise them to call emergency services
-
 Formatting:
-- Write in clear paragraphs
-- Use numbered or bulleted lists when listing multiple items
+- Write in clear paragraphs, using numbered or bulleted lists when helpful
 - Do not use markdown symbols like ** or ### in your response — write in plain, well-structured text
-- At the end of your response, if applicable, provide a clean one-sentence clinical description inside double quotes like "Patient presents with..." that can be entered into the clinical intake form`;
+- At the end of your response, if applicable, provide a clean one-sentence clinical description inside double quotes like "Patient presents with..." that can be entered into the clinical intake form`,
+
+    student: `You are MedAssist Academic Preceptor, an interactive clinical educator assisting a medical student in analyzing clinical vignettes, differential diagnosis (DDX), pathophysiology, and OSCE preparation.
+Tone and Style:
+- Adopt an academic, collegial, and rigorous clinical teaching style (USMLE Step 2 CK / OSCE standard)
+- Dive into underlying pathophysiological and anatomical mechanisms
+- Structure differential diagnoses clearly by likelihood, mechanism, and hallmark clinical features
+- Discuss gold-standard diagnostic workup: initial labs (CBC, BMP, troponins, inflammatory markers), targeted imaging (POCUS, CT, MRI), and confirmatory assays
+- Emphasize clinical decision-support principles and ICD-10-CM coding
+- Never state a definitive final diagnosis, framing discussions as case-based probabilistic differentials
+Formatting:
+- Structure with clear headings and clinical bullet points
+- Do not use markdown symbols like ** or ### in your response — write in plain, well-structured text`,
+
+    technician: `You are MedAssist Reviewer, a clinical data auditor and triage intelligence specialist assisting a clinical technician or data reviewer.
+Tone and Style:
+- Maintain high-density, concise, objective clinical audit communication
+- Focus on Bayesian likelihood, posterior confidence distributions, potential false-positive confounders, and symptom token attribution
+- Detail Emergency Severity Index (ESI Tiers 1-5) triage criteria and anatomical spatial anchor calibration
+- Assist with SOAP documentation (Subjective, Objective, Assessment, Plan) and EHR vector payloads
+- Highlight ICD-10-CM concordance and clinical coding validation
+Formatting:
+- High information density, concise bullet points, tabular-style summaries where appropriate
+- Do not use markdown symbols like ** or ### in your response — write in plain, well-structured text`
+  };
+
+  const SYSTEM_PROMPT = personaPrompts[persona] || personaPrompts.patient;
 
   // Build conversation history for multi-turn context
   function buildConversationMessages(userPrompt) {
@@ -497,11 +546,11 @@ Formatting:
               <div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <h3 className="font-display font-extrabold text-sm sm:text-base text-foreground tracking-tight">
-                    MedAssist
+                    {persona === 'patient' ? 'MedAssist' : persona === 'student' ? 'MedAssist Academic' : 'MedAssist Reviewer'}
                   </h3>
                 </div>
                 <p className="text-[11px] sm:text-xs text-muted-foreground font-medium">
-                  Clinical Support Assistant
+                  {personaConfig?.name || 'Clinical Support Assistant'}
                 </p>
               </div>
             </div>
@@ -518,7 +567,7 @@ Formatting:
 
           {/* Quick Prompts Carousel */}
           <div className="px-3 sm:px-4 py-2 border-b border-border/50 bg-slate-50/80 overflow-x-auto flex items-center gap-1.5 scrollbar-none flex-shrink-0 touch-pan-x">
-            {QUICK_PROMPTS.map((qp, idx) => (
+            {currentQuickPrompts.map((qp, idx) => (
               <button
                 key={idx}
                 type="button"

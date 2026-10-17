@@ -40,6 +40,41 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-17] — UX Streamlining, AI Pre-Processing & Everyday View Refinement
+- **Navbar UX Cleanup**:
+  - Removed mid-screen persona switcher pill and sparkles emoji from [`Header.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/Header.jsx).
+  - Replaced with subtle text indicator (`Everyday User Mode | Change`) triggering the modal experience selector.
+- **Technician / Data Reviewer View Simplification**:
+  - Overhauled [`TechnicianResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/TechnicianResultsView.jsx) to eliminate information overload and cluttered side inspection panels.
+  - Retained core 3-tab layout (Ranked Conditions, Evidence Tokens, SOAP Note) with clean summary footer (Region/System/Coordinates) and one-click copyable SOAP/JSON exports.
+- **AI Symptom Normalization (Groq & Gemini)**:
+  - Created [`symptomNormalizer.js`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/services/symptomNormalizer.js) with multi-model fallback: Groq (`qwen/qwen3.8-27b`, `llama-3.3-70b-versatile`, `llama3-8b-8192`) falling back to Google Gemini (`gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-flash`).
+  - Converts free-form colloquial complaints into standardized clinical terminology prior to ML inference.
+  - Integrated seamlessly in [`App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx) `handleAnalyze` with fallback preservation of raw user input.
+- **Everyday User Output Refinement**:
+  - Enhanced [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx) with common self-limiting condition detection (`COMMON_SELF_LIMITING` list).
+  - Suppressed alarmist differential diagnoses (<10% probability) when top condition is common/self-limiting (≥60% match).
+  - Added soothing green clinical reassurance card for typical self-resolving conditions.
+- **Verification**: `npm run build` passed with 0 errors (2,334 modules transformed).
+
+### [2026-10-17] — 3-Persona Clinical Experience Overhaul (Patient, Student, Reviewer)
+- **Architectural Implementation**:
+  - Implemented complete 3-persona decision support system:
+    1. **Patient / Everyday User**: Layman's terminology, empathetic & reassuring tone, home comfort remedies, plain-English biological causes, and clear red-flag danger warnings.
+    2. **Medical Student**: DDX ranking, ICD-10-CM codes, detailed pathophysiology cascades, 3D anatomical dissection correlation, and interactive OSCE case study quiz with MedAssist preceptor.
+    3. **Clinical Technician / Data Reviewer**: High-density diagnostic telemetry (confidence $\Delta$, ESI tiers 1–5, calibrated 3D coordinates), tokenized NLP evidence matrix, logit probability distribution, and one-click copyable SOAP note & JSON payload export.
+- **Components Created & Enhanced**:
+  - [`PersonaContext.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/context/PersonaContext.jsx): Global state management (`patient` | `student` | `technician`) with `localStorage` persistence under `'cdss_user_persona'`.
+  - [`PersonaSwitcher.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/PersonaSwitcher.jsx): Animated segmented pill selector with Framer Motion layout springs and persona badge icons.
+  - [`Header.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/Header.jsx): Integrated switcher and persona badge into global navbar.
+  - [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx): Layman possible conditions, supportive home care, clear biological explanations, and doctor warning triggers.
+  - [`StudentResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/StudentResultsView.jsx): Academic differential diagnosis table, pathophysiology mechanisms, anatomical system correlation, and interactive OSCE drill quiz.
+  - [`TechnicianResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/TechnicianResultsView.jsx): High-density triage telemetry, evidence token table, posterior distribution graph, and copyable SOAP / JSON EHR export.
+  - [`ResultsViewer.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/ResultsViewer.jsx): Modular persona router dynamically switching between the 3 views.
+  - [`SymptomInput.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/symptom-input/SymptomInput.jsx): Persona-specific presets (Everyday vs OSCE vignettes vs Telemetry vectors), customized 3-step process descriptions, tailored typewriter suggestions, and dynamic action buttons.
+  - [`ClinicalChatbot.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/chat/ClinicalChatbot.jsx): Persona-aware MedAssist copilot (Patient Layman Copilot vs MedAssist Academic Preceptor vs MedAssist Reviewer) with specialized prompt engines and quick prompts.
+- **Verification**: `npm run build` compiled 2,332 modules cleanly with 0 errors. Live dev server and FastAPI backend active.
+
 ### [2026-10-17] — Fix Premature Analysis Timeout & Cloud Latency Race Condition
 - **Root Cause Diagnosed**:
   - `AnalysisStatus.jsx` ran a hardcoded 3.15-second timer (`STEP_DURATION_MS = 550ms * 5 steps`).

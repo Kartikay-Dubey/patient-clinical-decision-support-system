@@ -16,19 +16,55 @@ import {
 import { MOCK_CLINICAL_PRESETS } from '../../mock/clinicalData';
 import WaveGraphic from '../../components/WaveGraphic';
 import AnatomyPulse from '../../components/landing/AnatomyPulse';
+import HealthLibrary from '../../components/HealthLibrary';
+import { usePersona } from '../../context/PersonaContext';
 
 const MAX_CHARS = 1000;
-const TYPING_EXAMPLES = MOCK_CLINICAL_PRESETS.map((preset) => preset.rawSymptoms);
 
-const PROCESS_STEPS = [
-  { n: '01', label: 'Describe', hint: 'Everyday language' },
-  { n: '02', label: 'Localize', hint: '3D anatomy focus' },
-  { n: '03', label: 'Guide', hint: 'Care + red flags' },
-];
+const PERSONA_PROCESS_STEPS = {
+  patient: [
+    { n: '01', label: 'Describe', hint: 'Everyday words' },
+    { n: '02', label: 'Localize', hint: '3D anatomy focus' },
+    { n: '03', label: 'Guide', hint: 'Safe care & next steps' },
+  ],
+  student: [
+    { n: '01', label: 'Vignette', hint: 'History & clinical signs' },
+    { n: '02', label: 'Patho-Anatomy', hint: '3D organ correlation' },
+    { n: '03', label: 'OSCE Drill', hint: 'DDX & practice quiz' },
+  ],
+  technician: [
+    { n: '01', label: 'Telemetry', hint: 'Tokenized symptom vectors' },
+    { n: '02', label: 'Spatial Matrix', hint: '3D coordinate mapping' },
+    { n: '03', label: 'SOAP Triage', hint: 'ESI & posterior export' },
+  ],
+};
 
-
+const PERSONA_PRESETS = {
+  patient: [
+    { id: 'p1', label: 'Fever & Body Pain', rawSymptoms: 'I have mild fever from last 3 days and body pain, feeling warm and tired', category: 'Fever', tags: ['Fever', 'Body pain', 'Fatigue'] },
+    { id: 'p2', label: 'Stomach Pain After Eating', rawSymptoms: 'I have stomach pain and burning after eating meals with acid reflux', category: 'Stomach', tags: ['Stomach pain', 'Acid reflux'] },
+    { id: 'p3', label: 'Breathless on Stairs', rawSymptoms: 'I feel breathless while climbing stairs and have a mild dry cough', category: 'Breathing', tags: ['Breathlessness', 'Cough'] },
+    { id: 'p4', label: 'Frequent Headaches', rawSymptoms: 'I get headache frequently behind my forehead and eyes with sensitivity to light', category: 'Headache', tags: ['Headache', 'Photophobia'] },
+  ],
+  student: [
+    { id: 's1', label: 'ACS Differential', rawSymptoms: 'Retrosternal crushing chest pain radiating to left jaw, diaphoresis, dyspnea on minimal exertion', category: 'Cardiology', tags: ['Substernal pain', 'Radiation', 'Diaphoresis'] },
+    { id: 's2', label: 'Appendicitis Sign', rawSymptoms: 'Periumbilical pain migrating to right lower quadrant with anorexia, low-grade fever, rebound tenderness', category: 'Surgery', tags: ['RLQ pain', 'Rebound tenderness'] },
+    { id: 's3', label: 'GERD Reflux Cascade', rawSymptoms: 'Severe epigastric pyrosis, acid regurgitation after meals, non-cardiac chest discomfort', category: 'GI Bed', tags: ['Pyrosis', 'Epigastric pain'] },
+    { id: 's4', label: 'Migraine with Aura', rawSymptoms: 'Unilateral pulsatile hemicranial headache preceded by visual aura, photophobia, phonophobia', category: 'Neurology', tags: ['Hemicrania', 'Visual aura'] },
+  ],
+  technician: [
+    { id: 't1', label: 'DDX: Pneumonia Vector', rawSymptoms: 'cough, high fever, dyspnea, pleuritic chest pain, tachypnea, purulent sputum', category: 'Resp Vector', tags: ['cough', 'fever', 'dyspnea', 'pleuritic'] },
+    { id: 't2', label: 'DDX: GERD Vector', rawSymptoms: 'pyrosis, epigastric burning, acid regurgitation, dysphagia, postprandial discomfort', category: 'GI Vector', tags: ['pyrosis', 'regurgitation', 'dysphagia'] },
+    { id: 't3', label: 'DDX: PE Vector', rawSymptoms: 'sudden onset dyspnea, pleuritic pain, calf swelling, tachycardia, hemoptysis', category: 'Vasc Vector', tags: ['dyspnea', 'pleuritic', 'tachycardia'] },
+    { id: 't4', label: 'DDX: Cholecystitis', rawSymptoms: 'RUQ pain, Murphy positive, fever, nausea, pain radiating to right infrascapular', category: 'Biliary Vector', tags: ['RUQ pain', 'Murphy sign', 'fever'] },
+  ],
+};
 
 export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null, onClearError = () => {}, externalText = '' }) {
+  const { persona, personaConfig } = usePersona();
+  const currentPresets = PERSONA_PRESETS[persona] || PERSONA_PRESETS.patient;
+  const processSteps = PERSONA_PROCESS_STEPS[persona] || PERSONA_PROCESS_STEPS.patient;
+
   const [rawText, setRawText] = useState('');
   const [tags, setTags] = useState([]);
   const [newTagInput, setNewTagInput] = useState('');
@@ -45,6 +81,8 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
   const isEmpty = !rawText.trim() && tags.length === 0;
   const showTypewriter = !userTouched && !rawText && !isFocused;
 
+  const typingExamples = currentPresets.map((p) => p.rawSymptoms);
+
   useEffect(() => {
     if (externalText) {
       setRawText(externalText);
@@ -55,14 +93,14 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
   useEffect(() => {
     if (reduceMotion) return undefined;
     const id = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % PROCESS_STEPS.length);
+      setActiveStep((prev) => (prev + 1) % processSteps.length);
     }, 2600);
     return () => clearInterval(id);
-  }, [reduceMotion]);
+  }, [reduceMotion, processSteps.length]);
 
   useEffect(() => {
     if (!showTypewriter || reduceMotion) return undefined;
-    const full = TYPING_EXAMPLES[exampleIndex] || '';
+    const full = typingExamples[exampleIndex % typingExamples.length] || '';
     let timer;
 
     if (typePhase === 'typing') {
@@ -81,13 +119,13 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
       }, 12);
     } else {
       timer = setTimeout(() => {
-        setExampleIndex((i) => (i + 1) % TYPING_EXAMPLES.length);
+        setExampleIndex((i) => (i + 1) % typingExamples.length);
         setTypePhase('typing');
       }, 280);
     }
 
     return () => clearTimeout(timer);
-  }, [showTypewriter, reduceMotion, typePhase, typedExample, exampleIndex]);
+  }, [showTypewriter, reduceMotion, typePhase, typedExample, exampleIndex, typingExamples]);
 
   const handleAddTag = (e) => {
     if (e) e.preventDefault();
@@ -105,7 +143,11 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
   const handleSelectPreset = (preset) => {
     setUserTouched(true);
     setRawText(preset.rawSymptoms);
-    setTags(preset.response.extractedSymptoms.map((s) => s.name));
+    if (preset.tags && preset.tags.length > 0) {
+      setTags(preset.tags);
+    } else if (preset.response?.extractedSymptoms) {
+      setTags(preset.response.extractedSymptoms.map((s) => s.name));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -133,32 +175,73 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
           transition: { duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] },
         };
 
+  const personaHeadlines = {
+    patient: {
+      tag: 'Clinical intake · Everyday User',
+      h1: 'Describe symptoms.',
+      h1Grad: 'See the body, get a care path.',
+      desc: 'Everyday language is enough. We map your words to 3D anatomy, ranked possible conditions, and home-care guidance.',
+      consoleTitle: 'Patient intake console',
+      consoleBadge: 'Guided consultation',
+      queryTitle: 'What symptoms are you experiencing?',
+      queryDesc: 'Include onset, location, and how it feels — that helps the model.',
+      inputPlaceholder: 'e.g. I have had a cough for the last few days, throat irritation, and a tickle when I breathe...',
+      btnLabel: 'Analyze Symptoms & Map 3D Body',
+    },
+    student: {
+      tag: 'Academic OSCE · Medical Student',
+      h1: 'Clinical vignettes & cases.',
+      h1Grad: 'Connect pathology to 3D anatomy.',
+      desc: 'Input patient anamnesis, practice your differential diagnosis (DDX), study ICD-10 codings, and solve clinical quiz vignettes.',
+      consoleTitle: 'Academic medical simulator',
+      consoleBadge: 'Interactive OSCE training',
+      queryTitle: 'Enter clinical presentation or chief complaint',
+      queryDesc: 'Include vital signs, duration, radiation, and pertinent physical examination findings.',
+      inputPlaceholder: 'e.g. 45yo male presents with acute substernal chest discomfort radiating to left jaw, diaphoresis, dyspnea on exertion...',
+      btnLabel: 'Evaluate Differential & 3D Anatomy',
+    },
+    technician: {
+      tag: 'High-Density Review · Clinical Reviewer',
+      h1: 'Telemetry & vector intake.',
+      h1Grad: 'Calibrate confidence & SOAP audit.',
+      desc: 'Multi-label symptom tokenization, 3D anatomical coordinate anchors, ESI triage grading, and one-click structured SOAP export.',
+      consoleTitle: 'Clinical data reviewer console',
+      consoleBadge: 'High-density telemetry',
+      queryTitle: 'Input unstructured tokens or clinical narrative',
+      queryDesc: 'System tokenizes clinical indicators, computes logit distribution, and pins anatomical coordinates.',
+      inputPlaceholder: 'e.g. cough, fever >38.5C, purulent sputum, pleuritic chest pain, tachypnea, crackles right lower lobe...',
+      btnLabel: 'Execute Spatial Telemetry & Triage Matrix',
+    },
+  };
+
+  const currentPersonaInfo = personaHeadlines[persona] || personaHeadlines.patient;
+
   return (
     <div className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col justify-center min-h-0">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch min-h-0">
         <motion.aside className="lg:col-span-5 flex flex-col gap-2.5 sm:gap-3 justify-between min-h-0" {...fadeUp(0.04)}>
           <div className="inline-flex items-center gap-1.5 self-start px-2.5 py-0.5 rounded-full bg-white/85 border border-primary/15 shadow-subtle text-[11px] font-semibold text-foreground">
             <Stethoscope className="h-3 w-3 text-primary" />
-            Clinical intake
+            {currentPersonaInfo.tag}
             <span className="h-1 w-1 rounded-full bg-primary/40" />
             <span className="text-muted-foreground font-medium">Non-diagnostic</span>
           </div>
 
           <div>
             <h2 className="font-display text-[1.35rem] sm:text-[1.65rem] font-semibold text-foreground tracking-tight leading-[1.18]">
-              Describe symptoms.
+              {currentPersonaInfo.h1}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600">
-                See the body, get a care path.
+                {currentPersonaInfo.h1Grad}
               </span>
             </h2>
             <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-              Everyday language is enough. We map your words to 3D anatomy, ranked possible conditions, and home-care guidance.
+              {currentPersonaInfo.desc}
             </p>
           </div>
 
           <div className="relative flex flex-col gap-1.5">
             <span className="absolute left-[13px] top-2 bottom-2 w-px bg-gradient-to-b from-teal-400 via-cyan-300 to-sky-200" />
-            {PROCESS_STEPS.map((step, i) => (
+            {processSteps.map((step, i) => (
               <motion.button
                 type="button"
                 key={step.n}
@@ -201,22 +284,22 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
                 </span>
                 <span className="text-xs font-semibold text-foreground font-display">
-                  Patient intake console
+                  {currentPersonaInfo.consoleTitle}
                 </span>
               </div>
               <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
                 <Sparkles className="h-3 w-3 text-primary" />
-                Guided consultation
+                {currentPersonaInfo.consoleBadge}
               </div>
             </div>
 
             <div className="p-3.5 sm:p-4 relative z-10 flex-1 flex flex-col justify-between min-h-0">
               <div className="mb-2">
                 <h3 className="font-display text-base sm:text-lg font-semibold text-foreground tracking-tight">
-                  What symptoms are you experiencing?
+                  {currentPersonaInfo.queryTitle}
                 </h3>
                 <p className="text-xs text-muted-foreground leading-snug mt-0.5">
-                  Include onset, location, and how it feels — that helps the model.
+                  {currentPersonaInfo.queryDesc}
                 </p>
               </div>
 
@@ -224,11 +307,11 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Clock className="h-3 w-3 text-muted-foreground" />
                   <p className="text-[10px] font-bold text-foreground uppercase tracking-wider font-display">
-                    Try an example
+                    {persona === 'patient' ? 'Try everyday scenarios' : persona === 'student' ? 'OSCE Clinical Vignettes' : 'Clinical Telemetry Vectors'}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {MOCK_CLINICAL_PRESETS.map((preset) => (
+                  {currentPresets.map((preset) => (
                     <motion.button
                       whileHover={reduceMotion ? undefined : { y: -1 }}
                       whileTap={reduceMotion ? undefined : { scale: 0.98 }}
@@ -266,7 +349,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                     htmlFor="symptom-text"
                     className="text-[11px] font-bold text-foreground flex items-center justify-between gap-2"
                   >
-                    <span>Describe how you feel</span>
+                    <span>{persona === 'patient' ? 'Describe how you feel' : persona === 'student' ? 'Clinical Presentation / Anamnesis' : 'Telemetry Input / Symptom Tokens'}</span>
                     <span className="text-[10px] font-normal text-muted-foreground hidden sm:inline">
                       Shift + Enter for a new line
                     </span>
@@ -288,10 +371,10 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                         aria-hidden="true"
                       >
                         <span className="inline-flex mb-1 rounded-full bg-accent text-primary text-[9px] font-bold px-1.5 py-0.5 font-display">
-                          {MOCK_CLINICAL_PRESETS[exampleIndex]?.category} example
+                          {currentPresets[exampleIndex % currentPresets.length]?.category} example
                         </span>
                         <p className="mt-1">
-                          {reduceMotion ? TYPING_EXAMPLES[0] : typedExample}
+                          {reduceMotion ? typingExamples[0] : typedExample}
                           {!reduceMotion && <span className="typing-caret" />}
                         </p>
                       </div>
@@ -307,7 +390,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                       onFocus={() => setIsFocused(true)}
                       onBlur={() => setIsFocused(false)}
                       onKeyDown={handleKeyDown}
-                      placeholder={showTypewriter ? '' : 'e.g. I have had a cough for the last few days, throat irritation, and a tickle when I breathe...'}
+                      placeholder={showTypewriter ? '' : currentPersonaInfo.inputPlaceholder}
                       aria-label="Describe your symptoms"
                       aria-describedby="symptom-char-count"
                       className="absolute inset-0 w-full h-full bg-transparent rounded-xl px-3.5 pt-2.5 pb-6 text-xs sm:text-sm text-foreground leading-relaxed font-medium placeholder:text-muted-foreground/60 focus:outline-none resize-none overflow-y-auto"
@@ -415,7 +498,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                     ) : (
                       <>
                         <FlaskConical className="h-4 w-4 text-white/90 flex-shrink-0" />
-                        <span className="truncate">Analyze Symptoms & Map 3D Body</span>
+                        <span className="truncate">{currentPersonaInfo.btnLabel}</span>
                         <ArrowRight className="h-4 w-4 ml-auto text-white/90 group-hover:translate-x-1.5 transition-transform duration-200 flex-shrink-0" />
                       </>
                     )}
@@ -433,6 +516,13 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
           </div>
         </motion.section>
       </div>
+
+      <HealthLibrary
+        onSelectPrompt={(text) => {
+          setUserTouched(true);
+          setRawText(text);
+        }}
+      />
     </div>
   );
 }

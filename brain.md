@@ -65,12 +65,20 @@
 ### Frontend (`frontend/src/`)
 | File Path | Role & Key Logic |
 | :--- | :--- |
-| `frontend/src/App.jsx` | Main clinical journey controller (`input` ➔ `analyzing` ➔ `results` state machine). Gated with Clerk `<Show>` components, ScoreGauge, top summary card, and master console layout |
+| `frontend/src/App.jsx` | Main clinical journey controller (`input` ➔ `analyzing` ➔ `results` state machine). ScoreGauge, top summary card, and master console layout |
+| `frontend/src/context/PersonaContext.jsx` | 3-Persona state management (`patient`, `student`, `technician`) with `localStorage` persistence |
+| `frontend/src/components/PersonaSwitcher.jsx` | Segmented animated pill switch for toggling between Patient, Student, and Reviewer modes |
+| `frontend/src/features/results/ResultsViewer.jsx` | Dynamic persona router delegating to Patient, Student, or Technician view |
+| `frontend/src/features/results/PatientResultsView.jsx` | Everyday user view: Layman conditions, supportive care remedies, plain biological causes, doctor triggers |
+| `frontend/src/features/results/StudentResultsView.jsx` | Medical student view: DDX matrix, ICD-10 codes, pathophysiology cascades, 3D anatomical correlation, OSCE quiz |
+| `frontend/src/features/results/TechnicianResultsView.jsx` | Clinical reviewer view: High-density triage telemetry, ESI tiers, token matrix, logit distribution, copyable SOAP & JSON EHR export |
+| `frontend/src/features/symptom-input/SymptomInput.jsx` | Persona-aware symptom intake: Everyday presets, OSCE clinical vignettes, and telemetry vector vectors |
+| `frontend/src/components/chat/ClinicalChatbot.jsx` | MedAssist copilot with persona adaptation (Patient Layman Copilot vs MedAssist Academic Preceptor vs MedAssist Reviewer) |
 | `frontend/src/features/auth/AuthPage.jsx` | Clinical authentication portal with Clerk `<SignIn />`, `<SignUp />`, and zero-crash setup fallback |
 | `frontend/src/index.css` | Editorial design system tokens, typography, glassmorphism utilities, warm palette |
 | `frontend/src/services/apiService.js` | API client calling `POST /api/v1/analyze` with graceful client-side fallback |
+| `frontend/src/services/symptomNormalizer.js` | LLM pre-processor converting colloquial user text to medical terminology (Groq Qwen/Llama with Gemini fallback) |
 | `frontend/src/components/ScoreGauge.jsx` | Animated circular SVG match dial with ease-out count-up animation (`0%` ➔ target %) |
-| `frontend/src/features/results/ResultsViewer.jsx` | Tabbed clinical console: Conditions (with animated probability bars), Remedies, Why It Happens, Red Flags |
 | `frontend/src/features/body-viewer/BodyViewer.jsx` | Three.js WebGL canvas, OrbitControls, GPU DataTexture custom vertex shader (<1ms layer toggles), raycasting, vertical slider rail, mobile touch handling, sensitive anatomy filtering |
 | `frontend/src/features/body-viewer/anatomyAtlas.js` | 15 body systems, 3 layers (`Muscles`, `Skeleton`, `Organs`), 6 regions (`Head`, `Thorax`, `Abdomen`, `Pelvis`, `Upper Limb`, `Lower Limb`), `REGION_ANCHORS` (core $z \approx 0.00$), and `isSensitiveAnatomy()` filter |
 | `frontend/src/features/body-viewer/AnatomyHUDCallout.jsx` | Draggable glassmorphic HUD card + minimal pulsing reticle beacon pinned to 3D anchor |
