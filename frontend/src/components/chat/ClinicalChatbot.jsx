@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  X, Send, Sparkles, ArrowRight, Bot, FileText,
+  X, Send, ArrowRight, Bot, FileText,
   HelpCircle, CheckCircle2, AlertTriangle, Key
 } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';

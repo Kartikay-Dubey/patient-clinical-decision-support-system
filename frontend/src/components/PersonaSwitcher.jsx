@@ -46,8 +46,8 @@ export default function PersonaSwitcher({ className = '', compact = false }) {
                     ? item.id === 'patient'
                       ? 'text-emerald-600'
                       : item.id === 'student'
-                      ? 'text-teal-600'
-                      : 'text-cyan-600'
+                      ? 'text-blue-600'
+                      : 'text-orange-600'
                     : 'text-muted-foreground'
                 }`}
               />

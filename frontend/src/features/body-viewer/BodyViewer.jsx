@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Sparkles, Check, Maximize2, Minimize2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, Focus, RotateCcw, Layers, Compass, Loader2, Activity, Check, Maximize2, Minimize2, ChevronDown, ChevronUp } from 'lucide-react';
 import { decodeModelResponse } from './modelLoader';
 import {
   SYSTEMS,
@@ -1327,7 +1327,7 @@ export default function BodyViewer({
             <div className="relative">
               <Loader2 className="h-8 w-8 text-primary animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <Activity className="h-3.5 w-3.5 text-primary" />
               </div>
             </div>
             <div className="flex flex-col items-center gap-1.5 text-center">

@@ -7,7 +7,6 @@ import {
   Utensils,
   Activity,
   HeartPulse,
-  Sparkles,
   ArrowRight,
   X,
   CheckCircle2,
@@ -108,7 +107,7 @@ export default function HealthLibrary({ onSelectPrompt }) {
     <div className="w-full mt-4 pt-3 border-t border-slate-200/70">
       <div className="flex items-center justify-between gap-2 mb-2.5">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <Activity className="h-3.5 w-3.5 text-primary" />
           <h4 className="font-display font-bold text-xs text-foreground uppercase tracking-wider">
             Health Library &bull; Quick Symptom Guides
           </h4>

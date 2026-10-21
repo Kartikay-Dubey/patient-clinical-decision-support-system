@@ -184,7 +184,7 @@ export default function App() {
               className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-0 lg:min-h-[calc(100dvh-10.5rem)]"
             >
               {/* Left Column: Unified 3D Anatomy + Primary Assessment Master Console */}
-              <div className="lg:col-span-7 flex flex-col master-console h-auto lg:h-full justify-between overflow-hidden">
+              <div className="lg:col-span-6 flex flex-col master-console h-auto lg:h-full justify-between overflow-hidden">
                 
                 {/* Console Topbar: Region & System Info + Start Over */}
                 <div className="console-topbar px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
@@ -218,40 +218,19 @@ export default function App() {
                   />
                 </div>
 
-                {/* Integrated Primary Clinical Assessment Footer */}
-                <div className="border-t border-border bg-white/90 p-3.5 sm:px-5 sm:py-4 flex-shrink-0">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3 sm:gap-4">
-                    <div className="flex-1 flex flex-col gap-1 sm:gap-1.5 text-center sm:text-left min-w-0">
-                      <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent text-accent-foreground text-[11px] font-semibold font-display border border-primary/20">
-                          <Sparkles className="h-3 w-3 text-primary" />
-                          Primary assessment
-                        </span>
-                        <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2.5 py-0.5 rounded-full border border-border">
-                          ICD-10: {topCondition?.icd10Code || 'N/A'}
-                        </span>
-                      </div>
-                      <h4 className="font-display text-base sm:text-xl font-bold text-foreground tracking-tight">
-                        {topCondition?.name || 'Clinical Finding'}
-                      </h4>
-                      <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-xl">
-                        {analysisData.storyline?.patientOverview || topCondition?.description}
-                      </p>
-                      {analysisData.storyline?.careTimeline && (
-                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-[11px] text-muted-foreground">
-                          <Clock className="h-3 w-3 text-primary" />
-                          <span className="font-medium">{analysisData.storyline.careTimeline}</span>
-                        </div>
-                      )}
+                {/* Clean Anatomical Telemetry Footer for 3D Atlas */}
+                <div className="border-t border-border bg-white/95 px-4 py-2.5 sm:px-5 flex-shrink-0">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+                      <span className="text-slate-500 font-medium">3D Reticle Target:</span>
+                      <span className="font-semibold text-slate-800">
+                        {analysisData.bodyLocalization?.targetOrgan || analysisData.bodyLocalization?.primaryRegion || 'Anatomical Anchor'}
+                      </span>
                     </div>
-                    <div className="pebble-dial p-1.5 sm:p-2 bg-white flex-shrink-0">
-                      <ScoreGauge
-                        value={topScore}
-                        size={84}
-                        strokeWidth={7}
-                        label="Match"
-                        confidence={topCondition?.confidenceCategory || 'High'}
-                      />
+                    <div className="flex items-center gap-3 font-mono text-[11px] text-slate-500">
+                      <span>Coords: [{analysisData.bodyLocalization?.coordinates?.x?.toFixed(2) || '0.00'}, {analysisData.bodyLocalization?.coordinates?.y?.toFixed(2) || '1.10'}, {analysisData.bodyLocalization?.coordinates?.z?.toFixed(2) || '0.00'}]</span>
+                      <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Calibrated</span>
                     </div>
                   </div>
                 </div>
@@ -259,7 +238,7 @@ export default function App() {
               </div>
 
               {/* Right Column: Guidance Tabs & Clinical Content */}
-              <div className="lg:col-span-5 flex flex-col min-h-[460px] lg:min-h-0 lg:h-full">
+              <div className="lg:col-span-6 flex flex-col min-h-[460px] lg:min-h-0 lg:h-full">
                 <ResultsViewer
                   analysisData={analysisData}
                   isLoading={false}

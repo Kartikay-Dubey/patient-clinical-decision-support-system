@@ -7,9 +7,12 @@ import React, { useState, useEffect } from 'react';
 export default function ScoreGauge({ 
   value = 85, 
   size = 110, 
-  strokeWidth = 10,
+  strokeWidth = 10, 
   label = 'Clinical Match', 
-  confidence = 'High'
+  confidence = 'High',
+  gradientColors = ['#8EB69B', '#235347', '#0B2B26'],
+  gradientId = 'gaugeGradient',
+  textColor = 'text-foreground'
 }) {
   const clampedValue = Math.min(Math.max(Math.round(value), 0), 100);
   const [animatedValue, setAnimatedValue] = useState(0);
@@ -59,17 +62,17 @@ export default function ScoreGauge({
           />
           {/* Active Gradient Stroke */}
           <defs>
-            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#6EE7B7" />
-              <stop offset="50%" stopColor="#10B981" />
-              <stop offset="100%" stopColor="#059669" />
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={gradientColors[0] || '#8EB69B'} />
+              <stop offset="50%" stopColor={gradientColors[1] || '#235347'} />
+              <stop offset="100%" stopColor={gradientColors[2] || '#0B2B26'} />
             </linearGradient>
           </defs>
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="url(#gaugeGradient)"
+            stroke={`url(#${gradientId})`}
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
@@ -83,7 +86,7 @@ export default function ScoreGauge({
 
         {/* Center Metric Display with Animated Count-Up */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight leading-none">
+          <span className={`font-display text-2xl sm:text-3xl font-bold tracking-tight leading-none ${textColor}`}>
             {animatedValue}%
           </span>
           <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">
@@ -93,7 +96,7 @@ export default function ScoreGauge({
       </div>
 
       {label && (
-        <span className="text-xs font-semibold text-[#5E524C] mt-2">
+        <span className="text-xs font-semibold text-muted-foreground mt-2">
           {label}
         </span>
       )}

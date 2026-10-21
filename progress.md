@@ -40,6 +40,82 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-21] — Everyday User Emerald, Clinical Technician Light Orange & Health Library Redesign
+- **Everyday User Theme Harmonization (Emerald Green Swatch `#10B981`)**:
+  - Synced [`PersonaContext.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/context/PersonaContext.jsx), [`PersonaSwitcher.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/PersonaSwitcher.jsx), [`ExperienceSelector.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/ExperienceSelector.jsx), and [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx) to vibrant clinical emerald (`#10B981`, `#059669`, `#ECFDF5`, `#064E3B`).
+- **Clinical Technician Light Orange & Laboratory Amber Theme**:
+  - Re-themed [`TechnicianResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/TechnicianResultsView.jsx), [`PersonaContext.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/context/PersonaContext.jsx), and switchers to clinical laboratory light orange (`#FFF7ED`, `#FFEDD5`, `#FED7AA`, `#EA580C`, `#C2410C`, `#431407`).
+  - Styled analyzer health telemetry, delta checks, 49-pathology posterior matrix, and export buttons in high-contrast light orange lab aesthetics.
+- **Health Library Landing Page Card Layout Overhaul**:
+  - Replaced generic AI-style horizontal pill cards with an authentic **Clinical Reference Desk & Symptom Guidance Atlas** in [`HealthLibrary.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/HealthLibrary.jsx).
+  - Features category filters (*All Guides*, *Respiratory & ENT*, *Neuro & Musculoskeletal*, *Febrile & Systemic*, *Gastrointestinal*), clinical aliases (*Pyrexia*, *Tussis*, *Cephalea*, *Dyspepsia*, *Dyspnea*, *Myalgia*), triage urgency badges, hallmark symptom chips, direct "Try Scenario" one-click intake triggers, and structured pathophysiological consultation modal.
+- **Verification**: `npm run build` passed with code 0 (2,093 modules in 38.74s).
+
+### [2026-10-21] — Medical Student Theme & Clinical Reasoning Engine Overhaul
+- **Modern Academic Clinical Slate & Sapphire Blue Theme**:
+  - Replaced the warm sepia/beige tint with a crisp, high-contrast academic palette: Slate-50 background (`#F8FAFC`), pure white cards (`#FFFFFF`) with subtle Slate borders (`#E2E8F0`), deep Slate-900 typography (`#0F172A`), and vibrant Sapphire Blue (`#2563EB`) tabs and badges. Eliminates the muddy peach cast and harmonizes cleanly with the 3D anatomical viewer.
+- **Dynamic Condition-Specific Clinical Knowledge Engine**:
+  - Created [`studentClinicalKnowledge.js`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/utils/studentClinicalKnowledge.js): Dynamically maps life-threatening differentials, pathophysiology cascades, high-yield rounds pearls, and OSCE shelf vignettes to the actual diagnosed condition and anatomical region.
+  - Fixed critical bug where GERD and abdominal presentations displayed head/neurological life threats (Bacterial Meningitis and Sinus Thrombosis). Now correctly evaluates organ-specific emergencies (e.g. Acute Coronary Syndrome, Perforated Peptic Ulcer, Boerhaave Syndrome for GI/GERD; Meningitis/Orbital Cellulitis for Head/Sinus; Tension Pneumothorax/PE/Aortic Dissection for Thoracic presentations).
+- **Simplified Clinical Terminology & UX**:
+  - Replaced confusing headings (e.g., "TIER 1: MUST-NOT-MISS LIFE THREATS (RULE-OUT MATRIX)") with clear, professional headers: *Critical Conditions to Rule Out First*, *Primary Differential Diagnoses (Ranked Matches)*, and *Alternative Considerations*.
+  - Streamlined 4 clinical tabs: *Differential List (DDx)*, *Disease Mechanism*, *High-Yield Pearls*, and *OSCE Case Question*.
+- **Verification**: `npm run build` passed with 0 errors (2,093 modules in 56.01s).
+
+### [2026-10-21] — 3-Persona Color Palette Integration & Clinical Workflow Layout Overhaul
+- **Dedicated Color Palettes from Visual Design Specifications**:
+  - **Everyday User (Image 3 — Forest & Mint)**: `#051F20` (Midnight Forest), `#0B2B26` (Deep Spruce Ink), `#163832` (Alpine Cypress), `#235347` (Clinical Eucalyptus), `#8EB69B` (Sage Herbal), `#DAF1DE` (Pale Mint Dew). Calming, non-alarmist healing aesthetic with a patient empowerment 3-card triage deck (Safe Home Relief, Red Flag Urgency Criteria, Copyable Doctor Visit Questions).
+  - **Medical Student (Image 2 — Warm Rosewood & Alabaster)**: `#3E3239` (Deep Espresso Plum), `#6B5560` (Muted Mauve Wine), `#9E8189` (Dusky Rose Heather), `#C7A9A3` (Warm Dusty Blush), `#E8D2C4` (Soft Linen Border), `#F7EFE7` (Warm Alabaster Paper). UpToDate & Osmosis inspired 4-tab workflow: UpToDate 3-tier differential taxonomy (Must-not-miss life threats, probable differentials, zebras), step-by-step pathophysiology cascade, rounds pearls & pertinent negatives, and interactive OSCE shelf-exam vignette with preceptor rationales.
+  - **Clinical Technician (Image 1 — Steel Slate & Obsidian Navy)**: `#06141B` (Obsidian Navy), `#11212D` (Dark Steel Navy), `#253745` (Slate Blue Charcoal), `#4A5C6A` (Muted Steel Slate), `#9BA8AB` (Silver Mist Border), `#CCD0CF` (Pale Silver Pearl Surface). Laboratory triage & EHR telemetry terminal: analyzer health & delta checks, filterable 49-pathology posterior matrix with acuity striping, monospaced evidence tokens, structured audit SOAP documentation, and raw JSON telemetry payload export.
+- **Enhanced Global Components**:
+  - [`ScoreGauge.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/ScoreGauge.jsx): Added customizable `gradientColors`, `gradientId`, and `textColor` props so each persona dynamically renders its own palette stops.
+  - [`PersonaContext.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/context/PersonaContext.jsx): Ingested full palette objects and clinical training descriptions for all three personas.
+  - [`PersonaSwitcher.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/PersonaSwitcher.jsx) & [`ExperienceSelector.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/ExperienceSelector.jsx): Highlight icons and selection rings mapped to persona-specific palette tokens.
+  - [`App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx): Rebalanced master layout to a balanced `lg:col-span-6 / lg:col-span-6` split for optimal readability of telemetry tables and educational differential trees.
+- **Verification**: `npm run build` passed with 0 errors (2,092 modules in 12.93s).
+
+### [2026-10-21] — Clinical Visual Identity & Aesthetic Platform Refinement
+- **Consistent Clinical Design System Tokens**:
+  - Implemented exact palette: warm white `#F7F8F6` background, pure white `#FFFFFF` cards with `#DDE3E0` warm borders, deep ink `#172B35` typography, clinical teal `#087E83` primary actions, restrained blue `#EBF4F8` / `#1A4A6B` information badges, amber caution, and accessible red `#FDECEA` / `#C0392B` emergency flags.
+  - Eliminated generic AI-dashboard floaters: replaced bouncing canvas particle networks in [`ResultsPanelFill.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/landing/ResultsPanelFill.jsx) and neon glowing orbs with a crisp, static clinical grid texture.
+  - Harmonized `.dark` variables to clinical navy/teal with standard `0.75rem` radius.
+  - Updated [`ScoreGauge.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/ScoreGauge.jsx) gradient to clinical teal (`#2DD4BF` → `#0D9488` → `#087E83`).
+  - Unified [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx), [`StudentResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/StudentResultsView.jsx), and [`TechnicianResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/TechnicianResultsView.jsx) to match design tokens.
+- **Verification**: `npm run build` passed with 0 errors (2,092 modules transformed in 9.47s).
+
+### [2026-10-21] — Disease-Anatomy-Percentage Synchronization & Senior UI/UX Overhaul
+- **Full Synchronization Across 3D Atlas, ScoreGauge & Results Console**:
+  - Fixed desynchronization where 3D atlas / HUD displayed one pathology (e.g. `Acute rhinosinusitis`, 28% in Paranasal Sinuses) while everyday output displayed an unrelated disease (`Flu (influenza)`).
+  - Created [`conditionLaymanMap.js`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/utils/conditionLaymanMap.js): deterministic layman translation, 3D anatomical organ linkage, practical home care, and red flags for all 49 conditions.
+  - Aligned ScoreGauge, 3D HUD pin, and diagnosis title to the exact same condition and percentage across all views.
+- **Senior UI/UX Layout Streamlining**:
+  - Replaced the large redundant diagnosis footer under the 3D atlas in [`App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx) with a sleek, subtle **Anatomical Telemetry Status Bar** (Pinpoint organ, 3D coordinates, calibration status), giving the 3D atlas maximum vertical immersion.
+  - Consolidated primary assessment and ScoreGauge into the right-hand Results Console for a unified, clutter-free reading flow.
+  - Removed redundant buttons ("Explore 3D Body" when 3D body is already visible on the left; duplicate "Ask MedAssist" inside cards).
+- **Streamlined 3 Persona Experiences**:
+  - **Everyday User**: Primary layman condition, exact match %, interconnected 3D organ link, side-by-side Home Care & When to See a Doctor cards, and clean collapsible alternatives list.
+  - **Medical Student**: Condensed 3-tab layout (Differential DDX matrix, Organ Pathophysiology & High-Yield Pearls, Interactive OSCE Practice Vignette).
+  - **Clinical Technician**: High-density 2-tab view (Posterior Matrix & Evidence Tokens, Audit SOAP Note & JSON Download).
+- **Verification**: `npx vite build` passed with 0 errors (2,335 modules transformed).
+
+### [2026-10-21] — Everyday Common Conditions Knowledge Base & Persona Output Overhaul
+- **Everyday Common Conditions Reference Layer**:
+  - Ingested 14-condition clinical reference layer: [`common_conditions_knowledge_base.json`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/backend/data/common_conditions_knowledge_base.json) & [`commonConditionsKnowledgeBase.js`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/data/commonConditionsKnowledgeBase.js).
+  - Created [`commonConditionsMatcher.js`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/services/commonConditionsMatcher.js): evaluates patient complaints without inventing artificial probabilities, handles safety triage red flags, and defaults fever-only cases to "Fever — cause not yet clear".
+  - Overhauled [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx): Displays everyday conditions front-and-center (symptoms that fit, what not to assume, follow-up questions, routine care, CDC/NHS/WHO references), demoting emergency/rare conditions to an expandable "Secondary & Specialist Considerations" drawer to eliminate alarmism.
+- **"Medical Student" Persona Renaming & Academic Feature Suite**:
+  - Rebranded all instances of "Student" to "Medical Student" across [`PersonaContext.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/context/PersonaContext.jsx), [`ExperienceSelector.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/ExperienceSelector.jsx), and [`Header.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/Header.jsx).
+  - Enhanced [`StudentResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/StudentResultsView.jsx) with 5 tabs: Overview, Ranked DDX with ICD-10 codes, Pathophysiology mechanisms & High-Yield Clinical Pearls, Evidence & Pertinent Negatives matrix, and Interactive OSCE Case Quiz with Preceptor rationale.
+  - Added copyable Academic Case Summary and seamless "Ask Preceptor" handoff.
+- **Clinical Technician / Reviewer Output Enhancement**:
+  - Upgraded [`TechnicianResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/TechnicianResultsView.jsx) with real-time diagnostic telemetry strip ($\Delta$ margin, calibrated probability, spatial $z$-axis bounding check).
+  - Added filterable 49-pathology posterior matrix table, mapped evidence tokens, audit-grade SOAP note export, and browser-native `.json` telemetry file download.
+- **Universal Sparkle Removal**:
+  - Removed decorative `Sparkles` icon and emoji from all 10 frontend components (`App.jsx`, `SymptomInput.jsx`, `AuthPage.jsx`, `BodyViewer.jsx`, `AnalysisStatus.jsx`, `HealthLibrary.jsx`, `ExperienceSelector.jsx`, `PatientResultsView.jsx`, `StudentResultsView.jsx`, `ClinicalChatbot.jsx`), replacing them with standard medical icons (`Stethoscope`, `Activity`, `CheckCircle2`, `GraduationCap`).
+- **Button Verification & Routing**:
+  - Ensured all buttons (3D view, MedAssist copilot, copy SOAP/case, download JSON, accordion toggles) have active handlers and functional feedback.
+- **Verification**: `npx vite build` passed with 0 errors (2,336 modules transformed).
+
 ### [2026-10-17] — UX Streamlining, AI Pre-Processing & Everyday View Refinement
 - **Navbar UX Cleanup**:
   - Removed mid-screen persona switcher pill and sparkles emoji from [`Header.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/Header.jsx).

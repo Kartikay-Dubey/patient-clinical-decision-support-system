@@ -59,6 +59,7 @@
 | `backend/models/label_encoder.joblib` | 49-class label encoder |
 | `backend/models/evaluation_results.json` | Official validation (132k) & test (134k) split metrics |
 | `backend/data/ddxplus/body_mapping.json` | 49-condition spatial coordinate database (`x`, `y`, `z` calibrated for 3D body viewer) |
+| `backend/data/common_conditions_knowledge_base.json` | 14-condition everyday clinical reference layer (schema 1.0.0, CDC/NHS/WHO verified) |
 
 ---
 
@@ -78,6 +79,9 @@
 | `frontend/src/index.css` | Editorial design system tokens, typography, glassmorphism utilities, warm palette |
 | `frontend/src/services/apiService.js` | API client calling `POST /api/v1/analyze` with graceful client-side fallback |
 | `frontend/src/services/symptomNormalizer.js` | LLM pre-processor converting colloquial user text to medical terminology (Groq Qwen/Llama with Gemini fallback) |
+| `frontend/src/data/commonConditionsKnowledgeBase.js` | 14-condition everyday clinical reference knowledge base (common cold, flu, COVID-19, dengue, etc.) |
+| `frontend/src/services/commonConditionsMatcher.js` | Knowledge-layer matcher without false probabilities, safety-flag triage, and non-alarmist routing |
+| `frontend/src/utils/conditionLaymanMap.js` | Comprehensive 49-condition layman translation dictionary, 3D anatomical organ linkage, home care & red flags |
 | `frontend/src/components/ScoreGauge.jsx` | Animated circular SVG match dial with ease-out count-up animation (`0%` ➔ target %) |
 | `frontend/src/features/body-viewer/BodyViewer.jsx` | Three.js WebGL canvas, OrbitControls, GPU DataTexture custom vertex shader (<1ms layer toggles), raycasting, vertical slider rail, mobile touch handling, sensitive anatomy filtering |
 | `frontend/src/features/body-viewer/anatomyAtlas.js` | 15 body systems, 3 layers (`Muscles`, `Skeleton`, `Organs`), 6 regions (`Head`, `Thorax`, `Abdomen`, `Pelvis`, `Upper Limb`, `Lower Limb`), `REGION_ANCHORS` (core $z \approx 0.00$), and `isSensitiveAnatomy()` filter |

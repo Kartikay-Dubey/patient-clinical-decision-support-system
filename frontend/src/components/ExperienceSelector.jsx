@@ -9,21 +9,21 @@ export default function ExperienceSelector({ isModal = false, onClose }) {
   const cards = [
     {
       ...PERSONAS.patient,
-      avatarBg: 'bg-blue-500/10 text-blue-600',
-      tag: 'Everyday Care',
-      ringColor: 'ring-blue-500',
-    },
-    {
-      ...PERSONAS.student,
-      avatarBg: 'bg-emerald-500/10 text-emerald-600',
-      tag: 'Academic OSCE',
+      avatarBg: 'bg-emerald-50 text-emerald-700',
+      tag: 'Everyday Healing & Relief',
       ringColor: 'ring-emerald-500',
     },
     {
+      ...PERSONAS.student,
+      avatarBg: 'bg-blue-50 text-blue-600',
+      tag: 'Academic Clinical Hub',
+      ringColor: 'ring-blue-500',
+    },
+    {
       ...PERSONAS.technician,
-      avatarBg: 'bg-amber-500/10 text-amber-600',
-      tag: 'Clinical Review',
-      ringColor: 'ring-amber-500',
+      avatarBg: 'bg-orange-50 text-orange-700',
+      tag: 'Clinical Lab & EHR Telemetry',
+      ringColor: 'ring-orange-500',
     },
   ];
 

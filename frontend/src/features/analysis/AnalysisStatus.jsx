@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, Sparkles } from 'lucide-react';
+import { Check, Loader2, Activity } from 'lucide-react';
 import WaveGraphic from '../../components/WaveGraphic';
 
 const ANALYSIS_STEPS = [
@@ -115,7 +115,7 @@ export default function AnalysisStatus({ onStepChange, onComplete, isReady = fal
 
       {/* Header Eyebrow */}
       <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-accent text-accent-foreground border border-primary/20 text-xs font-semibold uppercase tracking-wider mb-4 font-display">
-        <Sparkles className="h-3.5 w-3.5 text-primary" />
+        <Activity className="h-3.5 w-3.5 text-primary" />
         <span>Clinical Reasoning Engine</span>
       </div>
 

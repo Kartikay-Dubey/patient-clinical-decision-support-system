@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SignIn, SignUp } from '@clerk/react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Activity, Brain, Lock, Stethoscope, Sparkles } from 'lucide-react';
+import { ShieldCheck, Activity, Brain, Lock, Stethoscope } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
 
 export default function AuthPage({ isConfigured = true }) {
@@ -153,7 +153,7 @@ export default function AuthPage({ isConfigured = true }) {
             className="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-4 sm:gap-6"
           >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-100/60 border border-teal-200/80 text-teal-900 text-xs font-semibold w-fit">
-              <Sparkles className="h-3.5 w-3.5 text-teal-600" />
+              <Activity className="h-3.5 w-3.5 text-teal-600" />
               <span>Next-Gen Medical Decision Support</span>
             </div>
 
