@@ -96,11 +96,6 @@ export default function PatientResultsView({ analysisData }) {
                 <Stethoscope className="h-3.5 w-3.5 text-[#10B981]" />
                 Primary Health Assessment
               </span>
-              {topCondition.icd10Code && (
-                <span className="text-[11px] font-mono text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-md border border-[#A7F3D0]/70">
-                  ICD-10: {topCondition.icd10Code}
-                </span>
-              )}
             </div>
 
             <h3 className="text-xl sm:text-2xl font-display font-bold text-[#064E3B] tracking-tight pt-1">
@@ -297,7 +292,6 @@ export default function PatientResultsView({ analysisData }) {
                     >
                       <div className="truncate mr-2">
                         <span className="font-semibold text-[#064E3B] block truncate">{cond.name}</span>
-                        <span className="text-[10px] text-[#047857] font-mono">ICD-10: {cond.icd10Code || 'N/A'}</span>
                       </div>
                       <span className="font-mono font-bold text-[#064E3B] bg-white px-2 py-0.5 rounded-md border border-[#A7F3D0] flex-shrink-0">
                         {Math.round((cond.modelScore || 0.2) * 100)}%

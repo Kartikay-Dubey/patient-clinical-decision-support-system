@@ -18,7 +18,7 @@ import ExperienceSelector from './components/ExperienceSelector';
 import { usePersona } from './context/PersonaContext';
 
 export default function App() {
-  const { hasChosenPersona, showExperiencePicker, setShowExperiencePicker } = usePersona();
+  const { persona, hasChosenPersona, showExperiencePicker, setShowExperiencePicker } = usePersona();
   const [appState, setAppState] = useState('input'); // 'input' | 'analyzing' | 'results'
   const [analysisData, setAnalysisData] = useState(null);
   const [activeRegion, setActiveRegion] = useState('All');
@@ -206,7 +206,7 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="relative p-1.5 sm:p-2 flex-1 min-h-[300px] sm:min-h-[350px] lg:min-h-[380px]">
+                <div className="relative p-1.5 sm:p-2 flex-1 h-[420px] sm:h-[460px] lg:h-full min-h-[390px] sm:min-h-[440px] lg:min-h-[380px]">
                   <BodyViewer
                     activeRegion={activeRegion}
                     onSelectRegion={handleSelectRegion}
@@ -228,10 +228,18 @@ export default function App() {
                         {analysisData.bodyLocalization?.targetOrgan || analysisData.bodyLocalization?.primaryRegion || 'Anatomical Anchor'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 font-mono text-[11px] text-slate-500">
-                      <span>Coords: [{analysisData.bodyLocalization?.coordinates?.x?.toFixed(2) || '0.00'}, {analysisData.bodyLocalization?.coordinates?.y?.toFixed(2) || '1.10'}, {analysisData.bodyLocalization?.coordinates?.z?.toFixed(2) || '0.00'}]</span>
-                      <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Calibrated</span>
-                    </div>
+                    {persona !== 'patient' ? (
+                      <div className="flex items-center gap-3 font-mono text-[11px] text-slate-500">
+                        <span>Coords: [{analysisData.bodyLocalization?.coordinates?.x?.toFixed(2) || '0.00'}, {analysisData.bodyLocalization?.coordinates?.y?.toFixed(2) || '1.10'}, {analysisData.bodyLocalization?.coordinates?.z?.toFixed(2) || '0.00'}]</span>
+                        <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Calibrated</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                        <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-semibold">
+                          Active Focus
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -40,6 +40,18 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-22] — Everyday User Clinical Simplification & Mobile Atlas Parity
+- **ICD-10 Removal for Everyday User**:
+  - Removed technical ICD-10 header badge and secondary conditions ICD-10 labels in [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx).
+  - Conditioned ICD-10 chip in 3D Anatomical HUD Callout [`AnatomyHUDCallout.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/body-viewer/AnatomyHUDCallout.jsx) to only render for Medical Student and Clinical Technician personas.
+- **Calibrated Coordinates Telemetry Clean-up**:
+  - Suppressed raw 3D anchor spatial coordinates `[x, y, z]` and `Calibrated` badge on the 3D Anatomical viewer footer in [`App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx) for Everyday User (`patient` persona), displaying an intuitive `Active Focus` pill instead while preserving coordinates for students/technicians.
+- **Mobile Responsive Layout & Touch Parity**:
+  - Fixed HUD callout auto-positioning logic in [`AnatomyHUDCallout.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/body-viewer/AnatomyHUDCallout.jsx) to clamp within actual canvas container dimensions `(cw, ch)` instead of window bounds, preventing bottom clipping and ensuring `Zoom & Center Target` button is always 100% visible and interactive.
+  - Increased mobile 3D canvas viewport height in [`App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx) and [`BodyViewer.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/body-viewer/BodyViewer.jsx) from 280px to 360px–420px for proportional 3D touch navigation and control clearance.
+  - Enabled mobile persona switching in [`Header.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/Header.jsx) by making the mode badge interactive.
+- **Verification**: `npm run build` passed with code 0 (2,093 modules).
+
 ### [2026-10-21] — Everyday User Emerald, Clinical Technician Light Orange & Health Library Redesign
 - **Everyday User Theme Harmonization (Emerald Green Swatch `#10B981`)**:
   - Synced [`PersonaContext.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/context/PersonaContext.jsx), [`PersonaSwitcher.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/PersonaSwitcher.jsx), [`ExperienceSelector.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/ExperienceSelector.jsx), and [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx) to vibrant clinical emerald (`#10B981`, `#059669`, `#ECFDF5`, `#064E3B`).

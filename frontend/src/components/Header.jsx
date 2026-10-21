@@ -32,9 +32,18 @@ export default function Header({ onReset, appState = 'input' }) {
                 <span className="font-display font-bold text-sm sm:text-base text-foreground tracking-tight group-hover:text-primary transition-colors">
                   CDSS <span className="font-medium text-slate-500">Atlas</span>
                 </span>
-                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border ${personaConfig.badgeColor}`}>
-                  {personaConfig.label}
-                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowExperiencePicker(true);
+                  }}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border ${personaConfig.badgeColor} hover:opacity-80 active:scale-95 transition-all cursor-pointer`}
+                  title="Switch user experience mode"
+                >
+                  <span>{personaConfig.label}</span>
+                  <span className="text-[9px] underline opacity-70 ml-0.5 md:hidden">Switch</span>
+                </button>
               </div>
               <p className="text-[11px] text-muted-foreground hidden lg:block font-medium truncate">
                 {personaConfig.description}

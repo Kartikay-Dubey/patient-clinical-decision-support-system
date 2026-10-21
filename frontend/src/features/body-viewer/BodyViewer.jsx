@@ -1315,11 +1315,11 @@ export default function BodyViewer({
         style={{
           background:
             'radial-gradient(ellipse at 50% 40%, #FAFCFB 0%, #F0F7F4 65%, #E2EFE9 100%)',
-          minHeight: '280px',
+          minHeight: '360px',
         }}
       >
         {/* Three.js Container */}
-        <div ref={containerRef} className="w-full h-full min-h-[280px] sm:min-h-[320px] body-viewer-canvas" />
+        <div ref={containerRef} className="w-full h-full min-h-[360px] sm:min-h-[420px] lg:min-h-[380px] body-viewer-canvas" />
 
         {/* Loading Overlay */}
         {isLoading && (

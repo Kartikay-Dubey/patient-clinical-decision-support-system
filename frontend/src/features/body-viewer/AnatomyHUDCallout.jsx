@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Focus, Crosshair, X, ChevronRight, GripHorizontal } from 'lucide-react';
+import { usePersona } from '../../context/PersonaContext';
 
 /**
  * AnatomyHUDCallout — Medical Targeting Reticle + Floating Info Panel
@@ -20,12 +21,14 @@ export default function AnatomyHUDCallout({
   onFocusRegion,
   isHoveringPart = false,
 }) {
+  const { persona } = usePersona();
   const [isMinimized, setIsMinimized] = useState(false);
   // Drag state — offset from the auto-position
   const [dragOffset, setDragOffset] = useState({ dx: 0, dy: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef(null);
   const cardRef = useRef(null);
+  const containerRef = useRef(null);
 
   // Reset drag when region changes
   useEffect(() => {
@@ -107,51 +110,58 @@ export default function AnatomyHUDCallout({
     || (region === 'Thorax' ? 'Heart & Coronary Vessels' : `${region} Structures`);
   const bodySystem = bodyLocalization?.bodySystem || 'General';
 
-  // ── Card auto-position (responsive for mobile & desktop) ───────────────────
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 800;
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 600;
-  const isMobile = vw < 640;
+  // ── Card auto-position (responsive for mobile & desktop, clamped inside canvas container) ────
+  const cw = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? Math.min(window.innerWidth, 800) : 600);
+  const ch = containerRef.current?.clientHeight || (typeof window !== 'undefined' ? 440 : 400);
+  const isMobile = cw < 640;
 
-  const CARD_W = isMobile ? Math.min(215, vw - 24) : 228;
-  const CARD_H = 165;
-  const BEACON_GAP = isMobile ? 18 : 28;
-  const TOP_SAFE_Y = isMobile ? 42 : 48;
+  const CARD_W = isMobile ? Math.min(208, cw - 20) : 228;
+  const CARD_H = isMobile ? (persona === 'patient' ? 140 : 155) : (persona === 'patient' ? 150 : 165);
+  const BEACON_GAP = isMobile ? 14 : 26;
+  const TOP_SAFE_Y = isMobile ? 44 : 48;
+  const BOTTOM_SAFE_Y = isMobile ? 48 : 52;
 
   let baseLeft = 0;
   let baseTop = 0;
 
   if (isMobile) {
-    baseLeft = Math.max(10, Math.min(vw - CARD_W - 10, x - CARD_W / 2));
-    if (y < vh * 0.48) {
-      baseTop = y + BEACON_GAP + 6;
+    // Check if card fits to the right of beacon
+    if (x + BEACON_GAP + CARD_W <= cw - 8) {
+      baseLeft = x + BEACON_GAP;
+    } else if (x - BEACON_GAP - CARD_W >= 8) {
+      // Or fits to the left
+      baseLeft = x - BEACON_GAP - CARD_W;
     } else {
-      baseTop = y - BEACON_GAP - CARD_H;
+      // Center horizontally within canvas boundaries
+      baseLeft = Math.max(8, Math.min(cw - CARD_W - 8, x - CARD_W / 2));
     }
-    baseTop = Math.max(TOP_SAFE_Y, Math.min(vh - CARD_H - 52, baseTop));
+
+    // Vertically center on beacon, clamped inside safe canvas viewport
+    const maxTop = Math.max(TOP_SAFE_Y, ch - CARD_H - BOTTOM_SAFE_Y);
+    baseTop = Math.max(TOP_SAFE_Y, Math.min(maxTop, y - CARD_H / 2));
   } else {
     // Prefer right; flip left if overflow
     baseLeft = x + BEACON_GAP;
-    if (baseLeft + CARD_W > vw - 12) {
+    if (baseLeft + CARD_W > cw - 12) {
       baseLeft = x - BEACON_GAP - CARD_W;
     }
     // Never overlap layers panel
-    if (baseLeft < 156 && x + BEACON_GAP + CARD_W <= vw - 12) {
+    if (baseLeft < 156 && x + BEACON_GAP + CARD_W <= cw - 12) {
       baseLeft = x + BEACON_GAP;
     }
     if (baseLeft < 8) baseLeft = 8;
 
     // Vertically center on beacon; clamp edges
-    baseTop = y - CARD_H / 2;
-    if (baseTop < TOP_SAFE_Y) baseTop = TOP_SAFE_Y;
-    if (baseTop + CARD_H > vh - 56) baseTop = vh - 56 - CARD_H;
-    if (baseTop < TOP_SAFE_Y) baseTop = TOP_SAFE_Y;
+    const maxTop = Math.max(TOP_SAFE_Y, ch - CARD_H - 52);
+    baseTop = Math.max(TOP_SAFE_Y, Math.min(maxTop, y - CARD_H / 2));
   }
 
-  const cardLeft = baseLeft + dragOffset.dx;
-  const cardTop  = baseTop  + dragOffset.dy;
+  const cardLeft = Math.max(4, Math.min(cw - CARD_W - 4, baseLeft + dragOffset.dx));
+  const cardTop  = Math.max(TOP_SAFE_Y, Math.min(ch - CARD_H - 8, baseTop + dragOffset.dy));
 
   return (
     <div
+      ref={containerRef}
       className={`absolute inset-0 pointer-events-none overflow-hidden z-20 transition-opacity duration-200 ${
         isHoveringPart ? 'opacity-20 pointer-events-none' : 'opacity-100'
       }`}
@@ -312,7 +322,7 @@ export default function AnatomyHUDCallout({
                       <span className="font-semibold text-[10px] truncate max-w-[120px]" style={{ color:'#0f172a' }}>
                         {conditionName}
                       </span>
-                      {icd10Code && icd10Code !== 'Unknown' && (
+                      {persona !== 'patient' && icd10Code && icd10Code !== 'Unknown' && (
                         <span className="text-[8px] font-mono" style={{ color:'#94a3b8' }}>
                           ICD-10: <span className="font-semibold" style={{ color:'#475569' }}>{icd10Code}</span>
                         </span>
