@@ -5,7 +5,6 @@ import {
   ArrowRight,
   FlaskConical,
   Loader2,
-  Sparkles,
   Clock,
   HelpCircle,
   Stethoscope,
@@ -288,7 +287,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                 </span>
               </div>
               <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-                <Sparkles className="h-3 w-3 text-primary" />
+                <Stethoscope className="h-3 w-3 text-primary" />
                 {currentPersonaInfo.consoleBadge}
               </div>
             </div>

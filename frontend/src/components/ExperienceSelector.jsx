@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { User, GraduationCap, Stethoscope, ArrowRight, Check, Sparkles, X } from 'lucide-react';
+import { User, GraduationCap, Stethoscope, ArrowRight, Check, X } from 'lucide-react';
 import { PERSONAS, usePersona } from '../context/PersonaContext';
 
 export default function ExperienceSelector({ isModal = false, onClose }) {
@@ -42,7 +42,7 @@ export default function ExperienceSelector({ isModal = false, onClose }) {
           </button>
         )}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-3">
-          <Sparkles className="h-3.5 w-3.5" />
+          <Stethoscope className="h-3.5 w-3.5" />
           Tailored Clinical Interface
         </div>
         <h2 className="text-2xl sm:text-3xl font-display font-bold text-foreground tracking-tight">

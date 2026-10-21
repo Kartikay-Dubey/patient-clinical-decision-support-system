@@ -9,7 +9,7 @@ import ResultsViewer from './features/results/ResultsViewer';
 import ScoreGauge from './components/ScoreGauge';
 import { analyzeSymptoms } from './services/apiService';
 import { normalizeSymptomText } from './services/symptomNormalizer';
-import { Activity, Sparkles, Clock } from 'lucide-react';
+import { Activity, Stethoscope, Clock } from 'lucide-react';
 import { Show } from '@clerk/react';
 import AuthPage from './features/auth/AuthPage';
 import ClinicalChatbot from './components/chat/ClinicalChatbot';

@@ -18,13 +18,13 @@ export default function ResultsViewer({ analysisData, isLoading, className = '',
         <ResultsPanelFill />
         <div className="relative z-10 h-full flex flex-col min-h-0">
           {persona === 'patient' && (
-            <PatientResultsView analysisData={analysisData} onView3D={onView3D} />
+            <PatientResultsView analysisData={analysisData} onAskMedAssist={onAskMedAssist} onView3D={onView3D} />
           )}
           {persona === 'student' && (
             <StudentResultsView analysisData={analysisData} onAskMedAssist={onAskMedAssist} onView3D={onView3D} />
           )}
           {persona === 'technician' && (
-            <TechnicianResultsView analysisData={analysisData} onView3D={onView3D} />
+            <TechnicianResultsView analysisData={analysisData} onAskMedAssist={onAskMedAssist} onView3D={onView3D} />
           )}
         </div>
       </div>

@@ -24,23 +24,23 @@ export const PERSONAS = {
   },
   student: {
     id: 'student',
-    label: 'Student',
-    heading: "I'm a Student",
-    subtitle: 'Academic Learning',
-    tagline: 'Explore differential diagnoses, clinical evidence, and 3D anatomy.',
+    label: 'Medical Student',
+    heading: "I'm a Medical Student",
+    subtitle: 'Clinical & Academic Training',
+    tagline: 'Differential diagnoses, ICD-10 codings, pathophysiology cascades, and OSCE vignettes.',
     bullets: [
-      'Differential diagnosis (DDX) ranking',
-      'ICD-10-CM diagnostic codes',
-      'Pathophysiology & clinical reasoning',
-      'Interactive 3D anatomy explorer'
+      'Evidence-based DDX probability ranking',
+      'ICD-10-CM diagnostic classification',
+      'Pathophysiological disease mechanisms',
+      'Interactive OSCE vignettes & 3D anatomy'
     ],
-    buttonText: 'Continue as Student',
+    buttonText: 'Continue as Medical Student',
     icon: GraduationCap,
     badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
     accentColor: 'emerald',
     cardBorder: 'hover:border-emerald-500/60 hover:shadow-emerald-500/10',
     buttonColor: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-    description: 'Differential diagnosis rankings, ICD-10 coding, pathophysiology, and 3D anatomy.',
+    description: 'Differential diagnosis rankings, ICD-10 coding, pathophysiology cascades, high-yield pearls, and 3D anatomy.',
   },
   technician: {
     id: 'technician',

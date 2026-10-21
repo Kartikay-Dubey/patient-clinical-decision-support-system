@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Brain,
-  Sparkles,
   ExternalLink,
   HelpCircle,
   FileText,
@@ -18,12 +17,17 @@ import {
   X,
   Minus,
   ArrowRight,
+  Copy,
+  Lightbulb,
+  MessageSquare,
+  BookmarkCheck,
 } from 'lucide-react';
 
 export default function StudentResultsView({ analysisData, onAskMedAssist, onView3D }) {
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'ddx' | 'evidence' | 'icd10' | 'quiz'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'ddx' | 'patho' | 'evidence' | 'quiz'
   const [selectedQuizOption, setSelectedQuizOption] = useState(null);
   const [showQuizExplanation, setShowQuizExplanation] = useState(false);
+  const [copiedSummary, setCopiedSummary] = useState(false);
 
   const {
     possibleConditions = [],
@@ -33,7 +37,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
   } = analysisData;
 
   const topCondition = possibleConditions[0] || {
-    name: 'Acute Respiratory Syndrome',
+    name: 'Acute Respiratory Condition',
     modelScore: 0.82,
     icd10Code: 'J06.9',
     confidenceCategory: 'High',
@@ -42,32 +46,70 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
   // Build extracted evidence list with clinical status
   const evidenceList = extractedSymptoms.length > 0
     ? extractedSymptoms.map((s) => ({
-        name: typeof s === 'string' ? s : s.name,
+        name: typeof s === 'string' ? s : (s.name || s.label),
         code: s.code || 'E_CLINICAL',
         status: 'Present',
       }))
     : [
         { name: 'Fever (temp > 38.0°C)', code: 'E_53', status: 'Present' },
-        { name: 'Myalgia & Generalized Body Ache', code: 'E_55', status: 'Present' },
-        { name: 'Persistent Cough', code: 'E_24', status: 'Present' },
-        { name: 'Neck Stiffness', code: 'E_88', status: 'Absent' },
-        { name: 'Hypotension (BP < 90/60)', code: 'E_11', status: 'Not mentioned' },
+        { name: 'Generalized Myalgia & Body Ache', code: 'E_55', status: 'Present' },
+        { name: 'Productive Cough', code: 'E_24', status: 'Present' },
+        { name: 'Nuchal Rigidity (Neck Stiffness)', code: 'E_88', status: 'Absent (Pertinent Negative)' },
+        { name: 'Hypotension (SBP < 90 mmHg)', code: 'E_11', status: 'Absent (Pertinent Negative)' },
       ];
 
+  // Clinical pearls curated for medical students
+  const clinicalPearls = [
+    {
+      title: 'Pertinent Negatives in DDX',
+      text: 'Always document the absence of red flags (e.g., absence of neck stiffness in headache, absence of radiating pain in chest discomfort) to rule out high-acuity surgical or neurological emergencies.'
+    },
+    {
+      title: 'Gold Standard Workup Rule',
+      text: `For ${topCondition.name}, confirm baseline vitals, complete blood count (CBC), and targeted imaging before initiating empiric pharmacotherapy.`
+    },
+    {
+      title: 'Anatomical Correlation Principle',
+      text: `Correlate visual findings on the 3D atlas with the ${bodyLocalization.bodySystem || 'target system'} to verify local vs referred symptom radiation pathways.`
+    }
+  ];
+
   const quizQuestion = {
-    prompt: `A 34-year-old patient presents with acute onset of symptoms consistent with ${topCondition.name}. What is the most clinically appropriate next diagnostic or therapeutic step?`,
+    prompt: `A patient presents with acute symptom progression consistent with ${topCondition.name} (${topCondition.icd10Code || 'Primary differential'}). Which of the following is the most clinically appropriate next diagnostic or initial management step?`,
     options: [
-      { id: 'a', text: 'Prescribe broad-spectrum oral antibiotics immediately without cultures' },
-      { id: 'b', text: 'Supportive care, hydration, symptom monitoring, and evaluate for viral etiology', isCorrect: true },
-      { id: 'c', text: 'Immediate emergent invasive bronchoscopy' },
-      { id: 'd', text: 'Order high-resolution contrast CT scan with no prior baseline assessment' },
+      { id: 'a', text: 'Prescribe empiric broad-spectrum oral antibiotics immediately without obtaining cultures or confirming bacterial etiology' },
+      { id: 'b', text: 'Initiate supportive hydration, symptomatic antipyresis, close clinical monitoring, and targeted etiologic workup', isCorrect: true },
+      { id: 'c', text: 'Perform immediate emergent diagnostic exploratory laparotomy' },
+      { id: 'd', text: 'Order high-resolution contrast CT scan with no prior baseline assessment or renal function evaluation' },
     ],
-    rationale: `Given the symptom presentation and differential profile for ${topCondition.name}, the gold-standard initial approach emphasizes supportive hydration, antipyretics, and clinical monitoring unless high-risk red flags are detected.`,
+    rationale: `Given the symptom presentation and clinical differential for ${topCondition.name}, the recommended evidence-based standard of care emphasizes supportive hydration, hemodynamic stability assessment, and symptom control while awaiting targeted microbiological or laboratory confirmation.`,
+  };
+
+  const handleCopyAcademicSummary = () => {
+    const summaryText = `ACADEMIC CLINICAL CASE SUMMARY (MEDICAL STUDENT DDX)
+Condition: ${topCondition.name} (ICD-10: ${topCondition.icd10Code || 'N/A'})
+Confidence: ${(topCondition.modelScore * 100).toFixed(1)}%
+Primary Region: ${bodyLocalization.primaryRegion || 'General'}
+System: ${bodyLocalization.bodySystem || 'Systemic'}
+Spatial Anchor: [x=${bodyLocalization.coordinates?.x?.toFixed(2) || '0.00'}, y=${bodyLocalization.coordinates?.y?.toFixed(2) || '1.10'}, z=${bodyLocalization.coordinates?.z?.toFixed(2) || '0.00'}]
+
+DIFFERENTIAL DIAGNOSES:
+${possibleConditions.slice(0, 5).map((c, i) => `${i + 1}. ${c.name} (${(c.modelScore * 100).toFixed(1)}%) — ICD-10: ${c.icd10Code || 'N/A'}`).join('\n')}
+
+EXTRACTED CLINICAL EVIDENCE:
+${evidenceList.map(e => `• [${e.status}] ${e.name} (${e.code})`).join('\n')}
+
+PATHOPHYSIOLOGY NOTE:
+${storyline.pathophysiology || 'Inflammatory / Infectious cascade impacting target organ microvasculature and regional tissues.'}`;
+
+    navigator.clipboard.writeText(summaryText);
+    setCopiedSummary(true);
+    setTimeout(() => setCopiedSummary(false), 2000);
   };
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-white/60">
-      {/* 1. Header with Case Title & Tab Bar */}
+      {/* 1. Header with Title & Action Buttons */}
       <div className="p-3.5 sm:p-4 border-b border-slate-200/80 bg-white/80 flex-shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
@@ -77,33 +119,44 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                 Medical Student Mode
               </span>
               <h3 className="font-display font-bold text-sm sm:text-base text-slate-900">
-                Case Analysis & Clinical DDX
+                Clinical DDX & Pathophysiology Analysis
               </h3>
             </div>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Explore differential diagnoses, clinical evidence status, and correlate with 3D anatomy.
+              Differential diagnosis rankings, ICD-10 codings, pathophysiology mechanisms, and OSCE vignettes.
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 self-start sm:self-auto flex-wrap">
+            <button
+              type="button"
+              onClick={handleCopyAcademicSummary}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+              title="Copy Case Summary"
+            >
+              {copiedSummary ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+              <span>{copiedSummary ? 'Copied' : 'Copy Case'}</span>
+            </button>
+
             {onAskMedAssist && (
               <button
                 type="button"
                 onClick={onAskMedAssist}
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-semibold transition-colors cursor-pointer"
               >
-                <Sparkles className="h-3 w-3 text-teal-600" />
+                <MessageSquare className="h-3 w-3 text-teal-600" />
                 <span>Ask Preceptor</span>
               </button>
             )}
+
             {onView3D && (
               <button
                 type="button"
                 onClick={onView3D}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
-                <Eye className="h-3 w-3 text-primary" />
-                <span>Open 3D</span>
+                <Eye className="h-3 w-3" />
+                <span>3D Anatomy</span>
               </button>
             )}
           </div>
@@ -114,6 +167,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
           {[
             { id: 'overview', label: 'Overview', icon: Activity },
             { id: 'ddx', label: 'Differential Diagnoses', icon: FileText, count: possibleConditions.length },
+            { id: 'patho', label: 'Pathophysiology & Pearls', icon: Dna },
             { id: 'evidence', label: 'Evidence Matrix', icon: CheckCircle2, count: evidenceList.length },
             { id: 'quiz', label: 'OSCE Case Quiz', icon: BookOpen },
           ].map((tab) => {
@@ -157,10 +211,10 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <h4 className="font-display font-bold text-xs uppercase tracking-wider text-slate-700">
-                      Top Differential Diagnoses
+                      Ranked Differential Diagnoses
                     </h4>
                     <span className="text-[10px] font-mono text-slate-500">
-                      Multi-class Posterior
+                      Multi-class Calibrated DDX
                     </span>
                   </div>
 
@@ -177,7 +231,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                               </span>
                               <span className="font-bold text-slate-900">{cond.name}</span>
                               {cond.icd10Code && (
-                                <span className="font-mono text-[10px] text-slate-400">
+                                <span className="font-mono text-[10px] text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
                                   {cond.icd10Code}
                                 </span>
                               )}
@@ -198,7 +252,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                 </div>
 
                 <p className="text-[10px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
-                  Calibrated on DDXPlus NeurIPS benchmark across 49 candidate pathologies.
+                  Calibrated on DDXPlus benchmark across 49 candidate pathologies.
                 </p>
               </div>
 
@@ -207,7 +261,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <h4 className="font-display font-bold text-xs uppercase tracking-wider text-slate-700">
-                      Anatomy & System
+                      Anatomy & Spatial System
                     </h4>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 font-semibold">
                       {bodyLocalization.bodySystem || 'Systemic'}
@@ -224,9 +278,9 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                       <span className="font-semibold text-slate-800">{bodyLocalization.bodySystem || 'Respiratory System'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Spatial Anchor:</span>
+                      <span className="text-slate-500">3D Reticle Anchor:</span>
                       <span className="font-mono text-[11px] text-teal-800 font-semibold">
-                        x: {bodyLocalization.coordinates?.x?.toFixed(2) || '0.00'}, y: {bodyLocalization.coordinates?.y?.toFixed(2) || '1.10'}
+                        x: {bodyLocalization.coordinates?.x?.toFixed(2) || '0.00'}, y: {bodyLocalization.coordinates?.y?.toFixed(2) || '1.10'}, z: {bodyLocalization.coordinates?.z?.toFixed(2) || '0.00'}
                       </span>
                     </div>
                   </div>
@@ -247,10 +301,10 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                   <button
                     type="button"
                     onClick={onView3D}
-                    className="mt-3 w-full py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer font-display"
+                    className="mt-3 w-full py-2 px-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer font-display"
                   >
                     <Layers className="h-3.5 w-3.5" />
-                    <span>Launch 3D Anatomy Focus</span>
+                    <span>Focus Organ in 3D Anatomy Atlas</span>
                   </button>
                 )}
               </div>
@@ -260,7 +314,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
             {/* Extracted Clinical Evidence Card */}
             <div className="rounded-2xl p-4 bg-white border border-slate-200 shadow-xs">
               <h4 className="font-display font-bold text-xs uppercase tracking-wider text-slate-700 mb-3">
-                Extracted Clinical Evidence & Presentation Signs
+                Extracted Clinical Evidence & Pertinent Findings
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {evidenceList.map((ev, idx) => (
@@ -274,9 +328,9 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                     </div>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                        ev.status === 'Present'
+                        ev.status.includes('Present')
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : ev.status === 'Absent'
+                          : ev.status.includes('Absent')
                           ? 'bg-rose-100 text-rose-800 border border-rose-300'
                           : 'bg-slate-200 text-slate-600'
                       }`}
@@ -310,24 +364,89 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                       )}
                     </div>
                     <span className="font-mono font-bold text-xs text-slate-800 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                      Match: {scorePct}%
+                      Posterior: {scorePct}%
                     </span>
                   </div>
 
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    {cond.explanation || `Differential presentation pattern consistent with ${cond.name}.`}
+                    {cond.explanation || `Differential presentation pattern consistent with ${cond.name}. Consider risk factor exposure and clinical duration.`}
                   </p>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Clinical Acuity: <strong className="text-slate-700">{cond.confidenceCategory || 'Standard'}</strong></span>
+                    {onAskMedAssist && (
+                      <button
+                        type="button"
+                        onClick={onAskMedAssist}
+                        className="text-emerald-700 hover:text-emerald-900 font-semibold inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Analyze this condition with Preceptor</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
 
-        {/* TAB 3: EVIDENCE MATRIX */}
+        {/* TAB 3: PATHOPHYSIOLOGY & HIGH-YIELD CLINICAL PEARLS */}
+        {activeTab === 'patho' && (
+          <div className="space-y-4">
+            {/* Pathophysiology Deep Dive */}
+            <div className="rounded-2xl p-4 sm:p-5 bg-white border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center gap-2">
+                <Dna className="h-4 w-4 text-emerald-700" />
+                <h4 className="font-display font-bold text-sm text-slate-900">
+                  Mechanisms of Disease: {topCondition.name}
+                </h4>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed space-y-2">
+                <p>
+                  {storyline.pathophysiology || 
+                    `The clinical manifestation of ${topCondition.name} involves immune-mediated or infectious cellular response causing local hyperemia, microvascular permeability, and cytokine release, triggering classic constitutional and organ-specific signs.`}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200/80">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-400 block font-mono">Affected Organ System</span>
+                    <span className="font-semibold text-slate-800">{bodyLocalization.bodySystem || 'Systemic Circulation'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-400 block font-mono">Target Anatomical Region</span>
+                    <span className="font-semibold text-slate-800">{bodyLocalization.primaryRegion || 'Thoracic Viscera'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* High-Yield Clinical Pearls */}
+            <div className="rounded-2xl p-4 sm:p-5 bg-white border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-4 w-4 text-amber-600" />
+                <h4 className="font-display font-bold text-sm text-slate-900">
+                  High-Yield Clinical Pearls (OSCE & Rounds)
+                </h4>
+              </div>
+
+              <div className="space-y-2.5">
+                {clinicalPearls.map((pearl, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/60 text-xs">
+                    <span className="font-bold text-amber-900 block mb-0.5">{pearl.title}</span>
+                    <p className="text-amber-800 leading-relaxed">{pearl.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: EVIDENCE MATRIX */}
         {activeTab === 'evidence' && (
           <div className="rounded-2xl p-4 bg-white border border-slate-200 shadow-xs">
             <h4 className="font-display font-bold text-xs uppercase tracking-wider text-slate-700 mb-3">
-              Full Evidence Attribution Table
+              Complete Clinical Evidence & Pertinent Negatives Table
             </h4>
             <div className="divide-y divide-slate-100">
               {evidenceList.map((ev, i) => (
@@ -337,7 +456,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                     <span className="ml-2 font-mono text-[10px] text-slate-400">({ev.code})</span>
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    ev.status === 'Present' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                    ev.status.includes('Present') ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
                   }`}>
                     {ev.status}
                   </span>
@@ -347,7 +466,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
           </div>
         )}
 
-        {/* TAB 4: OSCE CASE QUIZ */}
+        {/* TAB 5: OSCE CASE QUIZ */}
         {activeTab === 'quiz' && (
           <div className="rounded-2xl p-4 sm:p-5 bg-white border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center gap-2">
@@ -405,8 +524,8 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                 className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950 space-y-1.5"
               >
                 <div className="font-bold flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
-                  Clinical Rationale:
+                  <BookmarkCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  Clinical Preceptor Rationale:
                 </div>
                 <p className="leading-relaxed text-emerald-900">{quizQuestion.rationale}</p>
                 {onAskMedAssist && (
@@ -415,7 +534,7 @@ export default function StudentResultsView({ analysisData, onAskMedAssist, onVie
                     onClick={onAskMedAssist}
                     className="mt-2 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 underline flex items-center gap-1 cursor-pointer"
                   >
-                    <span>Discuss this case further with MedAssist Preceptor</span>
+                    <span>Discuss this case further with MedAssist Academic Preceptor</span>
                     <ArrowRight className="h-3 w-3" />
                   </button>
                 )}
