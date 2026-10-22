@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Copy,
   Check,
+  ArrowRight,
 } from 'lucide-react';
 import ScoreGauge from '../../components/ScoreGauge';
 import { getConditionLaymanDetails } from '../../utils/conditionLaymanMap';
@@ -28,7 +29,7 @@ import { getConditionLaymanDetails } from '../../utils/conditionLaymanMap';
  * Color Palette: Image 3 (Healing Forest & Mint)
  * #051F20 | #0B2B26 | #163832 | #235347 | #8EB69B | #DAF1DE
  */
-export default function PatientResultsView({ analysisData }) {
+export default function PatientResultsView({ analysisData, onView3D }) {
   const [showOtherConditions, setShowOtherConditions] = useState(false);
   const [copiedQuestions, setCopiedQuestions] = useState(false);
 
@@ -126,17 +127,30 @@ export default function PatientResultsView({ analysisData }) {
           </div>
         </div>
 
-        {/* Interconnected Anatomical Link Banner */}
-        <div className="p-3 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex items-start gap-2.5 text-xs">
-          <MapPin className="h-4 w-4 text-[#10B981] flex-shrink-0 mt-0.5" />
-          <div className="space-y-0.5 min-w-0">
-            <span className="font-semibold text-[#064E3B] block">
-              Highlighted on 3D Body: {targetOrganName} ({bodyLocalization.primaryRegion || 'Target'} Region)
-            </span>
-            <p className="text-[11px] text-[#047857] leading-snug">
-              {layman.anatomyExplanation}
-            </p>
+        {/* Interconnected Anatomical Link Banner with 1-Tap 3D Jump */}
+        <div className="p-3 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-start gap-2.5 min-w-0">
+            <MapPin className="h-4 w-4 text-[#10B981] flex-shrink-0 mt-0.5" />
+            <div className="space-y-0.5 min-w-0">
+              <span className="font-semibold text-[#064E3B] block">
+                Highlighted on 3D Body: {targetOrganName} ({bodyLocalization.primaryRegion || 'Target'} Region)
+              </span>
+              <p className="text-[11px] text-[#047857] leading-snug">
+                {layman.anatomyExplanation}
+              </p>
+            </div>
           </div>
+          {onView3D && (
+            <button
+              type="button"
+              onClick={onView3D}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#10B981] hover:bg-[#059669] active:scale-95 text-white font-semibold text-xs shadow-xs transition-all cursor-pointer flex-shrink-0 self-start sm:self-auto font-display"
+              title="Inspect 3D Anatomical Atlas"
+            >
+              <span>View in 3D Atlas</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
       </div>

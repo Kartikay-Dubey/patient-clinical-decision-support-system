@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Stethoscope,
   Info,
+  ArrowRight,
 } from 'lucide-react';
 import { getStudentClinicalDetails } from '../../utils/studentClinicalKnowledge';
 
@@ -24,7 +25,7 @@ import { getStudentClinicalDetails } from '../../utils/studentClinicalKnowledge'
  * Modern Clinical Slate & Sapphire Blue Theme
  * Clear, structured clinical reasoning (UpToDate & Osmosis style)
  */
-export default function StudentResultsView({ analysisData }) {
+export default function StudentResultsView({ analysisData, onView3D }) {
   const [activeTab, setActiveTab] = useState('ddx'); // 'ddx' | 'patho' | 'pearls' | 'quiz'
   const [selectedQuizOption, setSelectedQuizOption] = useState(null);
   const [showQuizExplanation, setShowQuizExplanation] = useState(false);
@@ -115,13 +116,23 @@ ${clinical.roundsPearls.map((p) => `• ${p.title}: ${p.body}`).join('\n')}`;
               3D Anatomy Target: <strong className="text-slate-900">{targetOrganName}</strong> ({bodyLocalization.primaryRegion || 'Target'} Region)
             </span>
           </div>
-          <div className="flex items-center gap-2 font-mono text-[11px]">
+          <div className="flex items-center gap-2 font-mono text-[11px] flex-wrap">
             <span className="text-blue-800 bg-white px-2 py-0.5 rounded border border-blue-200">
               System: {bodyLocalization.bodySystem || 'General'}
             </span>
             <span className="text-slate-700 font-semibold bg-white px-2 py-0.5 rounded border border-slate-200">
               Coords: [{bodyLocalization.coordinates?.x?.toFixed(2) || '0.00'}, {bodyLocalization.coordinates?.y?.toFixed(2) || '1.10'}, {bodyLocalization.coordinates?.z?.toFixed(2) || '0.00'}]
             </span>
+            {onView3D && (
+              <button
+                type="button"
+                onClick={onView3D}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs font-sans shadow-2xs transition-all cursor-pointer"
+              >
+                <span>3D Atlas</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
 

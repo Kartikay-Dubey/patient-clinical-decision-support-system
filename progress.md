@@ -40,6 +40,18 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-22] — Senior Full-Stack Mobile Architecture & Viewport Redesign
+- **Mobile Results Experience: Segmented View Controller**:
+  - Implemented sticky mobile segmented controller (`[ 📋 Clinical Assessment ]` / `[ 🧍 3D Anatomical Atlas ]`) in [`App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx).
+  - Resolved mobile gesture trap where OrbitControls intercepted page scroll over 3D canvas.
+  - Employed zero-reload CSS toggle (`hidden lg:flex` vs `flex`): Three.js WebGL canvas and loaded meshes stay continuously mounted in memory, providing instantaneous, 60fps switching between Clinical Guidance and 3D Atlas on mobile without reload delays.
+  - Added 1-tap "← View Report" return pill on 3D mobile topbar and interactive "View in 3D Atlas &rarr;" buttons in [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx), [`StudentResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/StudentResultsView.jsx), and [`TechnicianResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/TechnicianResultsView.jsx).
+- **Mobile Intake Flow: Above-the-Fold Optimization**:
+  - Streamlined [`SymptomInput.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/symptom-input/SymptomInput.jsx): On mobile screens (`< 1024px`), condensed verbose sidebar timeline and pulse graphics to place symptom input textarea, quick presets, and voice intake directly above the fold.
+- **Mobile Modals & Dialogs Safety**:
+  - Added responsive viewport constraints (`max-h-[90dvh] overflow-y-auto`) to [`HealthLibrary.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/components/HealthLibrary.jsx) modal.
+- **Verification**: `npm run build` compiled clean with exit code 0 (2,093 modules in 22.14s).
+
 ### [2026-10-22] — Everyday User Clinical Simplification & Mobile Atlas Parity
 - **ICD-10 Removal for Everyday User**:
   - Removed technical ICD-10 header badge and secondary conditions ICD-10 labels in [`PatientResultsView.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/features/results/PatientResultsView.jsx).

@@ -15,6 +15,7 @@ import {
   Layers,
   Terminal,
   ShieldCheck,
+  ArrowRight,
 } from 'lucide-react';
 
 /**
@@ -23,7 +24,7 @@ import {
  * Color Palette: Light Orange & Laboratory Amber
  * #FFF7ED | #FFEDD5 | #FED7AA | #F97316 | #EA580C | #9A3412 | #431407
  */
-export default function TechnicianResultsView({ analysisData }) {
+export default function TechnicianResultsView({ analysisData, onView3D }) {
   const [activeTab, setActiveTab] = useState('telemetry'); // 'telemetry' | 'soap' | 'json'
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedSoap, setCopiedSoap] = useState(false);
@@ -168,8 +169,20 @@ ${possibleConditions.slice(1, 6).map((c, i) => `${i + 2}. ${c.name} | ICD-10: ${
             <span className="font-mono font-bold text-[#431407]">{extractedSymptoms.length} Mapped</span>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-white border border-orange-200/90 space-y-0.5">
-            <span className="text-[10px] font-mono uppercase text-[#9A3412] block">3D Spatial Anchor</span>
+          <div className="p-2.5 rounded-xl bg-white border border-orange-200/90 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase text-[#9A3412] block">3D Spatial Anchor</span>
+              {onView3D && (
+                <button
+                  type="button"
+                  onClick={onView3D}
+                  className="inline-flex items-center gap-0.5 text-[10px] font-bold text-orange-700 hover:text-orange-900 cursor-pointer"
+                >
+                  <span>Atlas</span>
+                  <ArrowRight className="h-2.5 w-2.5" />
+                </button>
+              )}
+            </div>
             <span className="font-mono text-[11px] text-orange-700 font-semibold truncate block">
               [{bodyLocalization.coordinates?.x?.toFixed(2) || '0.00'}, {bodyLocalization.coordinates?.y?.toFixed(2) || '1.10'}, {bodyLocalization.coordinates?.z?.toFixed(2) || '0.00'}]
             </span>

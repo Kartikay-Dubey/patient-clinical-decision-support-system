@@ -218,7 +218,27 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
   return (
     <div className="w-full max-w-[1480px] mx-auto flex-1 flex flex-col justify-center min-h-0">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch min-h-0">
-        <motion.aside className="lg:col-span-5 flex flex-col gap-2.5 sm:gap-3 justify-between min-h-0" {...fadeUp(0.04)}>
+        {/* Mobile Header Banner (lg:hidden) */}
+        <div className="lg:hidden col-span-1 mb-1">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-primary/20 text-[11px] font-semibold text-foreground">
+              <Stethoscope className="h-3 w-3 text-primary" />
+              {currentPersonaInfo.tag}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-medium">
+              Evidence-based CDSS
+            </span>
+          </div>
+          <h2 className="font-display text-lg font-bold text-foreground tracking-tight leading-snug">
+            {currentPersonaInfo.h1}{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-cyan-600 to-sky-600">
+              {currentPersonaInfo.h1Grad}
+            </span>
+          </h2>
+        </div>
+
+        {/* Desktop Sidebar with Detailed Timeline & Pulse (hidden on mobile for instant input focus) */}
+        <motion.aside className="hidden lg:flex lg:col-span-5 flex-col gap-2.5 sm:gap-3 justify-between min-h-0" {...fadeUp(0.04)}>
           <div className="inline-flex items-center gap-1.5 self-start px-2.5 py-0.5 rounded-full bg-white/85 border border-primary/15 shadow-subtle text-[11px] font-semibold text-foreground">
             <Stethoscope className="h-3 w-3 text-primary" />
             {currentPersonaInfo.tag}

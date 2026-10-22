@@ -9,7 +9,7 @@ import ResultsViewer from './features/results/ResultsViewer';
 import ScoreGauge from './components/ScoreGauge';
 import { analyzeSymptoms } from './services/apiService';
 import { normalizeSymptomText } from './services/symptomNormalizer';
-import { Activity, Stethoscope, Clock } from 'lucide-react';
+import { Activity, Stethoscope, Clock, FileText } from 'lucide-react';
 import { Show } from '@clerk/react';
 import AuthPage from './features/auth/AuthPage';
 import ClinicalChatbot from './components/chat/ClinicalChatbot';
@@ -20,6 +20,7 @@ import { usePersona } from './context/PersonaContext';
 export default function App() {
   const { persona, hasChosenPersona, showExperiencePicker, setShowExperiencePicker } = usePersona();
   const [appState, setAppState] = useState('input'); // 'input' | 'analyzing' | 'results'
+  const [mobileTab, setMobileTab] = useState('report'); // 'report' | 'anatomy'
   const [analysisData, setAnalysisData] = useState(null);
   const [activeRegion, setActiveRegion] = useState('All');
   const [errorMessage, setErrorMessage] = useState(null);
@@ -77,6 +78,7 @@ export default function App() {
       if (resultToUse.bodyLocalization?.primaryRegion) {
         setActiveRegion(resultToUse.bodyLocalization.primaryRegion);
       }
+      setMobileTab('report');
       setAppState('results');
     }
   };
@@ -85,6 +87,7 @@ export default function App() {
     pendingResultRef.current = null;
     setAnalysisData(null);
     setActiveRegion('All');
+    setMobileTab('report');
     setAppState('input');
   };
 
@@ -183,9 +186,42 @@ export default function App() {
               transition={{ duration: 0.35 }}
               className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-0 lg:min-h-[calc(100dvh-10.5rem)]"
             >
+              {/* Mobile View Mode Segmented Tab Bar (lg:hidden) */}
+              <div className="lg:hidden col-span-1 sticky top-[56px] z-30 bg-white/95 backdrop-blur-md border border-border/80 rounded-2xl p-1 shadow-xs">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab('report')}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer font-display ${
+                      mobileTab === 'report'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                    }`}
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>Clinical Assessment</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab('anatomy')}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer font-display ${
+                      mobileTab === 'anatomy'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                    }`}
+                  >
+                    <Activity className="h-3.5 w-3.5" />
+                    <span>3D Anatomical Atlas</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Left Column: Unified 3D Anatomy + Primary Assessment Master Console */}
-              <div className="lg:col-span-6 flex flex-col master-console h-auto lg:h-full justify-between overflow-hidden">
-                
+              <div
+                className={`lg:col-span-6 flex flex-col master-console h-auto lg:h-full justify-between overflow-hidden ${
+                  mobileTab === 'anatomy' ? 'flex flex-1 min-h-[calc(100dvh-13.5rem)]' : 'hidden lg:flex'
+                }`}
+              >
                 {/* Console Topbar: Region & System Info + Start Over */}
                 <div className="console-topbar px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -201,12 +237,22 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold text-primary bg-accent px-2.5 py-1 rounded-full border border-primary/15 hidden sm:inline font-display">
+
+                  {/* Mobile Back to Report Button */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab('report')}
+                    className="lg:hidden inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-accent px-2.5 py-1 rounded-full border border-primary/20 hover:bg-accent/80 active:scale-95 transition-all cursor-pointer font-display"
+                  >
+                    <span>&larr; View Report</span>
+                  </button>
+
+                  <span className="text-[11px] font-semibold text-primary bg-accent px-2.5 py-1 rounded-full border border-primary/15 hidden lg:inline font-display">
                     Interactive 3D
                   </span>
                 </div>
 
-                <div className="relative p-1.5 sm:p-2 flex-1 h-[420px] sm:h-[460px] lg:h-full min-h-[390px] sm:min-h-[440px] lg:min-h-[380px]">
+                <div className="relative p-1.5 sm:p-2 flex-1 h-[440px] sm:h-[480px] lg:h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[380px]">
                   <BodyViewer
                     activeRegion={activeRegion}
                     onSelectRegion={handleSelectRegion}
@@ -246,16 +292,17 @@ export default function App() {
               </div>
 
               {/* Right Column: Guidance Tabs & Clinical Content */}
-              <div className="lg:col-span-6 flex flex-col min-h-[460px] lg:min-h-0 lg:h-full">
+              <div
+                className={`lg:col-span-6 flex flex-col min-h-[460px] lg:min-h-0 lg:h-full ${
+                  mobileTab === 'report' ? 'flex flex-1' : 'hidden lg:flex'
+                }`}
+              >
                 <ResultsViewer
                   analysisData={analysisData}
                   isLoading={false}
                   className="h-full"
                   onAskMedAssist={() => setIsAssistantOpen(true)}
-                  onView3D={() => {
-                    const el = document.getElementById('body-viewer-canvas') || document.querySelector('.master-console');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  onView3D={() => setMobileTab('anatomy')}
                 />
               </div>
 
