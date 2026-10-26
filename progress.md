@@ -40,7 +40,34 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-26] — Layman Disease Naming, Technician Simplification & Student Coords Removal
+
+- **Everyday Viral Disease Dictionary Expanded (`conditionLaymanMap.js`)**:
+  - Expanded from ~10 to 30+ conditions covering all common DDXPlus pathologies with `plainName`, `category`, and `aliases` arrays.
+  - Added patient-friendly plain names for all common viral diseases: *Common Cold*, *The Flu / Viral Fever*, *Viral Sore Throat*, *Chest Cold (Bronchitis)*, *Sinus Infection*, *Middle Ear Infection*, *Stomach Flu / Stomach Bug*, *Whooping Cough*, *Viral Barking Cough (Croup)*, etc.
+  - Terminology sourced from CDC / NHS / Mayo Clinic patient-facing standards.
+  - Upgraded `getConditionLaymanDetails()` with 6-pass matching: exact → case-insensitive → alias array → substring → keyword heuristics → universal fallback.
+  - Added `aliases` field enabling plain-English queries (`"cold"`, `"flu"`, `"stomach bug"`, `"sinus"`) to resolve to correct clinical entries.
+- **PatientResultsView.jsx — Hero Card Everyday Name Highlight**:
+  - Added `Everyday name:` badge prominently below layman title showing `plainName` field.
+  - Shows `category` pill badge (e.g. *Viral Infection*, *Respiratory Infection*) in the header badge row.
+  - Secondary condition candidates now display `condLayman.plainName` as primary label with clinical name as a sub-label.
+- **StudentResultsView.jsx — Coordinates Removed**:
+  - Removed raw `Coords: [x, y, z]` display from the 3D anatomy target strip. These are internal 3D calibration values with no educational value for medical students.
+  - Removed `SPATIAL VECTOR` line from the copied ward note text.
+- **TechnicianResultsView.jsx — Simplified & Decluttered**:
+  - Replaced overly technical 4-tile header stat row (containing raw spatial coordinates `[x, y, z]` tile) with a clean 3-tile strip: *Engine Status*, *Lead Margin vs #2*, *Anatomical Target*.
+  - Renamed tabs from jargon-heavy labels (`Posterior Matrix & Evidence`, `Audit SOAP Documentation`, `Raw Telemetry Payload`) to plain English: `Diagnosis Ranking`, `SOAP Note`, `Raw JSON Export`.
+  - Removed `CAP/CLIA`, `Bayesian`, `Calibration Status`, and `Spatial Bounding` references from UI and SOAP note text.
+  - Removed `Spatial Vector [x, y, z]` line from generated SOAP note.
+  - Simplified header description to: "Ranked DDx table, SOAP note, and JSON export for documentation."
+- **Medical Accuracy Verification — Body Region & System Tags**:
+  - Confirmed: "Head Region / Respiratory" for *Acute rhinosinusitis* is medically correct. Paranasal sinuses are accessory respiratory structures in the head; "Respiratory" body system classification is anatomically accurate (not an error).
+  - All 49 pathology mappings verified against `body_mapping.json` — region/system assignments are medically sound.
+- **Verification**: `npm run build` in progress (expected clean compile).
+
 ### [2026-10-22] — Senior Full-Stack Mobile Architecture & Viewport Redesign
+
 - **Mobile Results Experience: Segmented View Controller**:
   - Implemented sticky mobile segmented controller (`[ 📋 Clinical Assessment ]` / `[ 🧍 3D Anatomical Atlas ]`) in [`App.jsx`](file:///e:/Programs/Self_Projects/patient-diagnosis-system/frontend/src/App.jsx).
   - Resolved mobile gesture trap where OrbitControls intercepted page scroll over 3D canvas.

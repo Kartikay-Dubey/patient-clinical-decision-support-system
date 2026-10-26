@@ -40,10 +40,12 @@ const PERSONA_PROCESS_STEPS = {
 
 const PERSONA_PRESETS = {
   patient: [
-    { id: 'p1', label: 'Fever & Body Pain', rawSymptoms: 'I have mild fever from last 3 days and body pain, feeling warm and tired', category: 'Fever', tags: ['Fever', 'Body pain', 'Fatigue'] },
-    { id: 'p2', label: 'Stomach Pain After Eating', rawSymptoms: 'I have stomach pain and burning after eating meals with acid reflux', category: 'Stomach', tags: ['Stomach pain', 'Acid reflux'] },
-    { id: 'p3', label: 'Breathless on Stairs', rawSymptoms: 'I feel breathless while climbing stairs and have a mild dry cough', category: 'Breathing', tags: ['Breathlessness', 'Cough'] },
-    { id: 'p4', label: 'Frequent Headaches', rawSymptoms: 'I get headache frequently behind my forehead and eyes with sensitivity to light', category: 'Headache', tags: ['Headache', 'Photophobia'] },
+    { id: 'p1', label: 'Viral Fever & Body Aches', rawSymptoms: 'I have had a mild fever for the past 3 days along with body aches, feeling warm and tired', category: 'Viral Fever', tags: ['Fever', 'Body aches', 'Fatigue'] },
+    { id: 'p2', label: 'Common Cold & Sore Throat', rawSymptoms: 'I have a runny nose, continuous sneezing, a scratchy sore throat, and nasal congestion', category: 'Common Cold', tags: ['Runny nose', 'Sneezing', 'Sore throat'] },
+    { id: 'p3', label: 'Stomach Flu & Cramps', rawSymptoms: 'I have stomach cramps, nausea, and watery loose stools since yesterday with mild chills', category: 'Stomach Flu', tags: ['Stomach cramps', 'Nausea', 'Loose stools'] },
+    { id: 'p4', label: 'Chest Cold & Deep Cough', rawSymptoms: 'I have a persistent chesty cough with mucus and chest soreness after a recent cold', category: 'Chest Cold', tags: ['Cough', 'Chest soreness', 'Mucus'] },
+    { id: 'p5', label: 'Head Cold & Sinus Pressure', rawSymptoms: 'I have facial pressure behind my forehead and eyes with a blocked nose and throbbing headache', category: 'Sinus Pressure', tags: ['Headache', 'Facial pressure', 'Congestion'] },
+    { id: 'p6', label: 'Short of Breath on Stairs', rawSymptoms: 'I feel short of breath when climbing stairs and have a mild dry cough', category: 'Breathing', tags: ['Breathlessness', 'Dry cough'] },
   ],
   student: [
     { id: 's1', label: 'ACS Differential', rawSymptoms: 'Retrosternal crushing chest pain radiating to left jaw, diaphoresis, dyspnea on minimal exertion', category: 'Cardiology', tags: ['Substernal pain', 'Radiation', 'Diaphoresis'] },

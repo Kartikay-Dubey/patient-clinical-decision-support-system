@@ -56,8 +56,7 @@ export default function StudentResultsView({ analysisData, onView3D }) {
   const handleCopyAcademicSummary = () => {
     const summaryText = `MEDICAL STUDENT CLINICAL CASE NOTE (H&P DIFFERENTIAL)
 PATIENT ASSESSMENT: ${topCondition.name} (ICD-10: ${topCondition.icd10Code || 'N/A'})
-POSTERIOR PROBABILITY: ${topScore}% | ANATOMICAL TARGET: ${targetOrganName} (${bodyLocalization.primaryRegion || 'General'})
-SPATIAL VECTOR: [x=${bodyLocalization.coordinates?.x?.toFixed(2) || '0.00'}, y=${bodyLocalization.coordinates?.y?.toFixed(2) || '1.10'}, z=${bodyLocalization.coordinates?.z?.toFixed(2) || '0.00'}]
+POSTERIOR PROBABILITY: ${topScore}% | ANATOMICAL TARGET: ${targetOrganName} (${bodyLocalization.primaryRegion || 'General'} Region)
 
 1. CRITICAL CONDITIONS EXCLUDED:
 ${clinical.emergencyRuleOuts.map((r, i) => `  ${i + 1}. ${r.name}: ${r.exclusionCriteria}`).join('\n')}
@@ -119,9 +118,6 @@ ${clinical.roundsPearls.map((p) => `• ${p.title}: ${p.body}`).join('\n')}`;
           <div className="flex items-center gap-2 font-mono text-[11px] flex-wrap">
             <span className="text-blue-800 bg-white px-2 py-0.5 rounded border border-blue-200">
               System: {bodyLocalization.bodySystem || 'General'}
-            </span>
-            <span className="text-slate-700 font-semibold bg-white px-2 py-0.5 rounded border border-slate-200">
-              Coords: [{bodyLocalization.coordinates?.x?.toFixed(2) || '0.00'}, {bodyLocalization.coordinates?.y?.toFixed(2) || '1.10'}, {bodyLocalization.coordinates?.z?.toFixed(2) || '0.00'}]
             </span>
             {onView3D && (
               <button

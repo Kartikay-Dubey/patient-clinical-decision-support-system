@@ -97,15 +97,25 @@ export default function PatientResultsView({ analysisData, onView3D }) {
                 <Stethoscope className="h-3.5 w-3.5 text-[#10B981]" />
                 Primary Health Assessment
               </span>
+              {layman.category && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D1FAE5] text-[#065F46] text-[11px] font-semibold border border-[#A7F3D0]">
+                  {layman.category}
+                </span>
+              )}
             </div>
 
             <h3 className="text-xl sm:text-2xl font-display font-bold text-[#064E3B] tracking-tight pt-1">
               {layman.laymanTitle}
             </h3>
             
-            <p className="text-xs text-[#047857] font-medium">
-              Medical classification: <strong className="text-[#064E3B] font-semibold">{topCondition.name}</strong>
-            </p>
+            <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
+              <span className="px-2 py-0.5 rounded-md bg-[#D1FAE5] text-[#065F46] font-medium border border-[#A7F3D0]/60">
+                Everyday name: <strong className="text-[#064E3B] font-bold">{layman.plainName || layman.laymanTitle}</strong>
+              </span>
+              <span className="text-[#047857]/90">
+                Medical classification: <strong className="text-[#064E3B] font-semibold">{topCondition.name}</strong>
+              </span>
+            </div>
 
             <p className="text-xs sm:text-sm text-[#065F46]/90 leading-relaxed pt-1 max-w-xl">
               {layman.explanation || storyline.patientOverview || topCondition.explanation}
@@ -299,19 +309,29 @@ export default function PatientResultsView({ analysisData, onView3D }) {
                   The clinical model also compared your symptoms against these secondary patterns:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  {possibleConditions.slice(1, 5).map((cond, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2.5 rounded-xl bg-[#F0FDF4] border border-[#A7F3D0] flex items-center justify-between text-xs"
-                    >
-                      <div className="truncate mr-2">
-                        <span className="font-semibold text-[#064E3B] block truncate">{cond.name}</span>
+                  {possibleConditions.slice(1, 5).map((cond, idx) => {
+                    const condLayman = getConditionLaymanDetails(cond.name);
+                    return (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-xl bg-[#F0FDF4] border border-[#A7F3D0] flex items-center justify-between text-xs"
+                      >
+                        <div className="truncate mr-2">
+                          <span className="font-semibold text-[#064E3B] block truncate">
+                            {condLayman.plainName || cond.name}
+                          </span>
+                          {condLayman.plainName && condLayman.plainName !== cond.name && (
+                            <span className="text-[10px] text-[#047857]/80 block truncate">
+                              Clinical: {cond.name}
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-mono font-bold text-[#064E3B] bg-white px-2 py-0.5 rounded-md border border-[#A7F3D0] flex-shrink-0">
+                          {Math.round((cond.modelScore || 0.2) * 100)}%
+                        </span>
                       </div>
-                      <span className="font-mono font-bold text-[#064E3B] bg-white px-2 py-0.5 rounded-md border border-[#A7F3D0] flex-shrink-0">
-                        {Math.round((cond.modelScore || 0.2) * 100)}%
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
