@@ -9,7 +9,7 @@ export const MOCK_CLINICAL_PRESETS = [
     id: "preset_cough",
     label: "Persistent Cough & Throat Irritation",
     category: "Respiratory",
-    rawSymptoms: "I have had a dry cough for the last few days, with throat irritation and mild chest soreness when coughing.",
+    rawSymptoms: "I have a dry cough for the last few days, with throat irritation and mild chest soreness when coughing.",
     response: {
       status: "completed",
       timestamp: new Date().toISOString(),

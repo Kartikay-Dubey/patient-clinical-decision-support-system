@@ -90,13 +90,13 @@ export const PERSONAS = {
 
 const PersonaContext = createContext({
   persona: 'patient',
-  setPersona: () => {},
+  setPersona: () => { },
   personaConfig: PERSONAS.patient,
   hasChosenPersona: false,
-  setHasChosenPersona: () => {},
+  setHasChosenPersona: () => { },
   showExperiencePicker: false,
-  setShowExperiencePicker: () => {},
-  selectPersonaAndProceed: () => {},
+  setShowExperiencePicker: () => { },
+  selectPersonaAndProceed: () => { },
 });
 
 export function PersonaProvider({ children }) {
@@ -154,7 +154,7 @@ export function PersonaProvider({ children }) {
           setHasChosenPersonaState(val);
           try {
             localStorage.setItem('cdss_has_chosen_persona', String(val));
-          } catch (e) {}
+          } catch (e) { }
         },
         showExperiencePicker,
         setShowExperiencePicker,

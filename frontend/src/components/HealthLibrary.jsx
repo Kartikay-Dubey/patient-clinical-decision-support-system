@@ -21,7 +21,7 @@ const LIBRARY_TOPICS = [
     icon: Thermometer,
     color: 'bg-rose-50 text-rose-600 border-rose-200/80',
     hoverBorder: 'hover:border-rose-400',
-    promptText: 'I have had a mild fever for the past 2 days with body aches, feeling warm and fatigued with occasional chills.',
+    promptText: 'I have a mild fever for the past 2 days with body aches, feeling warm and fatigued with occasional chills.',
     details: {
       commonCauses: 'Common viral infections (viral fever), seasonal flu (influenza), upper respiratory infections, or mild viral bugs.',
       homeCare: 'Rest completely, stay well-hydrated with water and electrolyte solutions, wear lightweight clothing, and monitor your temperature morning and evening.',
@@ -35,7 +35,7 @@ const LIBRARY_TOPICS = [
     icon: Wind,
     color: 'bg-sky-50 text-sky-600 border-sky-200/80',
     hoverBorder: 'hover:border-sky-400',
-    promptText: 'I have had a runny nose, continuous sneezing, scratchy throat, and mild cough for the past 3 days.',
+    promptText: 'I have a runny nose, continuous sneezing, scratchy throat, and mild cough for the past 3 days.',
     details: {
       commonCauses: 'Common cold (rhinovirus), head cold, acute bronchitis (chest cold), or post-nasal drip.',
       homeCare: 'Warm honey-lemon water, steam inhalation from a shower or bowl, elevate your head while sleeping, and drink warm broths.',

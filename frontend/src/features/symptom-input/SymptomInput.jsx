@@ -40,12 +40,12 @@ const PERSONA_PROCESS_STEPS = {
 
 const PERSONA_PRESETS = {
   patient: [
-    { id: 'p1', label: 'Viral Fever & Body Aches', rawSymptoms: 'I have had a mild fever for the past 3 days along with body aches, feeling warm and tired', category: 'Viral Fever', tags: ['Fever', 'Body aches', 'Fatigue'] },
-    { id: 'p2', label: 'Common Cold & Sore Throat', rawSymptoms: 'I have a runny nose, continuous sneezing, a scratchy sore throat, and nasal congestion', category: 'Common Cold', tags: ['Runny nose', 'Sneezing', 'Sore throat'] },
-    { id: 'p3', label: 'Stomach Flu & Cramps', rawSymptoms: 'I have stomach cramps, nausea, and watery loose stools since yesterday with mild chills', category: 'Stomach Flu', tags: ['Stomach cramps', 'Nausea', 'Loose stools'] },
-    { id: 'p4', label: 'Chest Cold & Deep Cough', rawSymptoms: 'I have a persistent chesty cough with mucus and chest soreness after a recent cold', category: 'Chest Cold', tags: ['Cough', 'Chest soreness', 'Mucus'] },
-    { id: 'p5', label: 'Head Cold & Sinus Pressure', rawSymptoms: 'I have facial pressure behind my forehead and eyes with a blocked nose and throbbing headache', category: 'Sinus Pressure', tags: ['Headache', 'Facial pressure', 'Congestion'] },
-    { id: 'p6', label: 'Short of Breath on Stairs', rawSymptoms: 'I feel short of breath when climbing stairs and have a mild dry cough', category: 'Breathing', tags: ['Breathlessness', 'Dry cough'] },
+    { id: 'p1', label: 'Persistent Cough & Chest Soreness', rawSymptoms: 'I have a persistent chest cough with mucus, fever, and chest soreness', category: 'Lungs & Thorax', tags: ['Persistent cough', 'Fever', 'Chest soreness'] },
+    { id: 'p2', label: 'Sinus Pressure & Headache', rawSymptoms: 'I have facial pressure behind my forehead and eyes with a blocked nose and throbbing headache', category: 'Head & Sinuses', tags: ['Headache', 'Facial pressure', 'Congestion'] },
+    { id: 'p3', label: 'Stomach Burning & Indigestion', rawSymptoms: 'I have a burning stomach ache and sour indigestion after eating with heartburn', category: 'Stomach & Abdomen', tags: ['Stomach ache', 'Indigestion', 'Heartburn'] },
+    { id: 'p4', label: 'Hip & Groin Discomfort', rawSymptoms: 'I have deep hip pain and groin pain that gets worse when standing or walking', category: 'Pelvis & Groin', tags: ['Hip pain', 'Groin ache', 'Discomfort'] },
+    { id: 'p5', label: 'Knee Joint Stiffness & Swelling', rawSymptoms: 'I have sharp knee pain with joint stiffness and swelling after walking', category: 'Knee & Lower Limb', tags: ['Knee pain', 'Joint swelling', 'Stiffness'] },
+    { id: 'p6', label: 'Shoulder Strain & Arm Weakness', rawSymptoms: 'I have severe shoulder pain radiating down my arm with joint stiffness when lifting', category: 'Shoulder & Upper Limb', tags: ['Shoulder pain', 'Arm weakness', 'Stiffness'] },
   ],
   student: [
     { id: 's1', label: 'ACS Differential', rawSymptoms: 'Retrosternal crushing chest pain radiating to left jaw, diaphoresis, dyspnea on minimal exertion', category: 'Cardiology', tags: ['Substernal pain', 'Radiation', 'Diaphoresis'] },
@@ -186,7 +186,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
       consoleBadge: 'Guided consultation',
       queryTitle: 'What symptoms are you experiencing?',
       queryDesc: 'Include onset, location, and how it feels — that helps the model.',
-      inputPlaceholder: 'e.g. I have had a cough for the last few days, throat irritation, and a tickle when I breathe...',
+      inputPlaceholder: 'e.g. I have a persistent cough for the past few days with throat irritation and chest tightness...',
       btnLabel: 'Analyze Symptoms & Map 3D Body',
     },
     student: {

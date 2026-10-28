@@ -432,3 +432,11 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Suppress Clerk development mode banner & badge */
+.cl-developmentBadge,
+.cl-internal-dev-badge,
+[class*="developmentBadge"],
+[data-localization-key*="developmentMode"] {
+  display: none !important;
+}

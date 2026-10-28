@@ -40,6 +40,78 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-28] — Critical MP4 Container Header Repair & Zero-Latency Video Preload
+
+- **Diagnosed Video Decoding Failure (`Woman preparing medical report.mp4`)**:
+  - Binary inspection revealed corrupted MP4 track header (`tkhd`): Width was written as `0x40000000` (16,384 px) and height was `0x05dc0000` (1,500 px), while H.264 video stream is 1500x844 px.
+  - Browser video pipelines (Chrome/Edge D3D11 hardware decoders) rejected the 16K texture allocation, causing playback failure and white blank aperture.
+  - Repaired binary `tkhd` dimensions directly in both `woman_preparing_medical_report.mp4` and `Woman preparing medical report.mp4` to exact `1500 x 844` (`0x05dc0000 0x034c0000`).
+- **Fail-Safe Video Loading & Timing Buffering (`AnalysisStatus.jsx`)**:
+  - Bound direct `src="/assets/woman_preparing_medical_report.mp4"` on `<video>` tag with `onLoadedData` / `onCanPlay` state tracking.
+  - Added background pre-buffering at Step 2 (`reportVideoRef.current.load()`) so frames are decoded in GPU memory before Step 4 starts.
+  - Scanner animation stays visible until report video signals ready (`isReportPhase && hasReportLoaded`), eliminating any flash of white container.
+  - Expanded Step 4 duration to 3.2s (`STEP_TIMINGS = [1350, 1350, 1350, 1350, 3200]`).
+- **Verification**: `npm run build` passed with 0 errors in 14.15s.
+
+### [2026-10-28] — Pure Symptom Scenario Labels & Two-Phase Report Video Transition
+
+- **Preset Labels Swapped from Diseases to Pure Symptoms (`SymptomInput.jsx`)**:
+  - Removed explicit pathology references from scenario pills per user request:
+    - `Tuberculosis & Persistent Cough` &rarr; `Persistent Cough & Chest Soreness`
+    - `Acid Reflux & Stomach Burn` &rarr; `Stomach Burning & Indigestion`
+  - All 6 presets now display pure symptom descriptors while still driving accurate 3D regional focus across Thorax, Head, Abdomen, Pelvis, Lower Limb, and Upper Limb.
+- **Two-Phase Clinical Video Sequence in Analysis Screen (`AnalysisStatus.jsx`)**:
+  - **Identified & Resolved Early Step 4 Termination Bug**:
+    - Previously, `useEffect` prematurely triggered `completeSequence()` with 650ms timeout the instant `currentStep` hit 4 because `isReady` was already true from the fast API response. This killed the analysis screen before `Woman preparing medical report.mp4` could decode or play.
+    - Replaced with calibrated per-step duration scheduler (`STEP_TIMINGS = [1400, 1400, 1400, 1400, 2800]`): Steps 0–3 run for 5.6s total (Scanner video), and Step 4 explicitly runs for a full 2.8s specifically for the medical report video before completion sequence begins.
+  - **Video Source & Path Stabilization**:
+    - Created alias `woman_preparing_medical_report.mp4` to eliminate URL whitespace encoding failures.
+    - Added explicit `z-10` layer priority on active video, ensured `muted` attribute & programmatic `play()` invocation upon entering report phase.
+- **Verification**: `npm run build` passed with 0 errors in 11.43s.
+
+### [2026-10-28] — Diverse Multi-Region Everyday Scenarios, Grammar Fixes & Clerk Dev Badge Removal
+
+- **Everyday Scenarios Regional Diversification (`SymptomInput.jsx`)**:
+  - Replaced repetitive respiratory-heavy presets with 6 distinct anatomical regions mapped to BodyParts3D:
+    1. **Lungs & Thorax** (`Thorax`): *Tuberculosis & Persistent Cough* (Lungs / Pulmonary Apices)
+    2. **Head & Sinuses** (`Head`): *Sinus Pressure & Headache* (Paranasal Sinuses / Cranial)
+    3. **Stomach & Abdomen** (`Abdomen`): *Acid Reflux & Stomach Burn* (Stomach & GE Junction)
+    4. **Pelvis & Groin** (`Pelvis`): *Hip & Groin Discomfort* (Hip Joint & Femoral Head)
+    5. **Knee & Lower Limb** (`Lower Limb`): *Knee Joint Stiffness & Swelling* (Knee Joint & Patellar Complex)
+    6. **Shoulder & Upper Limb** (`Upper Limb`): *Shoulder Strain & Arm Weakness* (Shoulder Joint & Deltoid Musculature)
+- **Grammar & Phrasing Corrections (`SymptomInput.jsx`, `HealthLibrary.jsx`, `clinicalData.js`)**:
+  - Replaced unnatural "I have had..." phrasing with clean, natural clinical English:
+    - `"I have a mild fever for the past 2 days with body aches..."`
+    - `"e.g. I have a persistent cough for the past few days with throat irritation and chest tightness..."`
+    - `"I have a dry cough for the last few days, with throat irritation and mild chest soreness..."`
+- **Clerk Development Mode Badge Removal (`main.jsx`, `AuthPage.jsx`, `index.css`)**:
+  - Added `layout: { unsafe_disableDevelopmentModeWarnings: true }` to `<ClerkProvider>` and `<SignIn />` / `<SignUp />` appearance configurations.
+  - Added `elements: { developmentBadge: 'hidden' }` to Clerk component appearances.
+  - Added global stylesheet rule in `index.css` (`.cl-developmentBadge, .cl-internal-dev-badge, [class*="developmentBadge"], [data-localization-key*="developmentMode"] { display: none !important; }`).
+- **Verification**: `npm run build` compiled cleanly in 10.80s (2093 modules).
+
+### [2026-10-28] — Jargon-Free Patient Language & Natural Circular Aperture Redesign
+
+- **Fixed Odd Squircle Box & Cleaned Clutter (`AnalysisStatus.jsx`)**:
+  - Replaced awkward floating square card and middle-cutting horizontal line with a seamless, organic circular aperture (`w-44` to `w-52` soft frosted circle).
+  - Scaled animation up naturally (`w-32` to `w-38`) so it fills the aperture comfortably without boxy borders or cramped progress bars.
+  - Removed pill clutter (4 scattered corner badges) in favor of a single focused status indicator + clear plain-language feedback.
+- **Complete Technical Jargon Elimination (`AnalysisStatus.jsx`)**:
+  - Removed all intimidating ML terms: `DDXPlus ML Platform`, `1,213-D Sparse Vector`, `SGD Logit Prior`, `49 Pathologies`, `3D Calibrated Anchor`, `Semantic NLP Tokenizer`, `Bayesian distribution`.
+  - Replaced with clear, comforting patient-facing clinical language: `Clinical Health Review`, `Symptom Evaluation`, `Evidence-Based Medical Reference`, `Educational Support`.
+- **Verification**: `npm run build` passed with exit code 0 in 17.03s (2093 modules).
+
+### [2026-10-27] — Analysis State Visual Replacement: 3D Atlas to Search Video Animation
+
+- **App.jsx — Analyzing View Right Panel Updated & Quality Enhanced**:
+  - Replaced scanning 3D `<BodyViewer />` in `appState === 'analyzing'` with looping WebM animation (`search_animation.webm` / `search (1).webm`).
+  - Identified blur cause: Source WebM is 150x150 px. Scaling up to 380px caused heavy bilinear interpolation blur.
+  - Resolved blur via dedicated High-Tech Diagnostic Scanner frame:
+    - Constrained video to native 1:1 crisp scale (`w-32` to `w-38`, ~140-150px) preventing pixel stretching.
+    - Added hardware edge-sharpening: `[image-rendering:-webkit-optimize-contrast] [image-rendering:crisp-edges] contrast-[1.15] saturate-[1.1] brightness-[1.02]`.
+    - Framed inside glowing circular scanning aperture with rotating dashed reticle beacon (`animate-[spin_16s_linear_infinite]`) and telemetry badges.
+  - Interactive 3D Anatomy Atlas remains dedicated to post-analysis Results view (`appState === 'results'`).
+
 ### [2026-10-26] — Layman Disease Naming, Technician Simplification & Student Coords Removal
 
 - **Everyday Viral Disease Dictionary Expanded (`conditionLaymanMap.js`)**:

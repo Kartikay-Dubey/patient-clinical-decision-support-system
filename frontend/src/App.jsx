@@ -148,7 +148,7 @@ export default function App() {
                 </motion.div>
               )}
 
-          {/* STATE 2: ANALYZING */}
+          {/* STATE 2: ANALYZING (Unified High-Density Clinical Reasoning Suite) */}
           {appState === 'analyzing' && (
             <motion.div 
               key="analyzing"
@@ -156,23 +156,13 @@ export default function App() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.35 }}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center min-h-[70vh] py-3 sm:py-4"
+              className="w-full flex items-center justify-center min-h-[70vh] py-3 sm:py-6"
             >
-              <div className="lg:col-span-6 lg:col-start-2">
-                <AnalysisStatus
-                  onStepChange={handleStepChange}
-                  onComplete={handleAnalysisComplete}
-                  isReady={Boolean(pendingResult)}
-                />
-              </div>
-              <div className="lg:col-span-4 h-[280px] sm:h-[360px] lg:h-[460px] master-console p-2 sm:p-3 overflow-hidden">
-                <BodyViewer
-                  activeRegion={activeRegion}
-                  onSelectRegion={() => {}}
-                  showControls={false}
-                  isScanning={true}
-                />
-              </div>
+              <AnalysisStatus
+                onStepChange={handleStepChange}
+                onComplete={handleAnalysisComplete}
+                isReady={Boolean(pendingResult)}
+              />
             </motion.div>
           )}
 

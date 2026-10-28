@@ -97,12 +97,16 @@ export default function AuthPage({ isConfigured = true }) {
                     <SignIn 
                       routing="hash"
                       appearance={{
+                        layout: {
+                          unsafe_disableDevelopmentModeWarnings: true,
+                        },
                         variables: {
                           colorPrimary: '#0d9488',
                           colorText: '#1e293b',
                           borderRadius: '1.25rem',
                         },
                         elements: {
+                          developmentBadge: 'hidden',
                           card: 'shadow-xl shadow-teal-900/5 border border-border bg-white/95 backdrop-blur-xl w-full max-w-md',
                           headerTitle: 'font-display font-bold text-foreground',
                         }
@@ -121,12 +125,16 @@ export default function AuthPage({ isConfigured = true }) {
                     <SignUp 
                       routing="hash"
                       appearance={{
+                        layout: {
+                          unsafe_disableDevelopmentModeWarnings: true,
+                        },
                         variables: {
                           colorPrimary: '#0d9488',
                           colorText: '#1e293b',
                           borderRadius: '1.25rem',
                         },
                         elements: {
+                          developmentBadge: 'hidden',
                           card: 'shadow-xl shadow-teal-900/5 border border-border bg-white/95 backdrop-blur-xl w-full max-w-md',
                           headerTitle: 'font-display font-bold text-foreground',
                         }
