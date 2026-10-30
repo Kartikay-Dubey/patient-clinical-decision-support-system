@@ -40,6 +40,48 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-10-30] — Preset Scenarios Balanced Grid, 3D Atlas Persona Themes & Analysis Video Fixes
+
+- **White Screen Crash Fix (`App.jsx`)**:
+  - Destructured missing `personaConfig` from `usePersona()` hook call.
+  - Eliminated `ReferenceError: personaConfig is not defined` when transitioning to results view.
+- **Analysis Screen Report Video Overfitting & Layout Fix (`AnalysisStatus.jsx`)**:
+  - Switched `woman_preparing_medical_report.mp4` from `object-cover` to `object-contain w-[88%] h-[88%]` with organic padding — eliminates zooming and edge clipping.
+  - Removed redundant floating mini-pill inside circle aperture that blocked the illustration's bottom edge.
+  - Scaled aperture to responsive dimensions (`w-44 h-44 sm:w-52 sm:h-52`) and adjusted margin/padding (`mt-4 sm:mt-5`) so status badge and explanation text below remain 100% visible on all screen sizes.
+- **3D Anatomical Atlas Persona-Adaptive Color Scheme (`BodyViewer.jsx`, `AnatomyHUDCallout.jsx`, `App.jsx`)**:
+  - **Dynamic Canvas Background Gradient**:
+    - `patient`: Healing Emerald soft clinical wash (`radial-gradient(ellipse at 50% 40%, #FAFCFB 0%, #F0F7F4 65%, #E2EFE9 100%)`).
+    - `student`: Academic Hospital Blue wash (`radial-gradient(ellipse at 50% 40%, #FAFCFF 0%, #EFF6FF 65%, #DBEAFE 100%)`).
+    - `technician`: Diagnostic Lab Amber/Orange wash (`radial-gradient(ellipse at 50% 40%, #FFFDFB 0%, #FFF7ED 65%, #FFEDD5 100%)`).
+  - **3D HUD Reticle & Beacon Rings**: Outer pulse ping, target ring, and center micro-dot adapt dynamically (Emerald for patient, Blue for student, Orange for technician).
+  - **HUD Callout Card & Action Buttons**: Top gradient strip, primary focus badge, match percentage pill, and "Zoom & Center Target" button synchronize with active persona theme.
+  - **Viewer Overlays & Controls**: Layer checkmarks, active orientation pills (Front, 3/4, Side, Back), vertical exploration slider thumb, bottom region selector pills, and telemetry footer dots reflect persona colors.
+- **Everyday Scenarios Layout (`SymptomInput.jsx`)**:
+  - Replaced ragged `flex flex-wrap` with responsive, uniform grid (`grid-cols-2 sm:grid-cols-3 gap-1.5`).
+  - Balanced 6 distinct anatomical region presets: `Lungs` (Cough & Soreness), `Head` (Sinus Pressure & Headache), `Stomach` (Burning & Indigestion), `Breathing` (Shortness of Breath), `Throat` (Runny Nose & Sore Throat), `Shoulder` (Shoulder Strain & Arm Weakness).
+  - Stacked category tag directly above label for clean alignment across all screens.
+- **Clerk Development Mode Badge Suppression (`main.jsx`, `Header.jsx`, `AuthPage.jsx`, `index.css`)**:
+  - Added global client `MutationObserver` in `main.jsx` to dynamically intercept and hide any Clerk badge containers matching `"development mode"`.
+  - Added `unsafe_disableDevelopmentModeWarnings: true` and `elements: { userButtonPopoverFooter: 'hidden', developmentBadge: 'hidden' }` to `<UserButton>` in `Header.jsx`.
+  - Added target styles in `index.css` for `.cl-userButtonPopoverFooter`, `.cl-footerAction__development`, and `.cl-developmentBadge`.
+
+### [2026-10-28] — Critical PE False-Positive Fix & Preset Cleanup
+
+- **Root Cause Diagnosed & Fixed: "Blood Clot in Lung" False Positive (`App.jsx`)**:
+  - When `wasNormalized=true`, `App.jsx` sent backend: `"{normalized}\n\n[Original: {rawSymptoms}]"`
+  - The NLP matcher parsed **both** the normalized AND original text, doubling evidence weights (E_151 swelling × 2).
+  - This pushed `Pulmonary embolism` to top: clean input → 0.11, with `[Original:]` appended → 0.14 PE.
+  - **Fix**: Now only the normalized text is sent: `rawSymptoms: wasNormalized ? normalized : payload.rawSymptoms`
+  - `[Original:]` debug suffix permanently removed from backend payload.
+- **Preset Cleanup (`SymptomInput.jsx`)**:
+  - Removed "Hip & Groin Discomfort" per user request.
+  - Removed "Knee Joint Stiffness & Swelling" (DDXPlus lacks musculoskeletal pathologies, preset ambiguously normalized to PE symptoms by LLM).
+  - Replaced with:
+    - p4: "Shortness of Breath & Fatigue" → Thorax / Respiratory (clean DDXPlus match)
+    - p5: "Runny Nose & Sore Throat" → Head / Allergic sinusitis (37% confidence, clean)
+- **Verification**: `npm run build` passed with 0 errors in 11.53s.
+
 ### [2026-10-28] — Critical MP4 Container Header Repair & Zero-Latency Video Preload
 
 - **Diagnosed Video Decoding Failure (`Woman preparing medical report.mp4`)**:

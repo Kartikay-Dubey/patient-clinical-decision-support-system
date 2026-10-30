@@ -18,7 +18,7 @@ import ExperienceSelector from './components/ExperienceSelector';
 import { usePersona } from './context/PersonaContext';
 
 export default function App() {
-  const { persona, hasChosenPersona, showExperiencePicker, setShowExperiencePicker } = usePersona();
+  const { persona, personaConfig, hasChosenPersona, showExperiencePicker, setShowExperiencePicker } = usePersona();
   const [appState, setAppState] = useState('input'); // 'input' | 'analyzing' | 'results'
   const [mobileTab, setMobileTab] = useState('report'); // 'report' | 'anatomy'
   const [analysisData, setAnalysisData] = useState(null);
@@ -43,9 +43,11 @@ export default function App() {
       if (wasNormalized) {
         console.log('[CDSS] AI normalized input:', normalized);
       }
+      // NOTE: Only send normalized text (never append [Original:] — that causes the NLP
+      // matcher to parse symptoms twice, inflating evidence weights and triggering false top conditions)
       const enrichedPayload = {
         ...payload,
-        rawSymptoms: wasNormalized ? `${normalized}\n\n[Original: ${payload.rawSymptoms}]` : payload.rawSymptoms,
+        rawSymptoms: wasNormalized ? normalized : payload.rawSymptoms,
       };
 
       const result = await analyzeSymptoms(enrichedPayload);
@@ -215,7 +217,7 @@ export default function App() {
                 {/* Console Topbar: Region & System Info + Start Over */}
                 <div className="console-topbar px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-8 w-8 rounded-xl bg-accent text-primary flex items-center justify-center border border-primary/20 flex-shrink-0">
+                    <div className={`h-8 w-8 rounded-xl flex items-center justify-center border flex-shrink-0 ${personaConfig.badgeColor}`}>
                       <Activity className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
@@ -232,12 +234,12 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setMobileTab('report')}
-                    className="lg:hidden inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-accent px-2.5 py-1 rounded-full border border-primary/20 hover:bg-accent/80 active:scale-95 transition-all cursor-pointer font-display"
+                    className={`lg:hidden inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border active:scale-95 transition-all cursor-pointer font-display ${personaConfig.badgeColor}`}
                   >
                     <span>&larr; View Report</span>
                   </button>
 
-                  <span className="text-[11px] font-semibold text-primary bg-accent px-2.5 py-1 rounded-full border border-primary/15 hidden lg:inline font-display">
+                  <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border hidden lg:inline font-display ${personaConfig.badgeColor}`}>
                     Interactive 3D
                   </span>
                 </div>
@@ -258,7 +260,9 @@ export default function App() {
                 <div className="border-t border-border bg-white/95 px-4 py-2.5 sm:px-5 flex-shrink-0">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+                      <span className={`h-2 w-2 rounded-full animate-pulse ${
+                        persona === 'technician' ? 'bg-orange-500' : persona === 'student' ? 'bg-blue-500' : 'bg-emerald-500'
+                      }`} />
                       <span className="text-slate-500 font-medium">3D Reticle Target:</span>
                       <span className="font-semibold text-slate-800">
                         {analysisData.bodyLocalization?.targetOrgan || analysisData.bodyLocalization?.primaryRegion || 'Anatomical Anchor'}
@@ -267,11 +271,11 @@ export default function App() {
                     {persona !== 'patient' ? (
                       <div className="flex items-center gap-3 font-mono text-[11px] text-slate-500">
                         <span>Coords: [{analysisData.bodyLocalization?.coordinates?.x?.toFixed(2) || '0.00'}, {analysisData.bodyLocalization?.coordinates?.y?.toFixed(2) || '1.10'}, {analysisData.bodyLocalization?.coordinates?.z?.toFixed(2) || '0.00'}]</span>
-                        <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Calibrated</span>
+                        <span className={`px-2 py-0.5 rounded border font-semibold ${personaConfig.badgeColor}`}>Calibrated</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
-                        <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-semibold">
+                        <span className={`px-2.5 py-0.5 rounded-full border font-semibold ${personaConfig.badgeColor}`}>
                           Active Focus
                         </span>
                       </div>

@@ -40,12 +40,12 @@ const PERSONA_PROCESS_STEPS = {
 
 const PERSONA_PRESETS = {
   patient: [
-    { id: 'p1', label: 'Persistent Cough & Chest Soreness', rawSymptoms: 'I have a persistent chest cough with mucus, fever, and chest soreness', category: 'Lungs & Thorax', tags: ['Persistent cough', 'Fever', 'Chest soreness'] },
-    { id: 'p2', label: 'Sinus Pressure & Headache', rawSymptoms: 'I have facial pressure behind my forehead and eyes with a blocked nose and throbbing headache', category: 'Head & Sinuses', tags: ['Headache', 'Facial pressure', 'Congestion'] },
-    { id: 'p3', label: 'Stomach Burning & Indigestion', rawSymptoms: 'I have a burning stomach ache and sour indigestion after eating with heartburn', category: 'Stomach & Abdomen', tags: ['Stomach ache', 'Indigestion', 'Heartburn'] },
-    { id: 'p4', label: 'Hip & Groin Discomfort', rawSymptoms: 'I have deep hip pain and groin pain that gets worse when standing or walking', category: 'Pelvis & Groin', tags: ['Hip pain', 'Groin ache', 'Discomfort'] },
-    { id: 'p5', label: 'Knee Joint Stiffness & Swelling', rawSymptoms: 'I have sharp knee pain with joint stiffness and swelling after walking', category: 'Knee & Lower Limb', tags: ['Knee pain', 'Joint swelling', 'Stiffness'] },
-    { id: 'p6', label: 'Shoulder Strain & Arm Weakness', rawSymptoms: 'I have severe shoulder pain radiating down my arm with joint stiffness when lifting', category: 'Shoulder & Upper Limb', tags: ['Shoulder pain', 'Arm weakness', 'Stiffness'] },
+    { id: 'p1', label: 'Cough & Chest Soreness', rawSymptoms: 'I have a persistent chest cough with mucus, fever, and chest soreness', category: 'Lungs', tags: ['Persistent cough', 'Fever', 'Chest soreness'] },
+    { id: 'p2', label: 'Sinus Pressure & Headache', rawSymptoms: 'I have facial pressure behind my forehead and eyes with a blocked nose and throbbing headache', category: 'Head', tags: ['Headache', 'Facial pressure', 'Congestion'] },
+    { id: 'p3', label: 'Stomach Burning & Indigestion', rawSymptoms: 'I have a burning stomach ache and sour indigestion after eating with heartburn', category: 'Stomach', tags: ['Stomach ache', 'Indigestion', 'Heartburn'] },
+    { id: 'p4', label: 'Shortness of Breath & Fatigue', rawSymptoms: 'I feel short of breath when walking or climbing stairs and feel very tired and weak', category: 'Breathing', tags: ['Shortness of breath', 'Fatigue', 'Weakness'] },
+    { id: 'p5', label: 'Runny Nose & Sore Throat', rawSymptoms: 'I have a runny nose, continuous sneezing, a scratchy sore throat, and nasal congestion', category: 'Throat', tags: ['Runny nose', 'Sneezing', 'Sore throat'] },
+    { id: 'p6', label: 'Shoulder Strain & Arm Weakness', rawSymptoms: 'I have severe shoulder pain radiating down my arm with joint stiffness when lifting', category: 'Shoulder', tags: ['Shoulder pain', 'Arm weakness', 'Stiffness'] },
   ],
   student: [
     { id: 's1', label: 'ACS Differential', rawSymptoms: 'Retrosternal crushing chest pain radiating to left jaw, diaphoresis, dyspnea on minimal exertion', category: 'Cardiology', tags: ['Substernal pain', 'Radiation', 'Diaphoresis'] },
@@ -61,7 +61,7 @@ const PERSONA_PRESETS = {
   ],
 };
 
-export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null, onClearError = () => {}, externalText = '' }) {
+export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null, onClearError = () => { }, externalText = '' }) {
   const { persona, personaConfig } = usePersona();
   const currentPresets = PERSONA_PRESETS[persona] || PERSONA_PRESETS.patient;
   const processSteps = PERSONA_PROCESS_STEPS[persona] || PERSONA_PROCESS_STEPS.patient;
@@ -171,10 +171,10 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
     reduceMotion
       ? { initial: false, animate: { opacity: 1 } }
       : {
-          initial: { opacity: 0, y: 16 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] },
-        };
+        initial: { opacity: 0, y: 16 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] },
+      };
 
   const personaHeadlines = {
     patient: {
@@ -267,18 +267,16 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                 type="button"
                 key={step.n}
                 onClick={() => setActiveStep(i)}
-                className={`relative pl-8 pr-2.5 py-1.5 rounded-xl text-left border transition-colors ${
-                  activeStep === i
+                className={`relative pl-8 pr-2.5 py-1.5 rounded-xl text-left border transition-colors ${activeStep === i
                     ? 'bg-white border-primary/25 shadow-subtle'
                     : 'bg-white/50 border-transparent hover:bg-white/80'
-                }`}
+                  }`}
                 animate={activeStep === i && !reduceMotion ? { x: [0, 2, 0] } : undefined}
                 transition={{ duration: 0.45 }}
               >
                 <span
-                  className={`absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 ${
-                    activeStep === i ? 'border-teal-500 bg-teal-400' : 'border-teal-300 bg-white'
-                  }`}
+                  className={`absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 ${activeStep === i ? 'border-teal-500 bg-teal-400' : 'border-teal-300 bg-white'
+                    }`}
                 />
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold font-display text-foreground">
@@ -331,7 +329,7 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                     {persona === 'patient' ? 'Try everyday scenarios' : persona === 'student' ? 'OSCE Clinical Vignettes' : 'Clinical Telemetry Vectors'}
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {currentPresets.map((preset) => (
                     <motion.button
                       whileHover={reduceMotion ? undefined : { y: -1 }}
@@ -339,10 +337,10 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                       key={preset.id}
                       type="button"
                       onClick={() => handleSelectPreset(preset)}
-                      className="text-[11px] px-2.5 py-1 rounded-full font-medium border bg-white hover:bg-accent border-border hover:border-primary/35 text-foreground transition-colors duration-150 cursor-pointer flex items-center gap-1"
+                      className="text-[11px] px-2.5 py-1.5 rounded-lg font-medium border bg-white hover:bg-accent border-border hover:border-primary/35 text-foreground transition-colors duration-150 cursor-pointer flex flex-col items-start gap-0.5 text-left"
                     >
-                      <span className="text-[9px] text-primary font-bold">[{preset.category}]</span>
-                      {preset.label}
+                      <span className="text-[9px] text-primary font-bold leading-none">{preset.category}</span>
+                      <span className="leading-tight">{preset.label}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -421,13 +419,12 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                     <div
                       id="symptom-char-count"
                       aria-live="polite"
-                      className={`absolute bottom-1.5 right-2.5 text-[10px] font-mono tabular-nums font-semibold z-10 ${
-                        isOverLimit
+                      className={`absolute bottom-1.5 right-2.5 text-[10px] font-mono tabular-nums font-semibold z-10 ${isOverLimit
                           ? 'text-red-500 font-bold'
                           : charCount > MAX_CHARS * 0.85
-                          ? 'text-amber-600'
-                          : 'text-muted-foreground'
-                      }`}
+                            ? 'text-amber-600'
+                            : 'text-muted-foreground'
+                        }`}
                     >
                       {charCount} / {MAX_CHARS}
                     </div>
@@ -451,9 +448,8 @@ export default function SymptomInput({ onAnalyze, isLoading, errorMessage = null
                   </div>
 
                   <div
-                    className={`flex flex-wrap items-center gap-1.5 p-2 rounded-xl border border-border bg-white min-h-[36px] ${
-                      tags.length === 0 ? 'border-dashed bg-muted/40' : ''
-                    }`}
+                    className={`flex flex-wrap items-center gap-1.5 p-2 rounded-xl border border-border bg-white min-h-[36px] ${tags.length === 0 ? 'border-dashed bg-muted/40' : ''
+                      }`}
                   >
                     {tags.length === 0 && (
                       <span className="text-[11px] text-muted-foreground italic">

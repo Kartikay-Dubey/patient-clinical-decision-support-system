@@ -433,10 +433,13 @@
   scrollbar-width: none;
 }
 
-/* Suppress Clerk development mode banner & badge */
+/* Suppress Clerk development mode banner & badge across all components */
 .cl-developmentBadge,
 .cl-internal-dev-badge,
 [class*="developmentBadge"],
-[data-localization-key*="developmentMode"] {
+[data-localization-key*="developmentMode"],
+.cl-userButtonPopoverFooter,
+.cl-footerAction__development,
+.cl-footerAction--development {
   display: none !important;
 }

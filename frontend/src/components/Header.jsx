@@ -89,8 +89,13 @@ export default function Header({ onReset, appState = 'input' }) {
               <div className="ml-0.5 flex items-center p-0.5 rounded-full border border-slate-200 bg-white shadow-2xs">
                 <UserButton
                   appearance={{
+                    layout: {
+                      unsafe_disableDevelopmentModeWarnings: true,
+                    },
                     elements: {
-                      avatarBox: 'w-7 h-7 rounded-full'
+                      avatarBox: 'w-7 h-7 rounded-full',
+                      userButtonPopoverFooter: 'hidden',
+                      developmentBadge: 'hidden',
                     }
                   }}
                 />

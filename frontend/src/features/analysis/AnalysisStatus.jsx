@@ -299,16 +299,16 @@ export default function AnalysisStatus({ onStepChange, onComplete, isReady = fal
         </div>
 
         {/* Right Column: Clean, Elegant Biometric Health Visualizer */}
-        <div className="lg:col-span-6 p-6 sm:p-8 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-50/60 via-teal-50/20 to-cyan-50/30">
+        <div className="lg:col-span-6 p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center relative bg-gradient-to-br from-slate-50/60 via-teal-50/20 to-cyan-50/30">
           
           {/* Subtle Ambient Background Aura (Soft, Natural Gradient — No Harsh Lines) */}
           <div className="absolute w-72 h-72 sm:w-80 sm:h-80 rounded-full bg-gradient-to-tr from-teal-100/40 via-emerald-100/20 to-cyan-100/30 blur-2xl pointer-events-none" />
 
-          {/* Central Circular Radiant Pod (Eliminates Odd Squircle Box) */}
-          <div className="relative z-10 flex flex-col items-center">
+          {/* Central Circular Radiant Pod */}
+          <div className="relative z-10 flex flex-col items-center w-full">
             
             {/* Soft Organic Circular Aperture with Two-Phase Clinical Animation */}
-            <div className="relative flex items-center justify-center w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-white/95 backdrop-blur-sm border border-teal-100/90 shadow-md overflow-hidden">
+            <div className="relative flex items-center justify-center w-44 h-44 sm:w-52 sm:h-52 rounded-full bg-white/95 backdrop-blur-sm border border-teal-100/90 shadow-md overflow-hidden flex-shrink-0">
               {/* Gentle Respiratory Halo Ring */}
               <div className={`absolute -inset-2 rounded-full border transition-all duration-700 pointer-events-none ${
                 isReportPhase 
@@ -323,7 +323,7 @@ export default function AnalysisStatus({ onStepChange, onComplete, isReady = fal
                 loop
                 muted
                 playsInline
-                className={`absolute inset-0 m-auto w-32 h-32 sm:w-38 sm:h-38 object-contain pointer-events-none select-none transition-all duration-700 ease-in-out ${
+                className={`absolute inset-0 m-auto w-32 h-32 sm:w-36 sm:h-36 object-contain pointer-events-none select-none transition-all duration-700 ease-in-out ${
                   isReportPhase && hasReportLoaded 
                     ? 'opacity-0 scale-90 pointer-events-none z-0' 
                     : 'opacity-100 scale-100 z-10'
@@ -344,37 +344,26 @@ export default function AnalysisStatus({ onStepChange, onComplete, isReady = fal
                 preload="auto"
                 onLoadedData={() => setHasReportLoaded(true)}
                 onCanPlay={() => setHasReportLoaded(true)}
-                className={`absolute inset-0 w-full h-full object-cover rounded-full pointer-events-none select-none transition-all duration-700 ease-in-out ${
+                className={`absolute inset-0 m-auto w-[88%] h-[88%] object-contain pointer-events-none select-none transition-all duration-700 ease-in-out ${
                   isReportPhase 
                     ? 'opacity-100 scale-100 z-10' 
-                    : 'opacity-0 scale-105 pointer-events-none z-0'
+                    : 'opacity-0 scale-95 pointer-events-none z-0'
                 }`}
               >
                 <source src="/assets/woman_preparing_medical_report.mp4" type="video/mp4" />
                 <source src="/assets/Woman%20preparing%20medical%20report.mp4" type="video/mp4" />
                 <source src="/assets/Woman preparing medical report.mp4" type="video/mp4" />
               </video>
-
-              {/* Mini Phase Indicator Pill Floating at Base of Lens */}
-              <div className="absolute bottom-2.5 z-20 pointer-events-none">
-                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md shadow-xs transition-all duration-500 ${
-                  isReportPhase
-                    ? 'bg-emerald-600/90 text-white border border-emerald-400/50'
-                    : 'bg-slate-900/70 text-teal-200 border border-teal-500/30'
-                }`}>
-                  {isReportPhase ? 'Preparing Report' : 'Evidence Scan'}
-                </span>
-              </div>
             </div>
 
             {/* Focused Clinical Status Badge & Explanation Below */}
-            <div className="mt-6 flex flex-col items-center text-center gap-2">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50/90 text-teal-800 border border-teal-200/70 shadow-2xs font-display text-xs font-bold uppercase tracking-wider">
+            <div className="mt-4 sm:mt-5 flex flex-col items-center text-center gap-1.5 w-full px-2">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-50/90 text-teal-800 border border-teal-200/70 shadow-2xs font-display text-xs font-bold uppercase tracking-wider">
                 <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
                 <span>{STEP_SUBTITLES[currentStep] || 'Evaluating Symptoms'}</span>
               </div>
 
-              <p className="text-xs sm:text-[13px] text-muted-foreground font-medium max-w-[280px] leading-relaxed">
+              <p className="text-xs sm:text-[13px] text-muted-foreground font-medium max-w-[320px] leading-relaxed">
                 {STEP_EXPLANATIONS[currentStep] || 'Carefully organizing insights for your clinical summary'}
               </p>
             </div>

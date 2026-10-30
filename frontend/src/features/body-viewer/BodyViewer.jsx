@@ -15,8 +15,51 @@ import {
   REGION_ANCHORS,
 } from './anatomyAtlas';
 import AnatomyHUDCallout from './AnatomyHUDCallout';
+import { usePersona } from '../../context/PersonaContext';
 
 const ATLAS_JSON_PATH = '/models/atlas.json';
+
+const PERSONA_CANVAS_THEMES = {
+  patient: {
+    gradient: 'radial-gradient(ellipse at 50% 40%, #FAFCFB 0%, #F0F7F4 65%, #E2EFE9 100%)',
+    fullscreenBg: 'bg-[#FAFCFB]',
+    activePill: 'bg-emerald-600 text-white shadow-xs',
+    activeLayer: 'bg-emerald-50 text-emerald-950 border-emerald-300 shadow-subtle',
+    layerCheck: 'text-emerald-600',
+    sliderThumb: 'bg-emerald-600',
+    interactiveIcon: 'text-emerald-600',
+    pulseDot: 'bg-emerald-500',
+    focusText: 'text-emerald-700',
+    loadingBar: 'bg-emerald-600',
+    loadingSpinner: 'text-emerald-600',
+  },
+  student: {
+    gradient: 'radial-gradient(ellipse at 50% 40%, #FAFCFF 0%, #EFF6FF 65%, #DBEAFE 100%)',
+    fullscreenBg: 'bg-[#FAFCFF]',
+    activePill: 'bg-blue-600 text-white shadow-xs',
+    activeLayer: 'bg-blue-50 text-blue-950 border-blue-300 shadow-subtle',
+    layerCheck: 'text-blue-600',
+    sliderThumb: 'bg-blue-600',
+    interactiveIcon: 'text-blue-600',
+    pulseDot: 'bg-blue-500',
+    focusText: 'text-blue-700',
+    loadingBar: 'bg-blue-600',
+    loadingSpinner: 'text-blue-600',
+  },
+  technician: {
+    gradient: 'radial-gradient(ellipse at 50% 40%, #FFFDFB 0%, #FFF7ED 65%, #FFEDD5 100%)',
+    fullscreenBg: 'bg-[#FFFDFB]',
+    activePill: 'bg-orange-600 text-white shadow-xs',
+    activeLayer: 'bg-orange-50 text-orange-950 border-orange-300 shadow-subtle',
+    layerCheck: 'text-orange-600',
+    sliderThumb: 'bg-orange-600',
+    interactiveIcon: 'text-orange-600',
+    pulseDot: 'bg-orange-500',
+    focusText: 'text-orange-700',
+    loadingBar: 'bg-orange-600',
+    loadingSpinner: 'text-orange-600',
+  },
+};
 
 // Vertical exploration bounds in 3D world space (Head down to Lower Extremities)
 const MIN_ELEVATION_Y = 0.42; // Lower extremity / Femoral level
@@ -34,6 +77,8 @@ export default function BodyViewer({
   modelScore = null,
   confidenceCategory = null,
 }) {
+  const { persona } = usePersona();
+  const canvasTheme = PERSONA_CANVAS_THEMES[persona] || PERSONA_CANVAS_THEMES.patient;
   const containerRef = useRef(null);
   const viewerWrapperRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -1175,7 +1220,7 @@ export default function BodyViewer({
   return (
     <div
       ref={viewerWrapperRef}
-      className={`flex flex-col h-full w-full relative select-none ${isFullscreen ? 'fixed inset-0 z-[9999] bg-[#FAFCFB] p-4' : ''} ${className}`}
+      className={`flex flex-col h-full w-full relative select-none ${isFullscreen ? `fixed inset-0 z-[9999] ${canvasTheme.fullscreenBg} p-4` : ''} ${className}`}
     >
       {/* ── Top Floating Bar: Vertical Layers (Left) & View Orientation + Fullscreen (Right) ──────────── */}
       {showControls && !isScanning && !isLoading && (
@@ -1184,7 +1229,7 @@ export default function BodyViewer({
           {/* Desktop: Vertical Layer Visibility Stack */}
           <div className="pointer-events-auto hidden sm:flex flex-col gap-1.5 bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-border shadow-xs">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground px-1 pb-0.5 border-b border-border/60 font-display">
-              <Layers className="h-3 w-3 text-primary" />
+              <Layers className={`h-3 w-3 ${canvasTheme.interactiveIcon}`} />
               <span>Layers</span>
             </div>
 
@@ -1197,7 +1242,7 @@ export default function BodyViewer({
                     onClick={() => toggleLayer(id)}
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl transition-all cursor-pointer font-semibold flex items-center justify-between gap-2 border ${
                       isActive
-                        ? 'bg-accent text-foreground border-primary/25 shadow-subtle'
+                        ? canvasTheme.activeLayer
                         : 'bg-white text-muted-foreground border-border hover:text-foreground hover:bg-muted/60'
                     }`}
                     title={`Toggle ${label} visibility`}
@@ -1212,7 +1257,7 @@ export default function BodyViewer({
                       />
                       <span>{label}</span>
                     </div>
-                    {isActive && <Check className="h-2.5 w-2.5 text-primary" />}
+                    {isActive && <Check className={`h-2.5 w-2.5 ${canvasTheme.layerCheck}`} />}
                   </button>
                 );
               })}
@@ -1225,7 +1270,7 @@ export default function BodyViewer({
               onClick={() => setMobileLayersOpen((v) => !v)}
               className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-full border shadow-xs backdrop-blur-md transition-all cursor-pointer ${
                 mobileLayersOpen
-                  ? 'bg-primary text-primary-foreground border-primary'
+                  ? `${canvasTheme.activePill} border-transparent`
                   : 'bg-white/95 text-foreground border-border'
               }`}
               title="Toggle Layer Filters"
@@ -1245,7 +1290,7 @@ export default function BodyViewer({
                       onClick={() => toggleLayer(id)}
                       className={`text-[10px] px-2 py-1.5 rounded-xl transition-all cursor-pointer font-semibold flex items-center justify-between gap-2 border ${
                         isActive
-                          ? 'bg-accent text-foreground border-primary/25'
+                          ? canvasTheme.activeLayer
                           : 'bg-white text-muted-foreground border-border hover:text-foreground'
                       }`}
                     >
@@ -1259,7 +1304,7 @@ export default function BodyViewer({
                         />
                         <span>{label}</span>
                       </div>
-                      {isActive && <Check className="h-2.5 w-2.5 text-primary" />}
+                      {isActive && <Check className={`h-2.5 w-2.5 ${canvasTheme.layerCheck}`} />}
                     </button>
                   );
                 })}
@@ -1281,7 +1326,7 @@ export default function BodyViewer({
                 onClick={() => handleViewChange(id)}
                 className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full transition-all cursor-pointer font-semibold ${
                   currentView === id
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? canvasTheme.activePill
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
@@ -1313,8 +1358,7 @@ export default function BodyViewer({
       <div
         className="w-full flex-1 relative rounded-2xl overflow-hidden border border-border"
         style={{
-          background:
-            'radial-gradient(ellipse at 50% 40%, #FAFCFB 0%, #F0F7F4 65%, #E2EFE9 100%)',
+          background: canvasTheme.gradient,
           minHeight: '360px',
         }}
       >
@@ -1325,9 +1369,9 @@ export default function BodyViewer({
         {isLoading && (
           <div className="absolute inset-0 bg-background/85 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-20">
             <div className="relative">
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <Loader2 className={`h-8 w-8 ${canvasTheme.loadingSpinner} animate-spin`} />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Activity className="h-3.5 w-3.5 text-primary" />
+                <Activity className={`h-3.5 w-3.5 ${canvasTheme.loadingSpinner}`} />
               </div>
             </div>
             <div className="flex flex-col items-center gap-1.5 text-center">
@@ -1336,7 +1380,7 @@ export default function BodyViewer({
               </span>
               <div className="w-48 bg-muted h-1.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-primary h-full transition-all duration-200 rounded-full"
+                  className={`${canvasTheme.loadingBar} h-full transition-all duration-200 rounded-full`}
                   style={{ width: `${loadingProgress}%` }}
                 />
               </div>
@@ -1427,7 +1471,7 @@ export default function BodyViewer({
                 {/* Draggable Slider Thumb */}
                 <div
                   ref={verticalThumbRef}
-                  className="absolute left-1/2 -translate-x-1/2 w-4 h-5 sm:w-4.5 sm:h-6 rounded-full bg-primary shadow-xs border border-white/80 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-105"
+                  className={`absolute left-1/2 -translate-x-1/2 w-4 h-5 sm:w-4.5 sm:h-6 rounded-full ${canvasTheme.sliderThumb} shadow-xs border border-white/80 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-105`}
                   style={{ bottom: '50%', transform: 'translate(-50%, 50%)' }}
                 >
                   <div className="flex flex-col gap-0.5">
@@ -1474,8 +1518,8 @@ export default function BodyViewer({
                 <Eye className="h-3.5 w-3.5 text-muted-foreground" /> Drag · Scroll
               </span>
               <span className="text-border">·</span>
-              <span className="flex items-center gap-1 text-primary font-semibold">
-                <Focus className="h-3.5 w-3.5 text-primary" /> Auto-Focus
+              <span className={`flex items-center gap-1 font-semibold ${canvasTheme.focusText}`}>
+                <Focus className={`h-3.5 w-3.5 ${canvasTheme.interactiveIcon}`} /> Auto-Focus
               </span>
             </div>
 
@@ -1488,7 +1532,7 @@ export default function BodyViewer({
                 onClick={() => handleRegionClick('All')}
                 className={`text-[10px] px-2.5 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1 font-semibold flex-shrink-0 whitespace-nowrap ${
                   selectedRegion === 'All' || selectedRegion === 'Full Body'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? canvasTheme.activePill
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
@@ -1505,14 +1549,14 @@ export default function BodyViewer({
                       onClick={() => handleRegionClick(reg)}
                       className={`text-[10px] px-2.5 py-1 sm:py-1.5 rounded-full transition-all cursor-pointer font-semibold flex-shrink-0 whitespace-nowrap flex items-center gap-1 ${
                         isSelected
-                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          ? canvasTheme.activePill
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                       }`}
                     >
                       {isClinicalFocus && (
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            isSelected ? 'bg-white animate-pulse' : 'bg-primary'
+                            isSelected ? 'bg-white animate-pulse' : canvasTheme.pulseDot
                           }`}
                         />
                       )}

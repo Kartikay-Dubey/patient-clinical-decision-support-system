@@ -3,6 +3,93 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, Focus, Crosshair, X, ChevronRight, GripHorizontal } from 'lucide-react';
 import { usePersona } from '../../context/PersonaContext';
 
+const PERSONA_HUD_THEMES = {
+  patient: {
+    reticlePing: 'rgba(16, 185, 129, 0.40)',
+    reticleRingBg: 'rgba(16, 185, 129, 0.12)',
+    reticleRingBorder: 'rgba(16, 185, 129, 0.95)',
+    reticleShadow: 'rgba(16, 185, 129, 0.35)',
+    reticleDot: '#10b981',
+    topBarGradient: 'linear-gradient(90deg, #10b981, #34d399, #06b6d4)',
+    cardBorder: '1px solid rgba(16, 185, 129, 0.25)',
+    cardGlow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 10px rgba(16, 185, 129, 0.15)',
+    gripBorder: '1px solid rgba(16, 185, 129, 0.15)',
+    gripColor: '#34d399',
+    badgeBg: 'rgba(16, 185, 129, 0.10)',
+    badgeColor: '#059669',
+    badgeBorder: '1px solid rgba(16, 185, 129, 0.28)',
+    badgeDot: '#10b981',
+    iconColor: '#10b981',
+    regionColor: '#059669',
+    stripBg: 'rgba(16, 185, 129, 0.07)',
+    stripBorder: '1px solid rgba(16, 185, 129, 0.16)',
+    scoreBg: 'rgba(16, 185, 129, 0.15)',
+    scoreColor: '#059669',
+    scoreBorder: '1px solid rgba(16, 185, 129, 0.30)',
+    btnBg: '#10b981',
+    btnHover: '#059669',
+    btnShadow: '0 2px 8px rgba(16, 185, 129, 0.35)',
+    pillBorder: '1px solid rgba(16, 185, 129, 0.38)',
+    pillColor: '#059669',
+  },
+  student: {
+    reticlePing: 'rgba(37, 99, 235, 0.40)',
+    reticleRingBg: 'rgba(37, 99, 235, 0.12)',
+    reticleRingBorder: 'rgba(37, 99, 235, 0.95)',
+    reticleShadow: 'rgba(37, 99, 235, 0.35)',
+    reticleDot: '#2563eb',
+    topBarGradient: 'linear-gradient(90deg, #2563eb, #60a5fa, #38bdf8)',
+    cardBorder: '1px solid rgba(37, 99, 235, 0.25)',
+    cardGlow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 10px rgba(37, 99, 235, 0.15)',
+    gripBorder: '1px solid rgba(37, 99, 235, 0.15)',
+    gripColor: '#60a5fa',
+    badgeBg: 'rgba(37, 99, 235, 0.10)',
+    badgeColor: '#1d4ed8',
+    badgeBorder: '1px solid rgba(37, 99, 235, 0.28)',
+    badgeDot: '#2563eb',
+    iconColor: '#2563eb',
+    regionColor: '#1d4ed8',
+    stripBg: 'rgba(37, 99, 235, 0.07)',
+    stripBorder: '1px solid rgba(37, 99, 235, 0.16)',
+    scoreBg: 'rgba(37, 99, 235, 0.15)',
+    scoreColor: '#1d4ed8',
+    scoreBorder: '1px solid rgba(37, 99, 235, 0.30)',
+    btnBg: '#2563eb',
+    btnHover: '#1d4ed8',
+    btnShadow: '0 2px 8px rgba(37, 99, 235, 0.35)',
+    pillBorder: '1px solid rgba(37, 99, 235, 0.38)',
+    pillColor: '#1d4ed8',
+  },
+  technician: {
+    reticlePing: 'rgba(234, 88, 12, 0.40)',
+    reticleRingBg: 'rgba(234, 88, 12, 0.12)',
+    reticleRingBorder: 'rgba(234, 88, 12, 0.95)',
+    reticleShadow: 'rgba(234, 88, 12, 0.35)',
+    reticleDot: '#ea580c',
+    topBarGradient: 'linear-gradient(90deg, #ea580c, #fb923c, #f59e0b)',
+    cardBorder: '1px solid rgba(234, 88, 12, 0.25)',
+    cardGlow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 10px rgba(234, 88, 12, 0.15)',
+    gripBorder: '1px solid rgba(234, 88, 12, 0.15)',
+    gripColor: '#fb923c',
+    badgeBg: 'rgba(234, 88, 12, 0.10)',
+    badgeColor: '#c2410c',
+    badgeBorder: '1px solid rgba(234, 88, 12, 0.28)',
+    badgeDot: '#ea580c',
+    iconColor: '#ea580c',
+    regionColor: '#c2410c',
+    stripBg: 'rgba(234, 88, 12, 0.07)',
+    stripBorder: '1px solid rgba(234, 88, 12, 0.16)',
+    scoreBg: 'rgba(234, 88, 12, 0.15)',
+    scoreColor: '#c2410c',
+    scoreBorder: '1px solid rgba(234, 88, 12, 0.30)',
+    btnBg: '#ea580c',
+    btnHover: '#c2410c',
+    btnShadow: '0 2px 8px rgba(234, 88, 12, 0.35)',
+    pillBorder: '1px solid rgba(234, 88, 12, 0.38)',
+    pillColor: '#c2410c',
+  },
+};
+
 /**
  * AnatomyHUDCallout — Medical Targeting Reticle + Floating Info Panel
  *
@@ -22,6 +109,7 @@ export default function AnatomyHUDCallout({
   isHoveringPart = false,
 }) {
   const { persona } = usePersona();
+  const theme = PERSONA_HUD_THEMES[persona] || PERSONA_HUD_THEMES.patient;
   const [isMinimized, setIsMinimized] = useState(false);
   // Drag state — offset from the auto-position
   const [dragOffset, setDragOffset] = useState({ dx: 0, dy: 0 });
@@ -177,7 +265,7 @@ export default function AnatomyHUDCallout({
         <div
           className="absolute -inset-2 rounded-full animate-ping pointer-events-none"
           style={{
-            border: '1px solid rgba(16,185,129,0.35)',
+            border: `1px solid ${theme.reticlePing}`,
             animationDuration: '2.6s',
           }}
         />
@@ -188,9 +276,9 @@ export default function AnatomyHUDCallout({
           style={{
             width: 20,
             height: 20,
-            background: 'rgba(16,185,129,0.12)',
-            border: '1.5px solid rgba(16,185,129,0.95)',
-            boxShadow: '0 0 10px rgba(16,185,129,0.35)',
+            background: theme.reticleRingBg,
+            border: `1.5px solid ${theme.reticleRingBorder}`,
+            boxShadow: `0 0 10px ${theme.reticleShadow}`,
           }}
         >
           {/* Crisp center micro-dot */}
@@ -199,8 +287,8 @@ export default function AnatomyHUDCallout({
             style={{
               width: 5,
               height: 5,
-              background: '#10b981',
-              boxShadow: '0 0 4px #10b981',
+              background: theme.reticleDot,
+              boxShadow: `0 0 4px ${theme.reticleDot}`,
             }}
           />
         </div>
@@ -230,25 +318,25 @@ export default function AnatomyHUDCallout({
               style={{
                 background: 'rgba(255,255,255,0.92)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(16,185,129,0.25)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(16,185,129,0.10)',
+                border: theme.cardBorder,
+                boxShadow: theme.cardGlow,
               }}
             >
               {/* Top accent bar */}
               <div
                 className="absolute top-0 left-0 right-0"
-                style={{ height: 3, background: 'linear-gradient(90deg, #10b981, #34d399, #06b6d4)' }}
+                style={{ height: 3, background: theme.topBarGradient }}
               />
 
               {/* Drag handle */}
               <div
                 className="flex items-center justify-center py-1.5 cursor-grab active:cursor-grabbing select-none"
-                style={{ borderBottom: '1px solid rgba(16,185,129,0.12)', touchAction: 'none' }}
+                style={{ borderBottom: theme.gripBorder, touchAction: 'none' }}
                 onMouseDown={onMouseDown}
                 onTouchStart={onTouchStart}
                 title="Drag to reposition"
               >
-                <GripHorizontal className="h-3.5 w-3.5 text-emerald-400 opacity-70" />
+                <GripHorizontal className="h-3.5 w-3.5 opacity-70" style={{ color: theme.gripColor }} />
               </div>
 
               <div className="px-3 pb-3 pt-2 flex flex-col gap-2">
@@ -258,14 +346,14 @@ export default function AnatomyHUDCallout({
                   <span
                     className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase"
                     style={{
-                      background: 'rgba(16,185,129,0.10)',
-                      color: '#059669',
-                      border: '1px solid rgba(16,185,129,0.28)',
+                      background: theme.badgeBg,
+                      color: theme.badgeColor,
+                      border: theme.badgeBorder,
                     }}
                   >
                     <span
                       className="animate-pulse rounded-full"
-                      style={{ width: 6, height: 6, background: '#10b981', display:'inline-block' }}
+                      style={{ width: 6, height: 6, background: theme.badgeDot, display:'inline-block' }}
                     />
                     Primary Focus
                   </span>
@@ -276,8 +364,8 @@ export default function AnatomyHUDCallout({
                       onClick={onFocusRegion}
                       className="p-1 rounded-lg transition-colors cursor-pointer"
                       style={{ color: '#94a3b8' }}
-                      onMouseEnter={e => e.currentTarget.style.background='rgba(16,185,129,0.12)'}
-                      onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                      onMouseEnter={e => e.currentTarget.style.background = theme.badgeBg}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       title="Re-center camera"
                     >
                       <Focus className="h-3 w-3" />
@@ -299,11 +387,11 @@ export default function AnatomyHUDCallout({
                 {/* Organ / region title */}
                 <div className="flex flex-col gap-0.5">
                   <h4 className="text-[11.5px] font-bold flex items-center gap-1.5 truncate leading-snug" style={{ color:'#0f172a' }}>
-                    <Activity className="h-3 w-3 flex-shrink-0" style={{ color:'#10b981' }} />
+                    <Activity className="h-3 w-3 flex-shrink-0" style={{ color: theme.iconColor }} />
                     <span className="truncate">{targetOrgan}</span>
                   </h4>
                   <div className="flex items-center gap-1 text-[9px] font-medium flex-wrap" style={{ color:'#64748b' }}>
-                    <span className="font-semibold" style={{ color:'#059669' }}>{region}</span>
+                    <span className="font-semibold" style={{ color: theme.regionColor }}>{region}</span>
                     <span>•</span>
                     <span className="truncate">{bodySystem}</span>
                   </div>
@@ -314,8 +402,8 @@ export default function AnatomyHUDCallout({
                   <div
                     className="rounded-xl px-2 py-1.5 flex items-center justify-between gap-1"
                     style={{
-                      background: 'rgba(16,185,129,0.07)',
-                      border: '1px solid rgba(16,185,129,0.16)',
+                      background: theme.stripBg,
+                      border: theme.stripBorder,
                     }}
                   >
                     <div className="flex flex-col min-w-0">
@@ -332,9 +420,9 @@ export default function AnatomyHUDCallout({
                       <span
                         className="px-1.5 py-0.5 rounded-md font-bold text-[9px] flex-shrink-0"
                         style={{
-                          background:'rgba(16,185,129,0.15)',
-                          color:'#059669',
-                          border:'1px solid rgba(16,185,129,0.30)',
+                          background: theme.scoreBg,
+                          color: theme.scoreColor,
+                          border: theme.scoreBorder,
                         }}
                       >
                         {modelScore}%
@@ -349,12 +437,12 @@ export default function AnatomyHUDCallout({
                   onClick={onFocusRegion}
                   className="w-full flex items-center justify-center gap-1.5 text-[9.5px] font-semibold py-1.5 px-2 rounded-xl transition-all cursor-pointer"
                   style={{
-                    background: '#10b981',
+                    background: theme.btnBg,
                     color: 'white',
-                    boxShadow: '0 2px 8px rgba(16,185,129,0.35)',
+                    boxShadow: theme.btnShadow,
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background='#059669'}
-                  onMouseLeave={e => e.currentTarget.style.background='#10b981'}
+                  onMouseEnter={e => e.currentTarget.style.background = theme.btnHover}
+                  onMouseLeave={e => e.currentTarget.style.background = theme.btnBg}
                 >
                   <Focus className="h-2.5 w-2.5" />
                   Zoom & Center Target
@@ -376,12 +464,12 @@ export default function AnatomyHUDCallout({
               top: cardTop,
               background: 'rgba(255,255,255,0.90)',
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(16,185,129,0.38)',
+              border: theme.pillBorder,
               boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-              color: '#059669',
+              color: theme.pillColor,
             }}
           >
-            <Crosshair className="h-3 w-3 animate-pulse" style={{ color:'#10b981' }} />
+            <Crosshair className="h-3 w-3 animate-pulse" style={{ color: theme.reticleDot }} />
             <span className="truncate max-w-[140px]">{targetOrgan}</span>
             <ChevronRight className="h-2.5 w-2.5" style={{ color:'#94a3b8' }} />
           </motion.button>
