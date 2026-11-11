@@ -106,7 +106,7 @@ export default function App() {
         <AuthPage isConfigured={true} />
       </Show>
       <Show when="signed-in">
-        <div className="min-h-screen lg:h-screen lg:max-h-screen flex flex-col font-sans relative overflow-x-hidden lg:overflow-hidden">
+        <div className="min-h-screen lg:h-screen lg:max-h-screen flex flex-col font-sans relative overflow-x-hidden lg:overflow-hidden bg-transparent">
       {appState === 'input' && <LandingBackdrop />}
 
       <Header 
@@ -307,10 +307,10 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <footer className="relative z-10 py-1.5 px-4 text-center text-xs text-muted-foreground font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-4 flex-shrink-0 border-t border-border/60 bg-white/40 backdrop-blur-md">
-        <span className="font-display font-semibold text-foreground text-[10px]">Patient Clinical Decision Support System &copy; 2026</span>
-        <span className="text-[10px] hidden sm:inline">&bull;</span>
-        <span className="text-[10px]">Evidence-based clinical assistance platform</span>
+      <footer className="relative z-10 py-1.5 px-4 text-center text-[11px] text-muted-foreground flex items-center justify-center gap-2 flex-shrink-0 border-t border-border/60 bg-white/40 backdrop-blur-md">
+        <span>&copy; 2026 Patient CDSS</span>
+        <span>&bull;</span>
+        <span>Not a substitute for professional medical advice</span>
       </footer>
 
       {/* Clinical Layman Copilot Drawer */}
@@ -324,11 +324,13 @@ export default function App() {
         }}
       />
 
-      {/* Dynamic Floating Action Button */}
-      <ChatbotFab 
-        onClick={() => setIsAssistantOpen(true)} 
-        isOpen={isAssistantOpen} 
-      />
+      {/* Dynamic Floating Action Button - deferred to results page */}
+      {(appState === 'results' || isAssistantOpen) && (
+        <ChatbotFab 
+          onClick={() => setIsAssistantOpen(true)} 
+          isOpen={isAssistantOpen} 
+        />
+      )}
 
       {/* Experience Selector Modal (can be triggered anytime from Switch Mode) */}
       {showExperiencePicker && (

@@ -40,6 +40,42 @@
 
 ## 3. Recent Activity & Change Log
 
+### [2026-11-05] — Landing Page Cellular & Molecular Drift Background Animation
+
+- **Cellular & Molecular Microscopic Stage Backdrop (`LandingBackdrop.jsx`, `index.css`)**:
+  - Replaced invisible blurred circles with visible 3-layer biological visualization.
+  - **Layer 1: Deep Cytoplasm Glows**: 3 large ambient illumination orbs with slow organic pulsing (`animate-pulse-slow`).
+  - **Layer 2: Living Cellular Bodies**: 8 floating translucent cells with distinct membranes (`border-teal-500/35`, `border-cyan-500/40`), inner concentric membrane rings, cytoplasm gradients, and luminous nuclei (`nucleusColor`).
+  - **Layer 3: Micro-Molecular Structures**: 4 diatomic molecular bond pairs with atom nodes and connecting covalent lines drifting and orbiting (`molecular-drift-anim`).
+  - Added smooth CSS keyframe paths (`cell-float`, `molecule-orbit`) with reduced motion fallback.
+  - Transparent wrapper styling ensures backdrop renders behind centered intake card across screen.
+- **Verification**:
+  - Executed `npm run build` in `frontend/` — passed with exit code 0 (2090 modules transformed).
+
+### [2026-11-03] — Symptom Input Landing Page UI/UX Redesign & De-Cluttering
+
+- **Single-Column Centered Intake Experience (`SymptomInput.jsx`)**:
+  - Replaced split 5:7 sidebar-console grid (`grid-cols-12`) with centered, focused layout (`max-w-2xl mx-auto`).
+  - Removed high-density left sidebar containing technical telemetry steps, duplicate badges, and animated anatomy pulse from patient intake.
+  - Replaced technical headlines with warm, calm persona-aware titles ("Describe how you're feeling." / "Tell us your symptoms in everyday words...").
+  - Stripped console chrome topbar (ping dots, duplicate titles, "Guided consultation" links).
+- **Streamlined Example Presets & Textarea**:
+  - Transformed bulky scenario boxes into a single horizontal scrolling pill strip (`Try an example:`).
+  - Cleaned up preset labels by removing artificial category brackets and tags (`Lungs & Thorax`, `Head & Sinuses`).
+  - Removed "Shift + Enter for a new line" instruction clutter.
+  - Character counter made dynamic: displays only when text exists (`charCount > 0`).
+- **Tagging & Action Simplification**:
+  - Auto-detected indicator pills styled cleanly in subtle teal badges with dismiss buttons.
+  - Removed manual custom indicator text input field to streamline user interaction.
+  - Renamed primary call to action to human-centered label ("Check My Symptoms" for patients, "Analyze Case" for students, "Run Triage Analysis" for technicians).
+  - Folded bottom Health Library into a subtle, non-intrusive collapsible section (`<details>`).
+- **Global Chrome & Copilot De-Clutter (`App.jsx`, `Header.jsx`)**:
+  - Removed duplicate center persona indicator ("● Everyday User Mode | Change") from top navigation bar (`Header.jsx`).
+  - Deferred `ChatbotFab` floating button so it only appears on the results screen (`appState === 'results'`) or when actively open, preventing intake distraction (`App.jsx`).
+  - Simplified global footer text to single-line legal disclaimer (`App.jsx`).
+- **Verification**:
+  - Executed `npm run build` in `frontend/` — production build succeeded with exit code 0 (2090 modules transformed).
+
 ### [2026-10-30] — Preset Scenarios Balanced Grid, 3D Atlas Persona Themes & Analysis Video Fixes
 
 - **White Screen Crash Fix (`App.jsx`)**:

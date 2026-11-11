@@ -233,58 +233,52 @@
   pointer-events: none;
 }
 
-.landing-grid {
-  position: absolute;
-  inset: -20%;
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-  animation: grid-drift 28s linear infinite;
+/* ── Cellular & Molecular Drift ── */
+
+.cell-drift-anim {
+  animation: cell-float var(--duration, 25s) ease-in-out infinite;
+  will-change: transform;
 }
 
-.landing-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(70px);
-  opacity: 0.55;
+@keyframes cell-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(var(--drift-x, 25px), calc(var(--drift-y, -20px) * 0.7), 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(calc(var(--drift-x, 25px) * -0.5), var(--drift-y, -20px), 0) scale(0.96);
+  }
 }
 
-.landing-orb--teal {
-  width: 420px;
-  height: 420px;
-  top: -80px;
-  left: -60px;
-  background: #5EEAD4;
-  animation: orb-float 16s ease-in-out infinite;
+.molecular-drift-anim {
+  animation: molecule-orbit var(--duration, 20s) ease-in-out infinite;
+  will-change: transform;
 }
 
-.landing-orb--sky {
-  width: 480px;
-  height: 480px;
-  top: 20%;
-  right: -120px;
-  background: #7DD3FC;
-  animation: orb-float 20s ease-in-out infinite reverse;
+@keyframes molecule-orbit {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(24px, -20px, 0) rotate(180deg);
+  }
 }
 
-.landing-orb--mint {
-  width: 360px;
-  height: 360px;
-  bottom: -80px;
-  left: 30%;
-  background: #A5F3FC;
-  animation: orb-float 18s ease-in-out infinite 1.4s;
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
 }
 
-.landing-spark {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, #2DD4BF, #38BDF8);
-  box-shadow: 0 0 12px rgba(45, 212, 191, 0.55);
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.06);
+  }
 }
 
 .wave-layer--back {
@@ -307,24 +301,15 @@
   transform-origin: center;
 }
 
-@keyframes grid-drift {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-42px, -42px, 0); }
-}
-
-@keyframes orb-float {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(28px, -22px, 0) scale(1.08); }
-}
-
 @keyframes wave-shift {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(-18px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-grid,
-  .landing-orb,
+  .cell-drift-anim,
+  .molecular-drift-anim,
+  .animate-pulse-slow,
   .wave-layer--back,
   .wave-layer--mid,
   .wave-layer--front,

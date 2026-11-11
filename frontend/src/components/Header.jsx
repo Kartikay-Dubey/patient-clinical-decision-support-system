@@ -51,24 +51,6 @@ export default function Header({ onReset, appState = 'input' }) {
             </div>
           </div>
 
-          {/* Center: Session Telemetry */}
-          <div className="hidden md:flex items-center gap-2 text-[11px] text-muted-foreground font-medium">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
-            </span>
-            <span className="font-display font-semibold text-foreground">{personaConfig.label} Mode</span>
-            <span className="text-slate-300">|</span>
-            <button
-              type="button"
-              onClick={() => setShowExperiencePicker(true)}
-              className="text-primary hover:text-primary/80 font-semibold cursor-pointer transition-colors"
-              title="Change user experience mode"
-            >
-              Change
-            </button>
-          </div>
-
           {/* Right Action Suite: New Intake, Profile */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
             {/* New Intake Reset Button */}
